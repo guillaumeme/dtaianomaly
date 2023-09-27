@@ -1,6 +1,8 @@
 # Time Series Anomaly Detection
 
 
+[![pipeline status](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
+[![coverage report](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
 
 ## Getting started
 
