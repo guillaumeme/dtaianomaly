@@ -2,7 +2,7 @@
 import unittest
 import numpy as np
 
-from anomaly_detection.utility.Windowing import Windowing
+from src.anomaly_detection.utility.Windowing import Windowing
 
 
 class TestWindowing(unittest.TestCase):
