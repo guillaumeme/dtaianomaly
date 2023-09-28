@@ -54,7 +54,8 @@ class DataManager:
 
                 # For string-like properties, either a single string (for exact match) or a list of strings (for multiple exact matches) should be given
                 elif all((v is None) or isinstance(v, str) for v in self.__datasets_index[dataset_property]):
-                    newly_selected_datasets &= self.__datasets_index.index.get_level_values('dataset_name').isin([value] if isinstance(value, str) else value)
+                    newly_selected_datasets &= self.__datasets_index.loc[:, dataset_property].isin([value] if isinstance(value, str) else value)
+
 
                 else:
                     raise NotImplementedError(f"The type of property '{dataset_property}' equals '{self.__datasets_index[dataset_property].dtype}', but this type is not yet supported!")
