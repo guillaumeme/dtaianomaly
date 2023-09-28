@@ -14,7 +14,7 @@ class DataManager:
         self.__datasets_index: pd.DataFrame = pd.read_csv(self.__data_folder + '/' + self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
         self.__selected_datasets: pd.DataFrame = pd.DataFrame(index=self.__datasets_index.index, columns=['selected'], data=False)
 
-    def select(self, dataset_properties: Optional[Dict[str, any]]) -> None:
+    def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> None:
         # Keep track of the datasets that match all the given properties
         newly_selected_datasets = np.ones(self.__datasets_index.shape[0], dtype=bool)
 
