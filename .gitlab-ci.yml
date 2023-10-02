@@ -28,7 +28,8 @@ run-all-tests:   # This job runs in the test stage.
     - pip install coverage
     - pip install unittest-xml-reporting
   script:
-    - coverage run -m xmlrunner discover tests --output-file report.xml
+    # Command without coverage and reportpython -m unittest discover tests
+    - coverage run -m xmlrunner discover tests --output-file report.xml 
     - coverage report --precision=2 --include=src/* --show-missing
   coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+\.\d{2})%$/'
   artifacts:
