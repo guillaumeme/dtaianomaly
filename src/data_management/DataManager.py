@@ -8,10 +8,10 @@ DatasetIndex = Tuple[str, str]
 # Inspired by Timeeval (https://github.com/HPI-Information-Systems/TimeEval/tree/main)
 class DataManager:
 
-    def __init__(self, data_folder: str, datasets_index_file: str = 'datasets.csv'):
-        self.__data_folder: str = data_folder
+    def __init__(self, data_dir: str, datasets_index_file: str = 'datasets.csv'):
+        self.__data_dir: str = data_dir
         self.__datasets_index_file: str = datasets_index_file
-        self.__datasets_index: pd.DataFrame = pd.read_csv(self.__data_folder + '/' + self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
+        self.__datasets_index: pd.DataFrame = pd.read_csv(self.__data_dir + '/' + self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
         self.__selected_datasets: pd.DataFrame = pd.DataFrame(index=self.__datasets_index.index, columns=['selected'], data=False)
 
     def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> None:
@@ -56,7 +56,6 @@ class DataManager:
                 elif all((v is None) or isinstance(v, str) for v in self.__datasets_index[dataset_property]):
                     newly_selected_datasets &= self.__datasets_index.loc[:, dataset_property].isin([value] if isinstance(value, str) else value)
 
-
                 else:
                     raise NotImplementedError(f"The type of property '{dataset_property}' equals '{self.__datasets_index[dataset_property].dtype}', but this type is not yet supported!")
 
@@ -66,13 +65,13 @@ class DataManager:
     def get(self) -> List[DatasetIndex]:
         return self.__selected_datasets[self.__selected_datasets['selected']].index.tolist()
 
-    def get_detailed_metadata(self, dataset_index: DatasetIndex) -> pd.Series:
+    def get_metadata(self, dataset_index: DatasetIndex) -> pd.Series:
         self.check_index_exists(dataset_index)
         return self.__datasets_index.loc[dataset_index, :]
 
     def load(self, dataset_index: DatasetIndex, train: bool = False) -> pd.DataFrame:
         self.check_index_selected(dataset_index)
-        path = self.__data_folder + '/' + self.__datasets_index.loc[dataset_index, 'train_path' if train else 'test_path']
+        path = (self.__data_dir + '/' + self.__datasets_index.loc[dataset_index, 'train_path' if train else 'test_path'])
         return pd.read_csv(path, index_col='timestamp')
 
     def load_raw_data(self, dataset_index: DatasetIndex, train: bool = False) -> Tuple[np.ndarray, np.ndarray]:

@@ -1,7 +1,7 @@
 import abc
 import numpy as np
 import copy
-from typing import Optional
+from typing import Optional, Dict
 from scipy.stats import binom
 from scipy.special import erf
 
@@ -16,19 +16,10 @@ class TimeSeriesAnomalyDetector(abc.ABC):
     def decision_function(self, trend_data: np.ndarray) -> np.array:
         raise NotImplementedError("Abstract method 'decision_scores(np.ndarray)' should be implemented by the specific anomaly detector!")
 
-    def predict(self, trend_data: np.ndarray, threshold: Optional[float] = None, contamination: Optional[float] = None) -> np.array:
-
-        # If a threshold is given, use it to predict anomalies
-        if threshold is not None:
-            return self.predict_proba(trend_data) > threshold
-
-        # Otherwise, if the contamination is given, use it to predict anomalies
-        elif contamination is not None:
-            predicted_proba = self.predict_proba(trend_data)
-            return predicted_proba > np.quantile(predicted_proba, 1 - contamination)
-
-        # If neither a threshold nor a contamination is given, an error is raised
-        raise ValueError("Either 'threshold' or 'contamination' should be specified to predict anomalies!")
+    @staticmethod
+    @abc.abstractmethod
+    def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':
+        raise NotImplementedError("Abstract method 'load()' should be implemented by the specific anomaly detector!")
 
     def predict_proba(self, trend_data: np.ndarray) -> np.array:
         decision_scores = self.decision_function(trend_data)
