@@ -13,4 +13,4 @@ class TestWindowing(unittest.TestCase):
         nb_reps = 50
         for random_window_size in np.random.choice(np.arange(min_window_size, max_window_size + 1), nb_reps):
             windowing = Windowing(window_size=random_window_size)
-            self.assertEquals(windowing.window_size, random_window_size)
+            self.assertEqual(windowing.window_size, random_window_size)

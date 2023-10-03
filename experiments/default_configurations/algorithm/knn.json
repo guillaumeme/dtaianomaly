@@ -1,0 +1,7 @@
+{
+  "anomaly_detector": "PYODAnomalyDetector",
+  "pyod_model": "KNN",
+  "windowing": {
+    "window_size": 10
+  }
+}

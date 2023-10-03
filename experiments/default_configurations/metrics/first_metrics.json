@@ -1,0 +1,17 @@
+{
+  "roc_auc": { },
+  "pr_auc": { },
+  "precision": {
+    "thresholding_strategy": "contamination",
+    "thresholding_parameters": {
+      "contamination": 0.1
+    }
+  },
+  "precision2": {
+    "metric_name": "precision",
+    "thresholding_strategy": "contamination",
+    "thresholding_parameters": {
+      "contamination": 0.2
+    }
+  }
+}
