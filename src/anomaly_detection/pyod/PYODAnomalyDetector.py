@@ -18,14 +18,15 @@ _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
 class PYODAnomalyDetector(TimeSeriesAnomalyDetector):
 
     def __init__(self, pyod_anomaly_detector: BaseDetector, windowing: Windowing):
+        super().__init__()
         self.__pyod_anomaly_detector: BaseDetector = pyod_anomaly_detector
         self.__windowing: Windowing = windowing
 
-    def fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PYODAnomalyDetector':
+    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PYODAnomalyDetector':
         self.__pyod_anomaly_detector.fit(self.__windowing.create_windows(trend_data))
         return self
 
-    def decision_function(self, trend_data: np.ndarray) -> np.array:
+    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
         windowed_decision_scores = self.__pyod_anomaly_detector.decision_function(self.__windowing.create_windows(trend_data))
         return self.__windowing.reverse_windowing(windowed_decision_scores)
 

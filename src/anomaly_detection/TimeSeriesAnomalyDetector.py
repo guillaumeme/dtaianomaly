@@ -8,12 +8,25 @@ from scipy.special import erf
 
 class TimeSeriesAnomalyDetector(abc.ABC):
 
-    @abc.abstractmethod
+    def __init__(self):
+        self.__decision_scores = None
+
     def fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'TimeSeriesAnomalyDetector':
-        raise NotImplementedError("Abstract method 'fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
+        self.__decision_scores = None
+        self._fit_anomaly_detector(trend_data, labels)
+        return self
 
     @abc.abstractmethod
+    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
+        raise NotImplementedError("Abstract method 'fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
+
     def decision_function(self, trend_data: np.ndarray) -> np.array:
+        if self.__decision_scores is None:
+            self.__decision_scores = self._compute_decision_scores(trend_data)
+        return self.__decision_scores
+
+    @abc.abstractmethod
+    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
         raise NotImplementedError("Abstract method 'decision_scores(np.ndarray)' should be implemented by the specific anomaly detector!")
 
     @staticmethod
