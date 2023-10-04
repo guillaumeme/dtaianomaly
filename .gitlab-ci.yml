@@ -17,10 +17,11 @@ cache:
     - .cache/pip
     - venv/
 
-stages:          # List of stages for jobs, and their order of execution
+stages:
   - test
 
-run-all-tests:   # This job runs in the test stage.
+# Run the test suite
+run-all-tests: 
   stage: test    # It only starts when the job in the build stage completes successfully.
   before_script:
     - python --version ; pip --version  # For debugging
@@ -37,4 +38,12 @@ run-all-tests:   # This job runs in the test stage.
     reports:
         junit: report.xml
     expire_in: 2 weeks
-    
+
+# Check if the main script still executes without any problems
+check-main-script:
+  stage: test
+  before_script:
+    - python --version ; pip --version  # For debugging
+    - pip install -r requirements.txt
+  script:
+    - python -m main.py
