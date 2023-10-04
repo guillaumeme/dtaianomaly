@@ -46,4 +46,4 @@ check-main-script:
     - python --version ; pip --version  # For debugging
     - pip install -r requirements.txt
   script:
-    - python -m main.py
+    - python main.py
