@@ -8,12 +8,25 @@ from scipy.special import erf
 
 class TimeSeriesAnomalyDetector(abc.ABC):
 
-    @abc.abstractmethod
+    def __init__(self):
+        self.__decision_scores = None
+
     def fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'TimeSeriesAnomalyDetector':
-        raise NotImplementedError("Abstract method 'fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
+        self.__decision_scores = None
+        self._fit_anomaly_detector(trend_data, labels)
+        return self
 
     @abc.abstractmethod
+    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
+        raise NotImplementedError("Abstract method 'fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
+
     def decision_function(self, trend_data: np.ndarray) -> np.array:
+        if self.__decision_scores is None:
+            self.__decision_scores = self._compute_decision_scores(trend_data)
+        return self.__decision_scores
+
+    @abc.abstractmethod
+    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
         raise NotImplementedError("Abstract method 'decision_scores(np.ndarray)' should be implemented by the specific anomaly detector!")
 
     @staticmethod
@@ -21,20 +34,32 @@ class TimeSeriesAnomalyDetector(abc.ABC):
     def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':
         raise NotImplementedError("Abstract method 'load()' should be implemented by the specific anomaly detector!")
 
-    def predict_proba(self, trend_data: np.ndarray) -> np.array:
+    def predict_proba(self, trend_data: np.ndarray, normalization: str = 'unify') -> np.array:
         decision_scores = self.decision_function(trend_data)
-        return self._normalize(decision_scores)
+        return self._normalize(decision_scores, normalization)
 
     @staticmethod
-    def _normalize(decision_scores: np.array) -> np.array:
-        # paper: https://epubs.siam.org/doi/abs/10.1137/1.9781611972818.2
-        mean = np.mean(decision_scores)
-        std = np.std(decision_scores)
+    def _normalize(decision_scores: np.array, normalization: str) -> np.array:
+        # Use min-max normalization to normalize the decision scores
+        if normalization == 'min_max':
+            min_decision_score = np.min(decision_scores)
+            max_decision_score = np.max(decision_scores)
+            probability = (decision_scores - min_decision_score) / (max_decision_score - min_decision_score)
 
-        pre_erf_scores = (decision_scores - mean) / (std * np.sqrt(2))
-        erf_scores = erf(pre_erf_scores)
-        probability = erf_scores.clip(0, 1).ravel()
+        # Use a unifying strategy to normalize the decision scores (https://epubs.siam.org/doi/abs/10.1137/1.9781611972818.2)
+        elif normalization == 'unify':
+            mean = np.mean(decision_scores)
+            std = np.std(decision_scores)
+            pre_erf_scores = (decision_scores - mean) / (std * np.sqrt(2))
+            erf_scores = erf(pre_erf_scores)
+            probability = erf_scores.clip(0, 1).ravel()
 
+        # Raise an exception if an invalid decision score was given
+        else:
+            raise ValueError(f"Invalid normalization strategy: '{normalization}'!"
+                             f"Valid options are: 'unify', 'min_max'")
+
+        # Return the probabilities, aka normalized decision scores,
         return probability
 
     def predict_confidence(self, trend_data: np.ndarray, contamination: float) -> np.array:

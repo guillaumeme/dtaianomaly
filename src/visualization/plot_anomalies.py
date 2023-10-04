@@ -40,10 +40,13 @@ def plot_data(
         # Plot the ground truth
         if show_ground_truth != 'none':
             for start, end in anomaly_ranges:
+                # Mark the point before and after the anomaly as well
+                start_inclusive = start - 1
+                end_inclusive = end + 1
                 if show_ground_truth == 'background':
-                    axs[i].axvspan(start, end, color='red', label='Anomaly')
+                    axs[i].axvspan(start_inclusive, end_inclusive, color='red', label='Anomaly', alpha=0.2)
                 elif show_ground_truth == 'inline':
-                    axs[i].plot(range(start, end), trend_data.iloc[start:end, :][attribute], color='red')
+                    axs[i].plot(range(start_inclusive, end_inclusive), trend_data.iloc[start_inclusive:end_inclusive, :][attribute], color='red')
 
     # Save the figure if requested
     if axs is not None and file_path is not None:
