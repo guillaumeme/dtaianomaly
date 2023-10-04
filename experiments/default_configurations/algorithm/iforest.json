@@ -1,6 +1,6 @@
 {
   "anomaly_detector": "PYODAnomalyDetector",
-  "pyod_model": "KNN",
+  "pyod_model": "IForest",
   "windowing": {
     "window_size": 250
   }

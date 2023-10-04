@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 
 
 def plot_data(
@@ -35,7 +35,7 @@ def plot_data(
     # Plot each attribute
     for i in range(len(attributes)):
         attribute = attributes[i]
-        trend_data[attribute].plot(ax=axs[i], ylabel=attribute)
+        trend_data[attribute].plot(ax=axs[i], title=attribute)
 
         # Plot the ground truth
         if show_ground_truth != 'none':
@@ -52,35 +52,41 @@ def plot_data(
     return fig if return_fig else axs
 
 
-def plot_anomaly_labels(trend_data: pd.DataFrame, anomaly_labels: np.array) -> None:
-    pass
+def plot_anomaly_scores(
+        trend_data: pd.DataFrame,
+        anomaly_scores: Union[np.array, Dict[str, np.array]],
+        file_path: Optional[str] = None,
+        show_ground_truth: str = 'none') -> plt.Figure:
 
+    # Check if valid value is provided for 'show_ground_truth'
+    if show_ground_truth not in ['none', 'compare', 'inline', 'background']:
+        raise ValueError("Parameter 'show_ground_truth' must be one of 'none', 'compare', 'inline', or 'background'!")
 
-def plot_anomaly_scores(trend_data: pd.DataFrame, anomaly_scores: np.array) -> None:
-    pass
+    # Format the anomaly scores to a dict with as key the label to show in the plot
+    formatted_anomaly_scores = {}
+    if type(anomaly_scores) == dict:
+        for key, value in anomaly_scores.items():
+            formatted_anomaly_scores['Anomaly scores ' + key] = value
+    else:
+        formatted_anomaly_scores = {'Anomaly scores': anomaly_scores}
 
+    # Plot the data
+    fig, axs = plt.subplots(nrows=trend_data.shape[1] - 1 + len(formatted_anomaly_scores), sharex='all')
+    plot_data(trend_data, axs[:trend_data.shape[1] - 1], show_ground_truth='none' if show_ground_truth == 'compare' else show_ground_truth)
 
-def main():
-    from src.data_management.DataManager import DataManager
-    from src.workflows.handle_data_configuration import handle_data_configuration
-    from src.workflows.handle_algorithm_configuration import handle_algorithm_configuration
-    from src.evaluation.thresholding import contamination_threshold
+    axs_counter = trend_data.shape[1] - 1
+    for label, specific_anomaly_scores in formatted_anomaly_scores.items():
+        # Plot the anomaly scores
+        axs[axs_counter].set_title(label)
+        axs[axs_counter].plot(specific_anomaly_scores, color='red', label='Predicted')
+        if show_ground_truth == 'compare':
+            axs[axs_counter].plot(trend_data['is_anomaly'], color='green', label='Ground truth')
+            axs[axs_counter].legend()
+        # Increment the counter
+        axs_counter += 1
 
-    data_manager = DataManager('../../data')
-    data_manager = handle_data_configuration(data_manager, '../../experiments/default_configurations/data/CalIt2.json')
-    dataset_index = data_manager.get()[0]
-    data_df = data_manager.load(dataset_index)
-    trend_data, ground_truth = data_manager.load_raw_data(dataset_index)
+    # Save the figure if requested
+    if file_path is not None:
+        fig.savefig(file_path)
 
-    anomaly_detector = handle_algorithm_configuration('../../experiments/default_configurations/algorithm/knn.json')
-
-    anomaly_detector.fit(trend_data)
-    anomaly_scores = anomaly_detector.decision_function(trend_data)
-    anomaly_labels = contamination_threshold(ground_truth, anomaly_scores, 0.1)
-
-    fig = plot_data(data_df, show_ground_truth='inline')
-    fig.show()
-
-
-if __name__ == "__main__":
-    main()
+    return fig

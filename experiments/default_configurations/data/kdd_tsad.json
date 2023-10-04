@@ -1,0 +1,7 @@
+{
+  "select": [
+    {
+      "collection_name": "KDD-TSAD"
+    }
+  ]
+}
