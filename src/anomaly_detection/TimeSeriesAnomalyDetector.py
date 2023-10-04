@@ -21,20 +21,20 @@ class TimeSeriesAnomalyDetector(abc.ABC):
     def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':
         raise NotImplementedError("Abstract method 'load()' should be implemented by the specific anomaly detector!")
 
-    def predict_proba(self, trend_data: np.ndarray, normalization_strategy: str = 'unifying') -> np.array:
+    def predict_proba(self, trend_data: np.ndarray, normalization: str = 'unify') -> np.array:
         decision_scores = self.decision_function(trend_data)
-        return self._normalize(decision_scores, normalization_strategy)
+        return self._normalize(decision_scores, normalization)
 
     @staticmethod
-    def _normalize(decision_scores: np.array, normalization_strategy: str) -> np.array:
+    def _normalize(decision_scores: np.array, normalization: str) -> np.array:
         # Use min-max normalization to normalize the decision scores
-        if normalization_strategy == 'min-max':
+        if normalization == 'min_max':
             min_decision_score = np.min(decision_scores)
             max_decision_score = np.max(decision_scores)
             probability = (decision_scores - min_decision_score) / (max_decision_score - min_decision_score)
 
         # Use a unifying strategy to normalize the decision scores (https://epubs.siam.org/doi/abs/10.1137/1.9781611972818.2)
-        elif normalization_strategy == 'unifying':
+        elif normalization == 'unify':
             mean = np.mean(decision_scores)
             std = np.std(decision_scores)
             pre_erf_scores = (decision_scores - mean) / (std * np.sqrt(2))
@@ -43,8 +43,8 @@ class TimeSeriesAnomalyDetector(abc.ABC):
 
         # Raise an exception if an invalid decision score was given
         else:
-            raise ValueError(f"Invalid normalization strategy '{normalization_strategy}'!"
-                             f"Valid options are: 'unifying', 'min-max'")
+            raise ValueError(f"Invalid normalization strategy: '{normalization}'!"
+                             f"Valid options are: 'unify', 'min_max'")
 
         # Return the probabilities, aka normalized decision scores,
         return probability
