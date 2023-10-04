@@ -21,20 +21,32 @@ class TimeSeriesAnomalyDetector(abc.ABC):
     def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':
         raise NotImplementedError("Abstract method 'load()' should be implemented by the specific anomaly detector!")
 
-    def predict_proba(self, trend_data: np.ndarray) -> np.array:
+    def predict_proba(self, trend_data: np.ndarray, normalization_strategy: str = 'unifying') -> np.array:
         decision_scores = self.decision_function(trend_data)
-        return self._normalize(decision_scores)
+        return self._normalize(decision_scores, normalization_strategy)
 
     @staticmethod
-    def _normalize(decision_scores: np.array) -> np.array:
-        # paper: https://epubs.siam.org/doi/abs/10.1137/1.9781611972818.2
-        mean = np.mean(decision_scores)
-        std = np.std(decision_scores)
+    def _normalize(decision_scores: np.array, normalization_strategy: str) -> np.array:
+        # Use min-max normalization to normalize the decision scores
+        if normalization_strategy == 'min-max':
+            min_decision_score = np.min(decision_scores)
+            max_decision_score = np.max(decision_scores)
+            probability = (decision_scores - min_decision_score) / (max_decision_score - min_decision_score)
 
-        pre_erf_scores = (decision_scores - mean) / (std * np.sqrt(2))
-        erf_scores = erf(pre_erf_scores)
-        probability = erf_scores.clip(0, 1).ravel()
+        # Use a unifying strategy to normalize the decision scores (https://epubs.siam.org/doi/abs/10.1137/1.9781611972818.2)
+        elif normalization_strategy == 'unifying':
+            mean = np.mean(decision_scores)
+            std = np.std(decision_scores)
+            pre_erf_scores = (decision_scores - mean) / (std * np.sqrt(2))
+            erf_scores = erf(pre_erf_scores)
+            probability = erf_scores.clip(0, 1).ravel()
 
+        # Raise an exception if an invalid decision score was given
+        else:
+            raise ValueError(f"Invalid normalization strategy '{normalization_strategy}'!"
+                             f"Valid options are: 'unifying', 'min-max'")
+
+        # Return the probabilities, aka normalized decision scores,
         return probability
 
     def predict_confidence(self, trend_data: np.ndarray, contamination: float) -> np.array:
