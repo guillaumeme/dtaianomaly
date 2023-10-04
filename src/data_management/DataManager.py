@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Optional, Dict, List, Union
 
 DatasetIndex = Tuple[str, str]
 
@@ -12,7 +12,7 @@ class DataManager:
         self.__data_dir: str = data_dir
         self.__datasets_index_file: str = datasets_index_file
         self.__datasets_index: pd.DataFrame = pd.read_csv(self.__data_dir + '/' + self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
-        self.__selected_datasets: pd.DataFrame = pd.DataFrame(index=self.__datasets_index.index, columns=['selected'], data=False)
+        self.__selected_datasets: pd.Series = pd.Series(index=self.__datasets_index.index, data=False)
 
     def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> None:
         # Keep track of the datasets that match all the given properties
@@ -60,10 +60,17 @@ class DataManager:
                     raise NotImplementedError(f"The type of property '{dataset_property}' equals '{self.__datasets_index[dataset_property].dtype}', but this type is not yet supported!")
 
         # Set the flags of the selected datasets to True
-        self.__selected_datasets['selected'] |= newly_selected_datasets
+        self.__selected_datasets |= newly_selected_datasets
 
-    def get(self) -> List[DatasetIndex]:
-        return self.__selected_datasets[self.__selected_datasets['selected']].index.tolist()
+    def get(self, index: Optional[int] = None) -> Union[List[DatasetIndex], DatasetIndex]:
+        selected_datasets = self.__selected_datasets[self.__selected_datasets].index
+        if index is None:
+            return selected_datasets.tolist()
+        else:
+            if index < 0 or index >= selected_datasets.shape[0]:
+                raise ValueError(f"Invalid index of a dataset given to the DataManager: '{index}'!"
+                                 f"Only {selected_datasets.shape[0]} datasets are selected, thus '0 <= index < {selected_datasets.shape[0]}' must be satisfied")
+            return selected_datasets[index]
 
     def get_metadata(self, dataset_index: DatasetIndex) -> pd.Series:
         self.check_index_exists(dataset_index)
@@ -84,5 +91,5 @@ class DataManager:
 
     def check_index_selected(self, dataset_index: DatasetIndex) -> None:
         self.check_index_exists(dataset_index)
-        if not self.__selected_datasets.loc[dataset_index, 'selected']:
+        if not self.__selected_datasets.loc[dataset_index]:
             raise ValueError(f"The dataset '{dataset_index}' has not been selected!")
