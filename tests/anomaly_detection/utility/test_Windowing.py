@@ -1,7 +1,6 @@
 
 import pytest
 import numpy as np
-from typing import Tuple
 
 from src.anomaly_detection.utility.Windowing import Windowing
 from src.data_management.DataManager import DataManager
