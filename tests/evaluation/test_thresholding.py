@@ -9,8 +9,8 @@ class TestFixedValueThreshold:
 
     def test_invalid_threshold(self):
         scores = np.random.uniform(size=1000)
-        assert np.all(fixed_value_threshold(np.ones_like(scores), scores, threshold=-1) == 0)
-        assert np.all(fixed_value_threshold(np.ones_like(scores), scores, threshold=10) == 1)
+        assert np.all(fixed_value_threshold(np.ones_like(scores), scores, threshold=-1) == 1)
+        assert np.all(fixed_value_threshold(np.ones_like(scores), scores, threshold=10) == 0)
 
     def test_threshold_given(self):
         ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])

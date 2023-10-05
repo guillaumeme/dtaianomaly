@@ -9,9 +9,9 @@ def fixed_value_threshold(ground_truth: np.array, scores: np.array, threshold: O
         return top_n_threshold(ground_truth, scores)
 
     if threshold <= 0.0:
-        return np.zeros_like(scores)
-    elif threshold >= 1.0:
         return np.ones_like(scores)
+    elif threshold >= 1.0:
+        return np.zeros_like(scores)
     else:
         return scores >= threshold
 
