@@ -18,21 +18,19 @@ cache:
     - venv/
 
 stages:
-  - test
+  - unittest
+  - workflow
 
 # Run the test suite
-run-all-tests: 
-  stage: test    # It only starts when the job in the build stage completes successfully.
+run-unit-tests: 
+  stage: unittest
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install -r requirements.txt
-    - pip install coverage
-    - pip install unittest-xml-reporting
+    - pip install pytest pytest-cov
   script:
-    # Command without coverage and reportpython -m unittest discover tests
-    - coverage run -m xmlrunner discover tests --output-file report.xml -v
-    - coverage report --precision=2 --include=src/* --show-missing
-  coverage: '/^TOTAL\s+\d+\s+\d+\s+(\d+\.\d{2})%$/'
+    - pytest ./tests --cov=src --cov-report term-missing --junitxml=report.xml -v
+  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
     reports:
@@ -40,8 +38,8 @@ run-all-tests:
     expire_in: 2 weeks
 
 # Check if the main script still executes without any problems
-check-main-script:
-  stage: test
+run-main-script:
+  stage: workflow
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install -r requirements.txt
