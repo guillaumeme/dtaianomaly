@@ -14,7 +14,7 @@ class Windowing:
         elif reduction == 'sum':
             self.__reduction_function = np.sum
         else:
-            raise Exception(f"Reduction strategy '{reduction}' is invalid for reverse windowing! Allowed strategies are 'mean', 'median', 'max', and 'sum'.")
+            raise ValueError(f"Reduction strategy '{reduction}' is invalid for reverse windowing! Allowed strategies are 'mean', 'median', 'max', and 'sum'.")
 
     @property
     def window_size(self) -> int:
@@ -26,7 +26,7 @@ class Windowing:
             trend_data = trend_data.reshape(-1, 1)
 
         nb_windows = trend_data.shape[0] - self.__window_size + 1
-        windowed_trend_data = np.empty((nb_windows, self.__window_size * trend_data.shape[1]))
+        windowed_trend_data = np.empty((nb_windows, self.__window_size * trend_data.shape[1]), dtype=trend_data.dtype)
         for w in range(nb_windows):
             windowed_trend_data[w, :] = trend_data[w:w + self.__window_size, :].flatten()
         return windowed_trend_data
