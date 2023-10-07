@@ -47,7 +47,7 @@ class TestFixedValueThreshold:
         ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
         scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
         for threshold in np.arange(21) / 20:
-            assert fixed_value_threshold(ground_truth, scores, threshold=threshold).dtype == int
+            assert fixed_value_threshold(ground_truth, scores, threshold=threshold).dtype == np.int16
 
 
 class TestContaminationThreshold:
@@ -97,7 +97,7 @@ class TestContaminationThreshold:
         ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
         scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
         for contamination in np.arange(21) / 20:
-            assert contamination_threshold(ground_truth, scores, contamination=contamination).dtype == int
+            assert contamination_threshold(ground_truth, scores, contamination=contamination).dtype == np.int16
 
 
 class TestTopNThreshold:
@@ -153,7 +153,7 @@ class TestTopNThreshold:
         ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
         scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
         for top_n in range(0, len(scores) + 1):
-            assert top_n_threshold(ground_truth, scores, top_n=top_n).dtype == int
+            assert top_n_threshold(ground_truth, scores, top_n=top_n).dtype == np.int16
 
 
 class TestTopNRangesThreshold:
@@ -207,7 +207,7 @@ class TestTopNRangesThreshold:
         ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
         scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
         for top_n in range(0, len(scores) + 1):
-            assert top_n_ranges_threshold(ground_truth, scores, top_n=top_n).dtype == int
+            assert top_n_ranges_threshold(ground_truth, scores, top_n=top_n).dtype == np.int16
 
 
 class TestCountConsecutiveOnes:
