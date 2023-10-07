@@ -43,6 +43,12 @@ class TestFixedValueThreshold:
         assert np.array_equal(labels_without_threshold, labels_with_threshold)
         assert np.sum(labels_without_threshold) == 4
 
+    def test_type(self):
+        ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
+        scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
+        for threshold in np.arange(21) / 20:
+            assert fixed_value_threshold(ground_truth, scores, threshold=threshold).dtype == int
+
 
 class TestContaminationThreshold:
 
@@ -86,6 +92,12 @@ class TestContaminationThreshold:
         scores = np.random.uniform(size=1000)
         for contamination in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
             assert np.mean(contamination_threshold(np.ones_like(scores), scores, contamination=contamination)) == pytest.approx(contamination, abs=1e-3)
+
+    def test_type(self):
+        ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
+        scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
+        for contamination in np.arange(21) / 20:
+            assert contamination_threshold(ground_truth, scores, contamination=contamination).dtype == int
 
 
 class TestTopNThreshold:
@@ -137,6 +149,12 @@ class TestTopNThreshold:
         for n in range(0, scores.shape[0] + 1):
             assert np.sum(top_n_threshold(np.ones_like(scores), scores, top_n=n)) >= n
 
+    def test_type(self):
+        ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
+        scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
+        for top_n in range(0, len(scores) + 1):
+            assert top_n_threshold(ground_truth, scores, top_n=top_n).dtype == int
+
 
 class TestTopNRangesThreshold:
 
@@ -184,6 +202,12 @@ class TestTopNRangesThreshold:
         scores = np.random.uniform(size=1000)
         for n in range(0, scores.shape[0] + 1, 50):
             assert count_nb_ranges(top_n_ranges_threshold(np.ones_like(scores), scores, top_n=n)) <= n
+
+    def test_type(self):
+        ground_truth = np.array([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0])
+        scores = np.array([0.1, 0.2, 0.7, 0.8, 0.2, 0.1, 0.8, 0.1, 0.2, 0.1, 0.1, 0.1, 0.3, 0.8, 0.4])
+        for top_n in range(0, len(scores) + 1):
+            assert top_n_ranges_threshold(ground_truth, scores, top_n=top_n).dtype == int
 
 
 class TestCountConsecutiveOnes:

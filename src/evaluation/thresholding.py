@@ -9,11 +9,11 @@ def fixed_value_threshold(ground_truth: np.array, scores: np.array, threshold: O
         return top_n_threshold(ground_truth, scores)
 
     if threshold <= 0.0:
-        return np.ones_like(scores)
+        return np.ones_like(scores, dtype=np.int16)
     elif threshold >= 1.0:
-        return np.zeros_like(scores)
+        return np.zeros_like(scores, dtype=np.int16)
     else:
-        return scores >= threshold
+        return np.array(scores >= threshold, dtype=np.int16)
 
 
 def contamination_threshold(ground_truth: np.array, scores: np.array, contamination: Optional[float] = None) -> np.array:
@@ -22,11 +22,11 @@ def contamination_threshold(ground_truth: np.array, scores: np.array, contaminat
         contamination = np.sum(ground_truth) / len(ground_truth)
 
     if contamination <= 0.0:
-        return np.zeros_like(scores)
+        return np.zeros_like(scores, dtype=np.int16)
     elif contamination >= 1.0:
-        return np.ones_like(scores)
+        return np.ones_like(scores, dtype=np.int16)
     else:
-        return scores >= np.quantile(scores, 1 - contamination)
+        return np.array(scores >= np.quantile(scores, 1 - contamination), dtype=np.int16)
 
 
 def top_n_threshold(ground_truth: np.array, scores: np.array, top_n: Optional[int] = None) -> np.array:
@@ -53,14 +53,14 @@ def top_n_ranges_threshold(ground_truth: np.array, scores: np.array, top_n: Opti
         top_n = count_nb_ranges(ground_truth)
 
     if top_n <= 0:
-        return np.zeros_like(scores)
+        return np.zeros_like(scores, dtype=np.int16)
     elif top_n >= len(scores):
-        return np.ones_like(scores)
+        return np.ones_like(scores, dtype=np.int16)
     else:
         thresholds = np.sort(np.unique(scores))
         nb_ranges = np.array([count_nb_ranges(scores >= threshold) for threshold in thresholds])
         index_threshold = np.argmax(np.where(nb_ranges <= top_n, nb_ranges, 0))
-        return scores >= thresholds[index_threshold]
+        return np.array(scores >= thresholds[index_threshold], dtype=np.int16)
 
 
 def count_nb_ranges(labels) -> int:
