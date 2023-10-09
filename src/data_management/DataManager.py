@@ -15,6 +15,12 @@ class DataManager:
         self.__selected_datasets: pd.Series = pd.Series(index=self.__datasets_index.index, data=False)
 
     def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> None:
+
+        # If no dataset properties are given, select all datasets
+        if dataset_properties is None:
+            self.__selected_datasets = pd.Series(index=self.__datasets_index.index, data=True)
+            return
+
         # Keep track of the datasets that match all the given properties
         newly_selected_datasets = np.ones(self.__datasets_index.shape[0], dtype=bool)
 

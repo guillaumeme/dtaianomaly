@@ -22,20 +22,36 @@ stages:
   - workflow
 
 # Run the test suite
-run-unit-tests: 
+test-anomaly-detection: 
   stage: unittest
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install -r requirements.txt
     - pip install pytest pytest-cov
   script:
-    - pytest ./tests --cov=src --cov-report term-missing --junitxml=report.xml -v
+    - pytest ./tests/anomaly_detection --cov=src/anomaly_detection --cov-report term-missing --junitxml=report.xml -v
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
     reports:
         junit: report.xml
-    expire_in: 2 weeks
+    expire_in: 1 weeks
+
+# Run the test suite
+test-evaluation: 
+  stage: unittest
+  before_script:
+    - python --version ; pip --version  # For debugging
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov
+  script:
+    - pytest ./tests/evaluation --cov=src/evaluation --cov-report term-missing --junitxml=report.xml -v
+  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    when: always
+    reports:
+        junit: report.xml
+    expire_in: 1 weeks
 
 # Check if the main script still executes without any problems
 run-main-script:
