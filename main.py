@@ -33,8 +33,9 @@ if __name__ == '__main__':
     # Execute the algorithm
     results = execute_algorithm(
         DataManager(args.data_dir, args.datasets_index_file),
-        args.experiment_dir + '/default_configurations/data/' + 'CalIt2.json',
+        args.experiment_dir + '/default_configurations/data/' + 'Demo.json',
         args.experiment_dir + '/default_configurations/algorithm/' + 'knn.json',
-        args.experiment_dir + '/default_configurations/metrics/' + 'first_metrics.json'
+        args.experiment_dir + '/default_configurations/metrics/' + 'first_metrics.json',
+        results_path='results.csv'
     )
     print(results)

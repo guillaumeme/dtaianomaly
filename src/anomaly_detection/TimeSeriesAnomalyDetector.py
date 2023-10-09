@@ -5,11 +5,17 @@ from typing import Optional, Dict
 from scipy.stats import binom
 from scipy.special import erf
 
+from src.anomaly_detection.utility.TrainType import TrainType
+
 
 class TimeSeriesAnomalyDetector(abc.ABC):
 
     def __init__(self):
         self.__decision_scores = None
+
+    @abc.abstractmethod
+    def train_type(self) -> TrainType:
+        raise NotImplementedError("Abstract method 'is_supervised()' should be implemented by the specific anomaly detector!")
 
     def fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'TimeSeriesAnomalyDetector':
         self.__decision_scores = None

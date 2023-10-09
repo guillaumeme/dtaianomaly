@@ -35,6 +35,8 @@ Daphnet,S09R01E3,,multivariate/Daphnet/S09R01E3.test.csv,real,True,,unsupervised
 Daphnet,S09R01E4,,multivariate/Daphnet/S09R01E4.test.csv,real,True,,unsupervised,False,multivariate,9600,9,0.0279166666666666,1,268,268,268,363.1347106481482,230.52353001656687,no trend,trend_stationary,34.0
 Daphnet,S10R01E0,,multivariate/Daphnet/S10R01E0.test.csv,real,True,,unsupervised,False,multivariate,51200,9,0.0,0,0,0,0,324.12656250000003,236.0282753116258,no trend,trend_stationary,33.0
 Daphnet,S10R01E1,,multivariate/Daphnet/S10R01E1.test.csv,real,True,,unsupervised,False,multivariate,91520,9,0.0,0,0,0,0,236.637270541958,453.8578231584064,kubic trend,trend_stationary,32.0
+Demo,Demo1,,demo/demo1.csv,synthetic,False,,unsupervised,False,univariate,1400,1,0.0321428571428571,1,45,45,45,9.960637084118977,0.7691706112826595,no trend,,350.0
+Demo,Demo2,,demo/demo2.csv,synthetic,False,,unsupervised,False,univariate,2400,1,0.01875,1,45,45,45,9.76989276007894,0.779020532249394,no trend,,350.0
 Dodgers,101-freeway-traffic,,univariate/Dodgers/101-freeway-traffic.test.csv,real,True,,unsupervised,False,univariate,50400,1,0.1113492063492063,133,1,33,379,19.65281746031746,13.724028393108222,no trend,difference_stationary,499.0
 Exathlon,10_2_1000000_67,,multivariate/Exathlon/10_2_1000000_67.test.csv,real,True,,unsupervised,False,multivariate,10250,165,0.5101463414634146,1,5229,5229,5229,3475919337.7715364,4479413910.192505,kubic trend,trend_stationary,10.0
 Exathlon,10_3_1000000_75,,multivariate/Exathlon/10_3_1000000_75.test.csv,real,True,,unsupervised,False,multivariate,46656,8,0.0811685528120713,4,885,965,971,615865.9139282949,178713.78353599383,no trend,difference_stationary,10.0

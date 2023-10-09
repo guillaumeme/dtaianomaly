@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from typing import Tuple, Optional, Dict, List, Union
@@ -84,7 +85,7 @@ class DataManager:
 
     def load(self, dataset_index: DatasetIndex, train: bool = False) -> pd.DataFrame:
         self.check_index_selected(dataset_index)
-        path = (self.__data_dir + '/' + self.__datasets_index.loc[dataset_index, 'train_path' if train else 'test_path'])
+        path = self.check_data_exists(dataset_index, train)
         return pd.read_csv(path, index_col='timestamp')
 
     def load_raw_data(self, dataset_index: DatasetIndex, train: bool = False) -> Tuple[np.ndarray, np.ndarray]:
@@ -99,3 +100,9 @@ class DataManager:
         self.check_index_exists(dataset_index)
         if not self.__selected_datasets.loc[dataset_index]:
             raise ValueError(f"The dataset '{dataset_index}' has not been selected!")
+
+    def check_data_exists(self, dataset_index: DatasetIndex, train: bool = False) -> str:
+        path = (self.__data_dir + '/' + self.__datasets_index.loc[dataset_index, 'train_path' if train else 'test_path'])
+        if not os.path.exists(path):
+            raise ValueError(f"The {'train' if train else 'test'} data of dataset '{dataset_index}' does not exist!")
+        return path

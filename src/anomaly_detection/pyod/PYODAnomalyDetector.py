@@ -1,26 +1,44 @@
 
 import numpy as np
 import importlib
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 from pyod.models.base import BaseDetector
 
 from src.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
+from src.anomaly_detection.utility.TrainType import TrainType
 from src.anomaly_detection.utility.Windowing import Windowing
 
 _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
     # key is the name to use when loading, value is the name of the module in PYOD
     'IForest': 'iforest',
     'LOF': 'lof',
-    'KNN': 'knn'
+    'KNN': 'knn',
+    'OCSVM': 'ocsvm',
+    'ABOD': 'abod',
+    'ECOD': 'ecod'
 }
 
 
 class PYODAnomalyDetector(TimeSeriesAnomalyDetector):
 
-    def __init__(self, pyod_anomaly_detector: BaseDetector, windowing: Windowing):
+    def __init__(self, pyod_anomaly_detector: Union[BaseDetector, str], windowing: Windowing):
         super().__init__()
-        self.__pyod_anomaly_detector: BaseDetector = pyod_anomaly_detector
+
+        if type(pyod_anomaly_detector) == str:
+            # Check if the given anomaly detector is supported
+            if pyod_anomaly_detector not in _SUPPORTED_PYOD_ANOMALY_DETECTORS:
+                raise ValueError(f"The given anomaly detector '{pyod_anomaly_detector}' is not supported yet, or is not a valid PyODAnomalyDetector!\n"
+                                 f"Supported PYODAnomalyDetectors are: {_SUPPORTED_PYOD_ANOMALY_DETECTORS.keys()}")
+
+            # Load the module and class
+            module = importlib.import_module(name='pyod.models.' + _SUPPORTED_PYOD_ANOMALY_DETECTORS[pyod_anomaly_detector])
+            self.__pyod_anomaly_detector = getattr(module, pyod_anomaly_detector)()
+        else:
+            self.__pyod_anomaly_detector: BaseDetector = pyod_anomaly_detector
         self.__windowing: Windowing = windowing
+
+    def train_type(self) -> TrainType:
+        return TrainType.UNSUPERVISED  # All PYOD anomaly detectors are unsupervised (https://pyod.readthedocs.io/en/latest/api_cc.html#pyod.models.base.BaseDetector.fit)
 
     def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PYODAnomalyDetector':
         self.__pyod_anomaly_detector.fit(self.__windowing.create_windows(trend_data))
@@ -36,7 +54,7 @@ class PYODAnomalyDetector(TimeSeriesAnomalyDetector):
         # Check if the given anomaly detector is supported
         if parameters['pyod_model'] not in _SUPPORTED_PYOD_ANOMALY_DETECTORS:
             raise ValueError(f"The given anomaly detector '{parameters['pyod_model']}' is not supported yet, or is not a valid PYODAnomalyDetector!\n"
-                             f"Supported PYODAnomalyDetectors are: {_SUPPORTED_PYOD_ANOMALY_DETECTORS.keys()}")
+                             f"Supported PyODAnomalyDetectors are: {_SUPPORTED_PYOD_ANOMALY_DETECTORS.keys()}")
 
         # Load the module and class
         module = importlib.import_module(name='pyod.models.' + _SUPPORTED_PYOD_ANOMALY_DETECTORS[parameters['pyod_model']])
