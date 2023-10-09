@@ -150,7 +150,7 @@ class TestCreateWindows(TestWindowing):
 
     def test_loaded_data(self):
         data_manager = DataManager('data')
-        data_manager.select()
+        data_manager.select({'collection_name': 'Demo', 'dataset_name': 'Demo1'})
         dataset_index = data_manager.get(0)
         trend_data, ground_truth = data_manager.load_raw_data(dataset_index)
         windowing = Windowing(window_size=16)
