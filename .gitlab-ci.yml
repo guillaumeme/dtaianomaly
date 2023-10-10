@@ -28,7 +28,8 @@ test-notebooks:
     - pip install -r requirements.txt
     - pip install jupyter
   script:
-    - mv notebooks/*.ipynb .
+    - mv dtaianomaly notebooks
+    - cd notebooks
     - jupyter nbconvert --to notebook --execute README_demo.ipynb
 # Run the test suite
 # test-anomaly-detection: 
