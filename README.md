@@ -3,6 +3,9 @@
 [![pipeline status](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
 [![coverage report](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
 
+> **_IMPORTANT:_** This library is still a work in progress. Therefore, many changes 
+> are still expected. Feel free to [contact us](#contact) if there are any suggestions!
+
 A simple-to-use Python package for the development and analysis of time series anomaly 
 detection techniques. 
 
@@ -10,7 +13,7 @@ detection techniques.
 1. [Installation](#installation): How to install this package.
 2. [Usage](#usage): How to use this package, both in your own code and through configuration files
 3. [More examples](#more-examples) A list of more in-depth examples. 
-4. [Support](#support): How to get support.
+4. [Contact](#contact): How to get in touch with us.
 
 ## Installation
 
@@ -156,7 +159,11 @@ More examples will be added in the [notebooks](notebooks) directory soon!
 - [PyOD anomaly detectors](notebooks/pyod_anomaly_detectors.ipynb): Compares different anomaly detection algorithms 
   implemented in the PyOD library on a simple time series, showing how to easily initialize a `PYODAnomalyDetector` 
   and compare multiple methods. 
+- [Compare normalization](notebooks/compare_normalization.ipynb): Compares different normalization 
+  methods for anomaly scores, showing how to easily compare multiple methods.
+- [Analyze decision scores](notebooks/analyze_decision_scores.ipynb): Vizually illustrates the decision
+  scores of various anomlay detectors.
 
-## Support
+## Contact
 Feel free to email [louis.carpentier@kuleuven.be](mailto:louis.carpentier@kuleuven.be) if 
 there are any questions, remarks, ideas, ...
