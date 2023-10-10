@@ -139,7 +139,7 @@ from dtaianomaly.workflows import execute_algorithm
 results = execute_algorithm(
    data_manager=data_manager,
    # Give configurations as the location of the configuration file ...
-   data_configuration='experiments/default_configurations/data/CalIt2.json',
+   data_configuration='experiments/default_configurations/data/Demo.json',
    algorithm_configuration='experiments/default_configurations/algorithm/iforest.json',
    # ... or directly as a dictionary
    metric_configuration={
