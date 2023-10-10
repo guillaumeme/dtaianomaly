@@ -29,6 +29,7 @@ test-notebooks:
     - pip install papermill
   script:
     - echo 'STARTED script'
+    - papermill notebooks/README_demo.ipynb
 # Run the test suite
 # test-anomaly-detection: 
 #   stage: unittest
