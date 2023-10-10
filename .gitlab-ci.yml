@@ -26,10 +26,10 @@ test-notebooks:
   before_script:
     - python --version ; pip --version  # For debugging
     - pip install -r requirements.txt
-    - pip install papermill
+    - pip install jupyter
   script:
-    - echo 'STARTED script'
-    - papermill notebooks/README_demo.ipynb output
+    - mv notebooks/*.ipynb .
+    - jupyter nbconvert --to notebook --execute README_demo.ipynb
 # Run the test suite
 # test-anomaly-detection: 
 #   stage: unittest
