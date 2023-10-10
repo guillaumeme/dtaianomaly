@@ -2,9 +2,9 @@
 import pytest
 import numpy as np
 
-from src.evaluation.auc_metrics import roc_auc, pr_auc
-from src.evaluation.classification_metrics import precision, recall
-from src.evaluation.thresholding import fixed_value_threshold
+from dtaianomaly.evaluation.auc_metrics import roc_auc, pr_auc
+from dtaianomaly.evaluation.classification_metrics import precision, recall
+from dtaianomaly.evaluation.thresholding import fixed_value_threshold
 from tests.evaluation.TestEvaluationUtil import TestEvaluationUtil
 
 

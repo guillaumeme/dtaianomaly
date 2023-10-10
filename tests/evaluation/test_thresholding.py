@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 
-from src.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold, count_nb_ranges
+from dtaianomaly.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold, count_nb_ranges
 
 
 class TestFixedValueThreshold:

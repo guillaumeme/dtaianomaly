@@ -5,7 +5,7 @@ from typing import Optional, Dict
 from scipy.stats import binom
 from scipy.special import erf
 
-from src.anomaly_detection.utility.TrainType import TrainType
+from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
 
 class TimeSeriesAnomalyDetector(abc.ABC):

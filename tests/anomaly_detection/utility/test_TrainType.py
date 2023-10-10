@@ -1,6 +1,6 @@
 
 import pytest
-from src.anomaly_detection.utility.TrainType import TrainType
+from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
 
 class TestTrainType:

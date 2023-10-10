@@ -1,8 +1,8 @@
 
 import argparse
 
-from src.workflows import execute_algorithm
-from src.data_management import DataManager
+from dtaianomaly.workflows import execute_algorithm
+from dtaianomaly.data_management import DataManager
 
 
 if __name__ == '__main__':

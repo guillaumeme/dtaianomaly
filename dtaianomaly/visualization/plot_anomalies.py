@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from typing import Optional, List, Union, Dict
+from typing import Optional, Union, Dict
 
 
 def plot_data(
