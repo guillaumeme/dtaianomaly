@@ -17,15 +17,16 @@ cache:
     - .cache/pip
     - venv/
 
+# There are two stages in this pipeline: unittest and workflow
 stages:
-  - unittest
-  - workflow
+  - unittest  # For simple unit tests
+  - workflow  # For larger flows of the package
 
-# Run the test suite
+# Run tests regarding the anomaly detection package
 test-anomaly-detection: 
   stage: unittest
   before_script:
-    - python --version ; pip --version  # For debugging
+    - python --version ; pip --version
     - pip install -r requirements.txt
     - pip install pytest pytest-cov
   script:
@@ -34,14 +35,14 @@ test-anomaly-detection:
   artifacts:
     when: always
     reports:
-        junit: report.xml
+      junit: report.xml
     expire_in: 1 weeks
 
-# Run the test suite
+# Run tests regarding the evaluation package
 test-evaluation: 
   stage: unittest
   before_script:
-    - python --version ; pip --version  # For debugging
+    - python --version ; pip --version
     - pip install -r requirements.txt
     - pip install pytest pytest-cov
   script:
@@ -50,14 +51,26 @@ test-evaluation:
   artifacts:
     when: always
     reports:
-        junit: report.xml
+      junit: report.xml
     expire_in: 1 weeks
 
 # Check if the main script still executes without any problems
 run-main-script:
   stage: workflow
   before_script:
-    - python --version ; pip --version  # For debugging
+    - python --version ; pip --version
     - pip install -r requirements.txt
   script:
     - python main.py
+
+# Check if the notebooks still run without any problems
+run-notebooks:
+  stage: workflow
+  before_script:
+    - python --version ; pip --version
+    - pip install -r requirements.txt
+    - pip install jupyter
+  script:
+    - mv dtaianomaly notebooks
+    - cd notebooks
+    - jupyter nbconvert --to notebook --execute *.ipynb

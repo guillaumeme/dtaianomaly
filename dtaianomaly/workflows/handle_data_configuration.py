@@ -1,7 +1,7 @@
 
 import json
 from typing import Dict, Any, Union
-from src.data_management import DataManager
+from dtaianomaly.data_management import DataManager
 
 DataConfigurationType = Union[Dict[str, Any], str]
 

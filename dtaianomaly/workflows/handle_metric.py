@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Union, List
 
-from src.evaluation.auc_metrics import roc_auc, pr_auc
-from src.evaluation.classification_metrics import precision, recall, f1
-from src.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold
+from dtaianomaly.evaluation.auc_metrics import roc_auc, pr_auc
+from dtaianomaly.evaluation.classification_metrics import precision, recall, f1
+from dtaianomaly.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold
 
 MetricConfigurationType = Union[Dict[str, Dict[str, Any]], str]
 

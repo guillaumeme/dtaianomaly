@@ -2,12 +2,12 @@
 import pandas as pd
 from typing import Union, Optional
 
-from src.data_management import DataManager
-from src.anomaly_detection.utility.TrainType import TrainType
+from dtaianomaly.data_management import DataManager
+from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
-from src.workflows.handle_data_configuration import DataConfigurationType, handle_data_configuration
-from src.workflows.handle_algorithm_configuration import AlgorithmConfigurationType, handle_algorithm_configuration
-from src.workflows.handle_metric import MetricConfigurationType, handle_metric_configuration, metric_configuration_to_names
+from dtaianomaly.workflows.handle_data_configuration import DataConfigurationType, handle_data_configuration
+from dtaianomaly.workflows.handle_algorithm_configuration import AlgorithmConfigurationType, handle_algorithm_configuration
+from dtaianomaly.workflows.handle_metric import MetricConfigurationType, handle_metric_configuration, metric_configuration_to_names
 
 ConfigurationType = Union[DataConfigurationType, AlgorithmConfigurationType, MetricConfigurationType]
 

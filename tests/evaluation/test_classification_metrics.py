@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 
-from src.evaluation.classification_metrics import precision, recall, f1
+from dtaianomaly.evaluation.classification_metrics import precision, recall, f1
 from tests.evaluation.TestEvaluationUtil import TestEvaluationUtil
 
 

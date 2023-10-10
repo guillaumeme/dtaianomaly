@@ -3,32 +3,32 @@
 [![pipeline status](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
 [![coverage report](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
 
-> **_IMPORTANT:_** This library is still a work in progress. Therefore, many changes 
+> **_IMPORTANT:_** `dtaianomaly` is still a work in progress. Therefore, many changes 
 > are still expected. Feel free to [contact us](#contact) if there are any suggestions!
 
 A simple-to-use Python package for the development and analysis of time series anomaly 
 detection techniques. 
 
 ## Table of Contents
-1. [Installation](#installation): How to install this package.
-2. [Usage](#usage): How to use this package, both in your own code and through configuration files
+1. [Installation](#installation): How to install `dtaianomaly`.
+2. [Usage](#usage): How to use `dtaianomaly`, both in your own code and through configuration files
 3. [More examples](#more-examples) A list of more in-depth examples. 
 4. [Contact](#contact): How to get in touch with us.
 
 ## Installation
 
-Soon, this package will be installable through pip!
+Soon, `dtaianomaly` will be installable through pip!
 
 ## Usage
 
 ### In code
 
-Here we show how you can use this package in your own code. We first show how to load 
+Here we show how you can use `dtaianomaly` in your own code. We first show how to load 
 datasets using the `DataManager`. If you already have a time series as a `np.ndarray`
 of size `(n_samples, n_features)`, you can skip this step. Second, we show how to use 
 the `TimeSeriesAnomalyDetector` class to detect anomalies in the data. Third, we 
 show how to quantitatively evaluate the results of the anomaly detection algorithm.
-Because time series are inherently something visual, we also show how to use this package
+Because time series are inherently something visual, we also show how to use `dtaianomaly`
 to visualize the results of the anomaly detection algorithm. [This jupyter notebook](notebooks/README_demo.ipynb)
 contains all the code cells shown below.
 
@@ -41,7 +41,7 @@ and how to select datasets with certain properties can be found in the [data](da
 > The reasoning of `DataManager` is based on the implementation of [TimeEval](https://github.com/HPI-Information-Systems/TimeEval/tree/main).
 
 ```python
-from src.data_management import DataManager
+from dtaianomaly.data_management import DataManager
 
 # Initialize the data manager
 data_manager = DataManager(data_dir='data', datasets_index_file='datasets.csv')
@@ -56,7 +56,7 @@ trend_data, labels = data_manager.load_raw_data(dataset_index, train=False)
 
 #### 2. Detecting anomalies
 
-The `TimeSeriesAnomalyDetector` class is the main class of this package as it is the base
+The `TimeSeriesAnomalyDetector` class is the main class of `dtaianomaly` as it is the base
 of all time series anomaly detection algorithms. The main methods of this class are:
 
 1. `fit(trend_data: np.ndarray, labels: np.array = None)` to fit the anomaly detector. The 
@@ -74,7 +74,7 @@ Here we show a simple example to detect anomalies in time series. Specifically, 
 time series using a sliding widow of size 16. 
 
 ```python
-from src.anomaly_detection import PYODAnomalyDetector, Windowing
+from dtaianomaly.anomaly_detection import PYODAnomalyDetector, Windowing
 
 # Initialize the anomaly detector
 # Here we use an IForest with a sliding window of size 16
@@ -100,7 +100,7 @@ curve), while others require discrete anomaly labels (such as the F1 score). The
 several thresholding methods, such as `fixed_value_threshold`. 
 
 ```python
-from src.evaluation import f1, pr_auc, fixed_value_threshold
+from dtaianomaly.evaluation import f1, pr_auc, fixed_value_threshold
 
 # Compute the F1 score, for which discrete anomaly labels are required
 predicted_anomaly_labels = fixed_value_threshold(labels, raw_anomaly_scores)
@@ -116,7 +116,7 @@ To easily visualize the results of the anomaly detection algorithm (beyond numer
 we provide methods to visualize the data and the anomaly scores. A simple example is shown below.
 
 ```python
-from src.visualization import plot_anomaly_scores
+from dtaianomaly.visualization import plot_anomaly_scores
 
 # Load the trend data as a pandas DataFrame
 trend_data_df = data_manager.load(dataset_index, train=False)
@@ -134,7 +134,7 @@ execute an algorithm. Checkout the [experiments](experiments) folder for more in
 the format of the configuration files and examples.
 
 ```python
-from src.workflows import execute_algorithm
+from dtaianomaly.workflows import execute_algorithm
 
 results = execute_algorithm(
    data_manager=data_manager,

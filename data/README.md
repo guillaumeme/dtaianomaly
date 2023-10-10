@@ -5,7 +5,7 @@ Data can be read using the `DataManager` class. Its functionality is to select d
 based on certain properties and to load the raw data of the selected datasets. The `DataManager`
 is initialized as follows
  ```python
-from src.data_management import DataManager
+from dtaianomaly.data_management import DataManager
 data_manager = DataManager(
    # The location of all the datasets
    data_dir='data', 

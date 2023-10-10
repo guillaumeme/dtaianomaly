@@ -2,8 +2,8 @@
 import pytest
 import numpy as np
 
-from src.anomaly_detection.utility.Windowing import Windowing
-from src.data_management.DataManager import DataManager
+from dtaianomaly.anomaly_detection.utility.Windowing import Windowing
+from dtaianomaly.data_management.DataManager import DataManager
 
 
 class TestWindowing:
