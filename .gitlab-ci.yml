@@ -30,7 +30,7 @@ test-anomaly-detection:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov
   script:
-    - pytest ./tests/anomaly_detection --cov=src/anomaly_detection --cov-report term-missing --junitxml=report.xml -v
+    - pytest ./tests/anomaly_detection --cov=dtaianomaly/anomaly_detection --cov-report term-missing --junitxml=report.xml -v
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
@@ -46,7 +46,7 @@ test-evaluation:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov
   script:
-    - pytest ./tests/evaluation --cov=src/evaluation --cov-report term-missing --junitxml=report.xml -v
+    - pytest ./tests/evaluation --cov=dtaianomaly/evaluation --cov-report term-missing --junitxml=report.xml -v
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always

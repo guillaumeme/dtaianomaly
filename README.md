@@ -74,11 +74,11 @@ Here we show a simple example to detect anomalies in time series. Specifically, 
 time series using a sliding widow of size 16. 
 
 ```python
-from dtaianomaly.anomaly_detection import PYODAnomalyDetector, Windowing
+from dtaianomaly.anomaly_detection import PyODAnomalyDetector, Windowing
 
 # Initialize the anomaly detector
 # Here we use an IForest with a sliding window of size 16
-anomaly_detector = PYODAnomalyDetector('IForest', Windowing(window_size=100))
+anomaly_detector = PyODAnomalyDetector('IForest', Windowing(window_size=100))
 
 # Fit the anomaly detector 
 anomaly_detector.fit(trend_data)
@@ -157,7 +157,7 @@ results = execute_algorithm(
 ## More examples
 More examples will be added in the [notebooks](notebooks) directory soon!
 - [PyOD anomaly detectors](notebooks/pyod_anomaly_detectors.ipynb): Compares different anomaly detection algorithms 
-  implemented in the PyOD library on a simple time series, showing how to easily initialize a `PYODAnomalyDetector` 
+  implemented in the PyOD library on a simple time series, showing how to easily initialize a `PyODAnomalyDetector` 
   and compare multiple methods. 
 - [Compare normalization](notebooks/compare_normalization.ipynb): Compares different normalization 
   methods for anomaly scores, showing how to easily compare multiple methods.

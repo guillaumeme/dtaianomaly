@@ -19,7 +19,7 @@ _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
 }
 
 
-class PYODAnomalyDetector(TimeSeriesAnomalyDetector):
+class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
 
     def __init__(self, pyod_anomaly_detector: Union[BaseDetector, str], windowing: Windowing):
         super().__init__()
@@ -61,7 +61,7 @@ class PYODAnomalyDetector(TimeSeriesAnomalyDetector):
         pyod_anomaly_detector = getattr(module, parameters['pyod_model'])
 
         # Initialize the anomaly detector
-        return PYODAnomalyDetector(
+        return PyODAnomalyDetector(
             pyod_anomaly_detector=pyod_anomaly_detector(**(parameters['pyod_model_parameters'] if 'pyod_model_parameters' in parameters else {})),
             windowing=Windowing(**(parameters['windowing'] if 'windowing' in parameters else {}))
         )

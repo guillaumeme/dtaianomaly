@@ -51,7 +51,7 @@ should look like. Therefore, the different types are discussed below.
 
 #### PyOD anomaly detectors
 
-A PyOD anomaly detector, indicated by the `PYODAnomalyDetector` name, has three additional 
+A PyOD anomaly detector, indicated by the `PyODAnomalyDetector` name, has three additional 
 parameters: 
 1. `pyod_model`: The name of the PyOD model, for example `IForest` or `LOF`.
 2. `pyod_model_parameters`: The parameters of the PyOD model, for example the number of trees
@@ -62,7 +62,7 @@ parameters:
 
 ```json
 {
-  "anomaly_detector": "PYODAnomalyDetector",
+  "anomaly_detector": "PyODAnomalyDetector",
   "pyod_model": "IForest",
   "pyod_model_parameters": {
     "n_estimators": 100
