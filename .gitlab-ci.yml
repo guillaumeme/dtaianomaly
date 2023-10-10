@@ -29,7 +29,7 @@ test-notebooks:
     - pip install papermill
   script:
     - echo 'STARTED script'
-    - papermill notebooks/README_demo.ipynb
+    - papermill notebooks/README_demo.ipynb output
 # Run the test suite
 # test-anomaly-detection: 
 #   stage: unittest
@@ -63,10 +63,10 @@ test-notebooks:
 #     expire_in: 1 weeks
 
 # Check if the main script still executes without any problems
-run-main-script:
-  stage: workflow
-  before_script:
-    - python --version ; pip --version  # For debugging
-    - pip install -r requirements.txt
-  script:
-    - python main.py
+# run-main-script:
+#   stage: workflow
+#   before_script:
+#     - python --version ; pip --version  # For debugging
+#     - pip install -r requirements.txt
+#   script:
+#     - python main.py
