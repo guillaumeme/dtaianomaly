@@ -42,20 +42,22 @@ data_manager.select({"collection_name": "Demo"})
  ```
 
 For numerical properties (e.g., `length`), the value is a single element indicating an exact match,
-a tuple indicating a range, or a list of values indicating multiple possible exact matches. For 
-categorical properties (e.g., strings or booleans), the value is either a single element indicating
-an exact match or a list of values indicating multiple possible exact matches.
+or a tuple indicating a range. For categorical properties (e.g., strings), the value is either a 
+single element indicating an exact match or a list of values indicating multiple possible exact matches.
+For booleans, the value is either `True` or `False` (no list is allowed, because then simply all 
+datasets would be selected). For example:
  ```python
 data_manager.select({
    # The collection name must exactly match either 'DAPHNET' or 'KDD-TSAD'
    "collection_name": ["DAPHNET", "KDD-TSAD"],
+    # The data may not have trend
    "trend": "no_trend",
    # The length must be between 0 and 10000
    "length": [0, 10000],
-   # The time series must either have dimension of 1, 2, 4, or 5
-   "dimensions": [1, 2, 4, 5],
    # There should be exactly one anomaly
-   "num_anomalies": 1
+   "num_anomalies": 1,
+   # The index should be in datetime format
+   "datetime_index": True
 })
  ```
 

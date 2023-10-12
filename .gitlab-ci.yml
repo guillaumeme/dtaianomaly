@@ -22,37 +22,39 @@ stages:
   - unittest  # For simple unit tests
   - workflow  # For larger flows of the package
 
-# Run tests regarding the anomaly detection package
-test-anomaly-detection: 
-  stage: unittest
+# A template to run the different  unittests  in the different subpackages in separate jobs
+.template_unit_test:
+  variables:
+    DIRECTORY: ""  # A variable to indicate which subpackage to test
+  stage: unittest  # Run in `unittest`stage
   before_script:
-    - python --version ; pip --version
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov
+    - python --version ; pip --version  # For debugging
+    - pip install -r requirements.txt   # The requirements to run the code
+    - pip install pytest pytest-cov     # Packages for testing purposes
   script:
-    - pytest ./tests/anomaly_detection --cov=dtaianomaly/anomaly_detection --cov-report term-missing --junitxml=report.xml -v
-  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+    # Test the requested package, print the code coverage, and generate a xml report of the tests
+    - pytest ./tests/$DIRECTORY --cov=dtaianomaly/$DIRECTORY --cov-report term-missing --junitxml=report.xml -v
+  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'  # Extract the  code coverage
   artifacts:
-    when: always
+    when: always  # Always savee the urest report, and let it expire after a week
     reports:
       junit: report.xml
     expire_in: 1 weeks
 
-# Run tests regarding the evaluation package
-test-evaluation: 
-  stage: unittest
-  before_script:
-    - python --version ; pip --version
-    - pip install -r requirements.txt
-    - pip install pytest pytest-cov
-  script:
-    - pytest ./tests/evaluation --cov=dtaianomaly/evaluation --cov-report term-missing --junitxml=report.xml -v
-  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
-  artifacts:
-    when: always
-    reports:
-      junit: report.xml
-    expire_in: 1 weeks
+test-anomaly-detection:
+  extends: .template_unit_test
+  variables:
+    DIRECTORY: anomaly_detection
+
+test-data-management:
+  extends: .template_unit_test
+  variables:
+    DIRECTORY: data_management
+
+test-evaluation-detection:
+  extends: .template_unit_test
+  variables:
+    DIRECTORY: evaluation 
 
 # Check if the main script still executes without any problems
 run-main-script:

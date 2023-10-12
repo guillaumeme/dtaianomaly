@@ -148,13 +148,9 @@ class TestCreateWindows(TestWindowing):
                         for d in range(dimension):
                             assert windows[i][dimension * t + d] == (i + t) * d**2
 
-    def test_loaded_data(self):
-        data_manager = DataManager('data')
-        data_manager.select({'collection_name': 'Demo', 'dataset_name': 'Demo1'})
-        dataset_index = data_manager.get(0)
-        trend_data, ground_truth = data_manager.load_raw_data(dataset_index)
+    def test_loaded_data(self, demo_time_series):
         windowing = Windowing(window_size=16)
-        _ = windowing.create_windows(trend_data)
+        _ = windowing.create_windows(demo_time_series)
         # Nothing went wrong
 
 
@@ -180,7 +176,6 @@ class TestReverseWindowing(TestWindowing):
     def test_mean_reduction_small2(self):
         # Mean and median is the for np.arange
         scores = 2**np.arange(8)
-        print(scores)
         windowing = Windowing(window_size=3, reduction='mean')
         reverse_windowing = windowing.reverse_windowing(scores)
         assert len(reverse_windowing.shape) == 1
@@ -216,7 +211,6 @@ class TestReverseWindowing(TestWindowing):
     def test_median_reduction_small2(self):
         # Mean and median is the for np.arange
         scores = 2**np.arange(8)
-        print(scores)
         windowing = Windowing(window_size=3, reduction='median')
         reverse_windowing = windowing.reverse_windowing(scores)
         assert len(reverse_windowing.shape) == 1

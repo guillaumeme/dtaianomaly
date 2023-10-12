@@ -38,9 +38,9 @@ class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
         self.__windowing: Windowing = windowing
 
     def train_type(self) -> TrainType:
-        return TrainType.UNSUPERVISED  # All PYOD anomaly detectors are unsupervised (https://pyod.readthedocs.io/en/latest/api_cc.html#pyod.models.base.BaseDetector.fit)
+        return TrainType.UNSUPERVISED  # All PyOD anomaly detectors are unsupervised (https://pyod.readthedocs.io/en/latest/api_cc.html#pyod.models.base.BaseDetector.fit)
 
-    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PYODAnomalyDetector':
+    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PyODAnomalyDetector':
         self.__pyod_anomaly_detector.fit(self.__windowing.create_windows(trend_data))
         return self
 
