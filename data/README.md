@@ -1,4 +1,3 @@
-
 # Data
 
 Data can be read using the `DataManager` class. Its functionality is to select datasets
@@ -77,6 +76,21 @@ data_manager.select({
    "collection_name": "DAPHNET",
    "contamination": (0.00, 0.05)
 })
+```
+
+## Filtering the available datasets
+
+One option would be to build the dataset index file from scratch. However, this might become 
+tedious. Another option is to simply copy the file from this repository! But now the problem 
+could be that certain datasets are in the index file that you do not have locally available. 
+Therefore, we provide the `filter_available_datasets()` function. This method will deselect 
+all datasets that are not available (the path to the dataset does not exist). A simple 
+example is shown here:
+ ```python
+# Select all datasets with at most 10 000 observations
+data_manager.select({"length": [0, 10000])
+# But remove those that are not locally available
+data_manager.filter_available_datasets()
 ```
 
 ## Get the selected datasets
