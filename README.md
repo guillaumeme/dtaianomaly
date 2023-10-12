@@ -38,7 +38,7 @@ Data can be read using the `DataManager` class. Below we give a simple example o
 data using the `DataManager` class. More information regarding how to structure the datasets 
 and how to select datasets with certain properties can be found in the [data](data) folder.
 
-> The reasoning of `DataManager` is based on the implementation of [TimeEval](https://github.com/HPI-Information-Systems/TimeEval/tree/main).
+> The reasoning of `DataManager` is inspired by [TimeEval](https://github.com/HPI-Information-Systems/TimeEval/tree/main).
 
 ```python
 from dtaianomaly.data_management import DataManager
