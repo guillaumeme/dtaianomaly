@@ -17,7 +17,11 @@ detection techniques.
 
 ## Installation
 
-Soon, `dtaianomaly` will be installable through pip!
+You can install `dtaianomaly` using `pip`:
+
+```bash
+pip install dtaianomaly
+```
 
 ## Usage
 
