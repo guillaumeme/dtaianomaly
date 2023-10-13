@@ -19,7 +19,7 @@ detection techniques.
 
 You can install `dtaianomaly` using `pip`:
 
-```bash
+```
 pip install dtaianomaly
 ```
 
