@@ -4,10 +4,10 @@ import importlib
 from typing import Dict, Any, Union
 from dtaianomaly.anomaly_detection import *
 
-AlgorithmConfigurationType = Union[Dict[str, Any], str]
+AlgorithmConfiguration = Union[Dict[str, Any], str]
 
 
-def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfigurationType) -> TimeSeriesAnomalyDetector:
+def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfiguration) -> TimeSeriesAnomalyDetector:
 
     # Read the algorithm configuration file if it is a string
     if type(algorithm_configuration) is str:
