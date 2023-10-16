@@ -8,7 +8,7 @@ from dtaianomaly.evaluation.auc_metrics import roc_auc, pr_auc
 from dtaianomaly.evaluation.classification_metrics import precision, recall, f1
 from dtaianomaly.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold
 
-MetricConfigurationType = Union[Dict[str, Dict[str, Any]], str]
+MetricConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 
 # Functions with parameters: ground truth anomalies, predicted anomaly scores, metric parameters, thresholding function
@@ -38,7 +38,7 @@ __SUPPORTED_THRESHOLDING = {
 }
 
 
-def handle_metric_configuration(metric_configuration: MetricConfigurationType, predicted_proba: np.array, ground_truth: np.array) -> pd.Series:
+def handle_metric_configuration(metric_configuration: MetricConfiguration, predicted_proba: np.array, ground_truth: np.array) -> pd.Series:
 
     # Read the metric configuration file if it is a string
     if type(metric_configuration) is str:
@@ -83,7 +83,7 @@ def handle_metric_configuration(metric_configuration: MetricConfigurationType, p
     return results
 
 
-def metric_configuration_to_names(metric_configuration: MetricConfigurationType) -> List[str]:
+def metric_configuration_to_names(metric_configuration: MetricConfiguration) -> List[str]:
     if type(metric_configuration) is str:
         configuration_file = open(metric_configuration, 'r')
         metric_configuration = json.load(configuration_file)

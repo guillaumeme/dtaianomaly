@@ -63,7 +63,14 @@ run-main-script:
     - python --version ; pip --version
     - pip install -r requirements.txt
   script:
-    - python main.py
+    - python main.py  
+          --data_dir data
+          --datasets_index_file datasets.csv
+          --configuration_dir configurations
+          --data data/Demo.json
+          --algorithm algorithm/iforest.json
+          --metric metric/auc_metrics.json
+          --output output/output_all.json
 
 # Check if the notebooks still run without any problems
 run-notebooks:
