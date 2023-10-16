@@ -1,0 +1,37 @@
+[project]
+name = "dtaianomaly"
+version = "0.0.6"
+description = "A simple-to-use Python package for time series anomaly detection!"
+requires-python = ">=3.9,<3.10"
+authors = [
+    {name = "Louis Carpentier", email = "louis.carpentier@kuleuven.be"}
+]
+keywords = ["machine-learning", "time-series", "anomaly-detection", "data-mining"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License"
+]
+dynamic = ["dependencies"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+file = "LICENSE"
+
+[project.urls]
+homepage = "https://pypi.org/project/dtaianomaly/"
+repository = "https://gitlab.kuleuven.be/u0143709/dtaianomaly"
+changelog = "https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["setuptools", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["dtaianomaly", "dtaianomaly.*"]  # alternatively: `exclude = ["additional*"]`
+namespaces = false
+
+[tool.setuptools.dynamic.dependencies]
+file = ["requirements.txt"]
