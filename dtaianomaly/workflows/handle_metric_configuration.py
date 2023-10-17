@@ -5,7 +5,7 @@ import numpy as np
 from typing import Dict, Any, Union, List
 
 from dtaianomaly.evaluation.auc_metrics import roc_auc, pr_auc
-from dtaianomaly.evaluation.classification_metrics import precision, recall, f1
+from dtaianomaly.evaluation.classification_metrics import precision, recall, fbeta
 from dtaianomaly.evaluation.thresholding import fixed_value_threshold, contamination_threshold, top_n_threshold, top_n_ranges_threshold
 
 MetricConfiguration = Union[Dict[str, Dict[str, Any]], str]
@@ -24,8 +24,8 @@ __SUPPORTED_METRICS = {
         precision(ground_truth_anomalies, thresholding(ground_truth_anomalies, predicted_anomaly_scores)),
     'recall': lambda ground_truth_anomalies, predicted_anomaly_scores, _, thresholding:
         recall(ground_truth_anomalies, thresholding(ground_truth_anomalies, predicted_anomaly_scores)),
-    'f1': lambda ground_truth_anomalies, predicted_anomaly_scores, _, thresholding:
-        f1(ground_truth_anomalies, thresholding(ground_truth_anomalies, predicted_anomaly_scores))
+    'fbeta': lambda ground_truth_anomalies, predicted_anomaly_scores, metric_parameters, thresholding:
+        fbeta(ground_truth_anomalies, thresholding(ground_truth_anomalies, predicted_anomaly_scores), **metric_parameters)
 }
 __METRICS_WITHOUT_THRESHOLDING = ['roc_auc', 'pr_auc']
 
