@@ -19,8 +19,9 @@ cache:
 
 # There are two stages in this pipeline: unittest and workflow
 stages:
-  - unittest  # For simple unit tests
-  - workflow  # For larger flows of the package
+  - unittest       # For simple unit tests
+  - workflow       # For larger flows of the package
+  - documentation  # For generating and checking the documentation
 
 # A template to run the different  unittests  in the different subpackages in separate jobs
 .template_unit_test:
@@ -83,3 +84,28 @@ run-notebooks:
     - mv dtaianomaly notebooks
     - cd notebooks
     - jupyter nbconvert --to notebook --execute *.ipynb
+
+doctest:
+  stage: documentation
+  image: python:3.9-slim
+  before_script:
+    - apt-get update && apt-get install make --no-install-recommends -y
+    - python -m pip install sphinx furo
+  script:
+    - cd docs && make doctest
+
+docgen:
+  stage: documentation
+  image: python:3.9-slim
+  before_script:
+    - apt-get update && apt-get install make --no-install-recommends -y
+    - python -m pip install sphinx furo
+  script:
+    - cd docs && make html
+  after_script:
+    - mv docs/_build/html/ ./public/
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
