@@ -70,7 +70,8 @@ class TestSelectGet:
         assert len(data_manager.get()) < len(dataset_index_file)  # To make sure that not all datasets are selected
 
     def test_select_all(self, data_manager, dataset_index_file):
-        data_manager.select()
+        result_data_manager = data_manager.select()
+        assert result_data_manager == data_manager
         selected_datasets = data_manager.get()
         assert len(selected_datasets) == len(dataset_index_file)
         for selected_dataset_index in selected_datasets:
@@ -81,35 +82,42 @@ class TestSelectGet:
             data_manager.select({'invalid_property': 'invalid_value'})
 
     def test_select_collection_name_non_existing(self, data_manager):
-        data_manager.select({'collection_name': 'INVALID_COLLECTION_NAME'})
+        result_data_manager = data_manager.select({'collection_name': 'INVALID_COLLECTION_NAME'})
+        assert result_data_manager == data_manager
         assert len(data_manager.get()) == 0
 
     def test_select_collection_name_single(self, data_manager):
-        data_manager.select({'collection_name': 'Demo'})
+        result_data_manager = data_manager.select({'collection_name': 'Demo'})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert selected_dataset_index[0] == 'Demo'
 
     def test_select_collection_name_multiple(self, data_manager):
-        data_manager.select({'collection_name': ['Demo', 'KDD-TSAD']})
+        result_data_manager = data_manager.select({'collection_name': ['Demo', 'KDD-TSAD']})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert selected_dataset_index[0] in ['Demo', 'KDD-TSAD']
 
     def test_select_dataset_name_non_existing(self, data_manager):
-        data_manager.select({'dataset_name': 'INVALID_DATASET_NAME'})
+        result_data_manager = data_manager.select({'dataset_name': 'INVALID_DATASET_NAME'})
+        assert result_data_manager == data_manager
         assert len(data_manager.get()) == 0
 
     def test_select_dataset_name_single(self, data_manager):
-        data_manager.select({'dataset_name': 'Demo1'})
+        result_data_manager = data_manager.select({'dataset_name': 'Demo1'})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert selected_dataset_index[1] == 'Demo1'
 
     def test_select_dataset_name_multiple(self, data_manager):
-        data_manager.select({'dataset_name': ['Demo1', 'Demo2']})
+        result_data_manager = data_manager.select({'dataset_name': ['Demo1', 'Demo2']})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert selected_dataset_index[1] in ['Demo1', 'Demo2']
 
     def test_select_index(self, data_manager):
-        data_manager.select({'collection_name': 'Demo', 'dataset_name': 'Demo1'})
+        result_data_manager = data_manager.select({'collection_name': 'Demo', 'dataset_name': 'Demo1'})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert selected_dataset_index[0] == 'Demo'
             assert selected_dataset_index[1] == 'Demo1'
@@ -123,20 +131,24 @@ class TestSelectGet:
             data_manager.select({'datetime_index': [True, False]})
 
     def test_select_bool_property(self, data_manager):
-        data_manager.select({'datetime_index': True})
+        result_data_manager = data_manager.select({'datetime_index': True})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert data_manager.get_metadata(selected_dataset_index)['datetime_index']
-
-        data_manager.clear()
-        data_manager.select({'datetime_index': False})
+        result_data_manager = data_manager.clear()
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({'datetime_index': False})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert not data_manager.get_metadata(selected_dataset_index)['datetime_index']
 
     def test_select_numerical_non_numeric_value(self, data_manager):
         with pytest.raises(ValueError):
             data_manager.select({'length': None})
-        data_manager.select({'length': 1000})  # Does not rais an error
-        data_manager.select({'contamination': 0.1})  # Does not rais an error
+        result_data_manager = data_manager.select({'length': 1000})  # Does not rais an error
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({'contamination': 0.1})  # Does not rais an error
+        assert result_data_manager == data_manager
 
     def test_select_numerical_non_numeric_range(self, data_manager):
         with pytest.raises(ValueError):
@@ -150,68 +162,82 @@ class TestSelectGet:
         with pytest.raises(ValueError):
             data_manager.select({'length': (None, None)})
 
-        data_manager.select({'length': (100, 1000)})   # Does not rais an error
-        data_manager.select({'length': (100.0, 1000)})   # Does not rais an error
-        data_manager.select({'length': (100, 1000.0)})   # Does not rais an error
-        data_manager.select({'length': (100.0, 1000.0)})   # Does not rais an error
+        result_data_manager = data_manager.select({'length': (100, 1000)})   # Does not rais an error
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({'length': (100.0, 1000)})   # Does not rais an error
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({'length': (100, 1000.0)})   # Does not rais an error
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({'length': (100.0, 1000.0)})   # Does not rais an error
+        assert result_data_manager == data_manager
 
     def test_select_numerical_long_list(self, data_manager):
         with pytest.raises(ValueError):
             data_manager.select({'length': [100, 1000, 10000]})
 
     def test_select_numerical_not_existing(self, data_manager):
-        data_manager.select({'dimensions': 0})
+        result_data_manager = data_manager.select({'dimensions': 0})
+        assert result_data_manager == data_manager
         assert len(data_manager.get()) == 0
 
     def test_select_numerical_single(self, data_manager):
         for dimension in range(1, 10):
-            data_manager.select({'dimensions': dimension})
+            result_data_manager = data_manager.select({'dimensions': dimension})
+            assert result_data_manager == data_manager
             for selected_dataset_index in data_manager.get():
                 assert data_manager.get_metadata(selected_dataset_index)['dimensions'] == dimension
-            data_manager.clear()
+            result_data_manager = data_manager.clear()
+            assert result_data_manager == data_manager
 
     def test_select_numerical_range(self, data_manager):
         min_contamination = 0.01
         max_contamination = 0.1
-        data_manager.select({'contamination': (min_contamination, max_contamination)})
+        result_data_manager = data_manager.select({'contamination': (min_contamination, max_contamination)})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert min_contamination <= data_manager.get_metadata(selected_dataset_index)['contamination'] <= max_contamination
 
     def test_select_other_single_value(self, data_manager):
         for train_type in ['supervised', 'unsupervised', 'semi-supervised']:
-            data_manager.select({'train_type': train_type})
+            result_data_manager = data_manager.select({'train_type': train_type})
+            assert result_data_manager == data_manager
             for selected_dataset_index in data_manager.get():
                 assert data_manager.get_metadata(selected_dataset_index)['train_type'] == train_type
-            data_manager.clear()
+            result_data_manager = data_manager.clear()
+            assert result_data_manager == data_manager
 
     def test_select_other_multiple_list(self, data_manager):
         train_types = ['unsupervised', 'semi-supervised']
         assert isinstance(train_types, list)
-        data_manager.select({'train_type': train_types})
+        result_data_manager = data_manager.select({'train_type': train_types})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert data_manager.get_metadata(selected_dataset_index)['train_type'] in train_types
 
     def test_select_other_multiple_set(self, data_manager):
         train_types = {'unsupervised', 'semi-supervised'}
         assert isinstance(train_types, set)
-        data_manager.select({'train_type': train_types})
+        result_data_manager = data_manager.select({'train_type': train_types})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert data_manager.get_metadata(selected_dataset_index)['train_type'] in train_types
 
     def test_select_other_multiple_tuple(self, data_manager):
         train_types = ('unsupervised', 'semi-supervised')
         assert isinstance(train_types, tuple)
-        data_manager.select({'train_type': train_types})
+        result_data_manager = data_manager.select({'train_type': train_types})
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             assert data_manager.get_metadata(selected_dataset_index)['train_type'] in train_types
 
     def test_select_multiple_properties(self, data_manager):
-        data_manager.select({
+        result_data_manager = data_manager.select({
             'collection_name': 'KDD-TSAD',
             'dimensions': 1,
             'length': (100, 20000),
             'median_anomaly_length': (50, 200),
         })
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             # All must be satisfied
             assert selected_dataset_index[0] == 'KDD-TSAD'
@@ -220,14 +246,31 @@ class TestSelectGet:
             assert 50 <= data_manager.get_metadata(selected_dataset_index)['median_anomaly_length'] <= 200
 
     def test_select_multiple_calls(self, data_manager):
-        data_manager.select({
+        result_data_manager = data_manager.select({
             'collection_name': 'KDD-TSAD',
             'length': (100, 20000),
         })
-        data_manager.select({
+        assert result_data_manager == data_manager
+        result_data_manager = data_manager.select({
             'collection_name': 'Daphnet',
             'num_anomalies': (2, 9),
         })
+        assert result_data_manager == data_manager
+        for selected_dataset_index in data_manager.get():
+            satisfied_first = selected_dataset_index[0] == 'KDD-TSAD' and 100 <= data_manager.get_metadata(selected_dataset_index)['length'] <= 20000
+            satisfied_second = selected_dataset_index[0] == 'Daphnet' and 2 <= data_manager.get_metadata(selected_dataset_index)['num_anomalies'] <= 9
+            # Either selection should be satisfied
+            assert satisfied_first or satisfied_second
+
+    def test_select_multiple_calls_chained(self, data_manager):
+        result_data_manager = data_manager.select({
+            'collection_name': 'KDD-TSAD',
+            'length': (100, 20000),
+        }).select({
+            'collection_name': 'Daphnet',
+            'num_anomalies': (2, 9),
+        })
+        assert result_data_manager == data_manager
         for selected_dataset_index in data_manager.get():
             satisfied_first = selected_dataset_index[0] == 'KDD-TSAD' and 100 <= data_manager.get_metadata(selected_dataset_index)['length'] <= 20000
             satisfied_second = selected_dataset_index[0] == 'Daphnet' and 2 <= data_manager.get_metadata(selected_dataset_index)['num_anomalies'] <= 9
@@ -235,10 +278,12 @@ class TestSelectGet:
             assert satisfied_first or satisfied_second
 
     def test_filter_available_datasets(self, data_manager):
-        data_manager.select({'collection_name': ['Demo', 'KDD-TSAD', 'Exathlon']})
+        result_data_manager = data_manager.select({'collection_name': ['Demo', 'KDD-TSAD', 'Exathlon']})
+        assert result_data_manager == data_manager
         nb_initially_selected_datasets = len(data_manager.get())
 
-        data_manager.filter_available_datasets()
+        result_data_manager = data_manager.filter_available_datasets()
+        assert result_data_manager == data_manager
         nb_finally_selected_datasets = len(data_manager.get())
 
         # There should be fewer datasets after filtering
@@ -251,8 +296,20 @@ class TestSelectGet:
                 pass  # If the train data does not exist
             data_manager.check_data_exists(selected_dataset_index, train=False)
 
+    def test_filter_available_datasets_chained(self, data_manager):
+        result_data_manager = data_manager.select({'collection_name': ['Demo', 'KDD-TSAD', 'Exathlon']}).filter_available_datasets()
+        assert result_data_manager == data_manager
+
+        for selected_dataset_index in data_manager.get():
+            try:
+                data_manager.check_data_exists(selected_dataset_index, train=True)
+            except ValueError:
+                pass  # If the train data does not exist
+            data_manager.check_data_exists(selected_dataset_index, train=False)
+
     def test_get_index(self, data_manager):
-        data_manager.select()
+        result_data_manager = data_manager.select()
+        assert result_data_manager == data_manager
         selected_datasets = data_manager.get()
         for i in range(len(selected_datasets)):
             assert selected_datasets[i] == selected_datasets[i]
@@ -262,7 +319,8 @@ class TestSelectGet:
             data_manager.get(-1)
 
     def test_get_too_large_index(self, data_manager):
-        data_manager.select()
+        result_data_manager = data_manager.select()
+        assert result_data_manager == data_manager
         selected_datasets = data_manager.get()
         with pytest.raises(IndexError):
             data_manager.get(len(selected_datasets))
