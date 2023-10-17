@@ -94,7 +94,7 @@ doctest:
   script:
     - cd docs && make doctest
 
-docgen:
+pages:
   stage: documentation
   image: python:3.9-slim
   before_script:
