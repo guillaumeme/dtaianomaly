@@ -90,7 +90,7 @@ doctest:
   image: python:3.9-slim
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
-    - python -m pip install sphinx furo
+    - python -m pip install sphinx toml
   script:
     - cd docs && make doctest
 
@@ -99,7 +99,7 @@ pages:
   image: python:3.9-slim
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
-    - python -m pip install sphinx furo
+    - python -m pip install sphinx toml
   script:
     - cd docs && make html
   after_script:
