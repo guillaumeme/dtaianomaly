@@ -22,8 +22,10 @@ author = 'Louis Carpentier'
 
 with open('../pyproject.toml', 'r') as f:
     config = toml.load(f)
-release = config['project']['version']            # The short X.Y version.
-version = '.'.join(full_version.split('.')[:-1])  # The full version, including alpha/beta/rc tags.
+# The short X.Y version.
+release = config['project']['version']
+# The full version, including alpha/beta/rc tags
+version = '.'.join(config['project']['version'].split('.')[:-1])
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
