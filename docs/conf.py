@@ -3,11 +3,15 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import toml
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here.
 import pathlib
 import sys
 sys.path.insert(0, pathlib.Path(__file__).parents[1].resolve().as_posix())
+
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -15,8 +19,11 @@ sys.path.insert(0, pathlib.Path(__file__).parents[1].resolve().as_posix())
 project = 'DTAIAnomaly'
 copyright = '2023, Louis Carpentier'
 author = 'Louis Carpentier'
-version = '0.0'    # The short X.Y version.
-release = '0.0.6'  # The full version, including alpha/beta/rc tags.
+
+with open('../pyproject.toml', 'r') as f:
+    config = toml.load(f)
+release = config['project']['version']            # The short X.Y version.
+version = '.'.join(full_version.split('.')[:-1])  # The full version, including alpha/beta/rc tags.
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -44,7 +51,7 @@ exclude_patterns = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin theme
-html_theme = 'furo'
+html_theme = 'classic'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
