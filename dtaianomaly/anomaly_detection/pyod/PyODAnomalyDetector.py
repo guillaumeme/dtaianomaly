@@ -2,6 +2,7 @@
 import numpy as np
 import importlib
 from typing import Optional, Dict, Union
+import warnings
 from pyod.models.base import BaseDetector
 
 from dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
@@ -47,6 +48,12 @@ class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
     def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
         windowed_decision_scores = self.__pyod_anomaly_detector.decision_function(self.__windowing.create_windows(trend_data))
         return self.__windowing.reverse_windowing(windowed_decision_scores)
+
+    def predict_confidence(self, trend_data: np.ndarray, contamination: float) -> np.array:
+        warnings.warn('To compute the confidence of an anomaly detector, the train data should be i.i.d., '
+                      'which is not the case for a PyOD anomaly detector that predicts anomaly scores for a '
+                      'sliding window.')
+        return super().predict_confidence(trend_data, contamination)
 
     @staticmethod
     def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':

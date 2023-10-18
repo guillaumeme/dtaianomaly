@@ -2,7 +2,7 @@
 import pytest
 import numpy as np
 
-from dtaianomaly.evaluation.classification_metrics import precision, recall, f1
+from dtaianomaly.evaluation.classification_metrics import precision, recall, fbeta
 from tests.evaluation.TestEvaluationUtil import TestEvaluationUtil
 
 
@@ -22,7 +22,13 @@ class TestClassificationMetrics:
         assert recall(self.ground_truth, self.predicted) == pytest.approx(5 / 8)
 
     def test_f1(self):
-        assert f1(self.ground_truth, self.predicted) == pytest.approx(5 / 8)
+        assert fbeta(self.ground_truth, self.predicted, beta=1.0) == pytest.approx(5 / 8)
+
+    def test_f05(self):
+        assert fbeta(self.ground_truth, self.predicted, beta=0.5) == pytest.approx(5 / 8)
+
+    def test_f2(self):
+        assert fbeta(self.ground_truth, self.predicted, beta=2.0) == pytest.approx(5 / 8)
 
     def test_util(self):
         assert TestEvaluationUtil.true_positive(self.ground_truth, self.predicted) == 5
@@ -52,4 +58,22 @@ class TestClassificationMetrics:
             tp = TestEvaluationUtil.true_positive(ground_truth, predicted)
             fp = TestEvaluationUtil.false_positive(ground_truth, predicted)
             fn = TestEvaluationUtil.false_negative(ground_truth, predicted)
-            assert f1(ground_truth, predicted) == pytest.approx(2*tp / (2*tp + fp + fn))
+            assert fbeta(ground_truth, predicted, beta=1.0) == pytest.approx(2*tp / (2*tp + fp + fn))
+
+    def test_f05_large_scale(self):
+        for _ in range(self.nb_reps):
+            ground_truth = np.random.choice([0, 1], size=self.length_synthetic)
+            predicted = np.random.choice([0, 1], size=self.length_synthetic)
+            tp = TestEvaluationUtil.true_positive(ground_truth, predicted)
+            fp = TestEvaluationUtil.false_positive(ground_truth, predicted)
+            fn = TestEvaluationUtil.false_negative(ground_truth, predicted)
+            assert fbeta(ground_truth, predicted, beta=0.5) == pytest.approx(1.25*tp / (1.25*tp + fp + 0.25*fn))
+
+    def test_f2_large_scale(self):
+        for _ in range(self.nb_reps):
+            ground_truth = np.random.choice([0, 1], size=self.length_synthetic)
+            predicted = np.random.choice([0, 1], size=self.length_synthetic)
+            tp = TestEvaluationUtil.true_positive(ground_truth, predicted)
+            fp = TestEvaluationUtil.false_positive(ground_truth, predicted)
+            fn = TestEvaluationUtil.false_negative(ground_truth, predicted)
+            assert fbeta(ground_truth, predicted, beta=2.0) == pytest.approx(5*tp / (5*tp + fp + 4*fn))

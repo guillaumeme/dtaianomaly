@@ -49,16 +49,17 @@ class DataManager:
         # Read the dataset index file
         self.__selected_datasets: pd.Series = pd.Series(index=self.__datasets_index.index, data=False)
 
-    def clear(self) -> None:
+    def clear(self) -> 'DataManager':
         # Set all values in the selected datasets to False
         self.__selected_datasets[:] = False
+        return self
 
-    def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> None:
+    def select(self, dataset_properties: Optional[Dict[str, any]] = None) -> 'DataManager':
 
         # If no dataset properties are given, select all datasets
         if dataset_properties is None:
             self.__selected_datasets = pd.Series(index=self.__datasets_index.index, data=True)
-            return
+            return self
 
         # Keep track of the datasets that match all the given properties
         newly_selected_datasets = np.ones(self.__datasets_index.shape[0], dtype=bool)
@@ -105,7 +106,9 @@ class DataManager:
         # Set the flags of the selected datasets to True
         self.__selected_datasets |= newly_selected_datasets
 
-    def filter_available_datasets(self) -> None:
+        return self
+
+    def filter_available_datasets(self) -> 'DataManager':
         for dataset_index in self.__selected_datasets.index:
 
             # Skip datasets that are already not selected
@@ -124,6 +127,8 @@ class DataManager:
             # The test data must exist
             if not os.path.exists(self.__data_dir + '/' + metadata['test_path']):
                 self.__selected_datasets[dataset_index] = False
+
+        return self
 
     def get(self, index: Optional[int] = None) -> Union[List[DatasetIndex], DatasetIndex]:
         selected_datasets = self.__selected_datasets[self.__selected_datasets].index

@@ -88,6 +88,8 @@ def plot_anomaly_scores(
         elif show_ground_truth == 'background':
             _add_anomalies_as_background(axs[i], trend_data['is_anomaly'])
             _plot_data(axs[i], trend_data[attribute])
+        else:
+            _plot_data(axs[i], trend_data[attribute])
 
     # Plot the anomaly separate, if requested
     if show_anomaly_scores == 'separate':
@@ -126,6 +128,7 @@ def _add_anomalies_as_background(ax: plt.Axes, anomaly_labels: pd.Series) -> Non
 def _plot_data_with_anomaly_overlay(ax: plt.Axes, trend_data_attribute: pd.Series, anomaly_scores: np.array, nb_bins=100) -> None:
     normalized_scores = (anomaly_scores - np.min(anomaly_scores)) / (np.max(anomaly_scores) - np.min(anomaly_scores))
     binned_anomaly_scores = [np.floor(score * nb_bins) / nb_bins for score in normalized_scores]
+    ax.set_title(str(trend_data_attribute.name))
     colormap = plt.get_cmap('RdYlGn', nb_bins).reversed()
     for i in range(0, trend_data_attribute.shape[0]):
         color = colormap(binned_anomaly_scores[i])
