@@ -2,14 +2,27 @@
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, fbeta_score
 
-
-def precision(ground_truth_anomalies: np.array, predicted_anomalies: np.array) -> float:
-    return precision_score(ground_truth_anomalies, predicted_anomalies)
-
-
-def recall(ground_truth_anomalies: np.array, predicted_anomalies: np.array) -> float:
-    return recall_score(ground_truth_anomalies, predicted_anomalies)
+from dtaianomaly.evaluation.thresholding import Thresholding
+from dtaianomaly.evaluation.Metric import ThresholdingMetric
 
 
-def fbeta(ground_truth_anomalies: np.array, predicted_anomalies: np.array, beta: float = 1.0) -> float:
-    return fbeta_score(ground_truth_anomalies, predicted_anomalies, beta=beta)
+class Precision(ThresholdingMetric):
+
+    def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
+        return precision_score(ground_truth_anomalies, self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies))
+
+
+class Recall(ThresholdingMetric):
+
+    def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
+        return recall_score(ground_truth_anomalies, self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies))
+
+
+class Fbeta(ThresholdingMetric):
+
+    def __init__(self, thresholding: Thresholding, beta: float = 1.0):
+        super().__init__(thresholding)
+        self.__beta: float = beta
+
+    def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
+        return fbeta_score(ground_truth_anomalies, self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies), beta=self.__beta)

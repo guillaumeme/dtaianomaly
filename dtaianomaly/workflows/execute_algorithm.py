@@ -12,7 +12,7 @@ from dtaianomaly.visualization.plot_anomalies import plot_anomaly_scores
 
 from dtaianomaly.workflows.handle_data_configuration import DataConfiguration, handle_data_configuration
 from dtaianomaly.workflows.handle_algorithm_configuration import AlgorithmConfiguration, handle_algorithm_configuration
-from dtaianomaly.workflows.handle_metric_configuration import MetricConfiguration, handle_metric_configuration, metric_configuration_to_names
+from dtaianomaly.workflows.handle_metric_configuration import MetricConfiguration, handle_metric_configuration
 from dtaianomaly.workflows.handle_output_configuration import PlainOutputConfiguration, OutputConfiguration, handle_output_configuration
 
 
@@ -30,12 +30,13 @@ def main(data_manager: DataManager,
     data_manager = handle_data_configuration(data_manager, data_configuration)
     algorithm = handle_algorithm_configuration(algorithm_configuration)
     algorithm_train_type = algorithm.train_type()
+    metrics = handle_metric_configuration(metric_configuration)
     output_configuration = handle_output_configuration(output_configuration)
 
     __log(message='>>> Starting the workflow',
           print_message=output_configuration.verbose)
 
-    results_columns = metric_configuration_to_names(metric_configuration)
+    results_columns = list(metrics.keys())
     if output_configuration.trace_time:
         results_columns += ['Time fit (s)', 'Time predict (s)']
     if output_configuration.trace_memory:
@@ -137,18 +138,22 @@ def main(data_manager: DataManager,
         __log(message=f"Computing the evaluation metrics metrics",
               print_message=output_configuration.verbose)
         predicted_proba = algorithm.predict_proba(data_test)
-        result = handle_metric_configuration(metric_configuration, predicted_proba, ground_truth_test)
+        for metric_name, metric in metrics.items():
+            __log(message=f"Computing the evaluation metric '{metric_name}'",
+                  print_message=output_configuration.verbose)
+            results.at[dataset_index, metric_name] = metric.compute(ground_truth_test, predicted_proba)
+            __log(message=f"Evaluation: '{results.at[dataset_index, metric_name]}'",
+                  print_message=output_configuration.verbose)
         if output_configuration.trace_time:
             __log(message=f"Saving the timing information",
                   print_message=output_configuration.verbose)
-            result['Time fit (s)'] = np.round(time_fitting, 5)
-            result['Time predict (s)'] = np.round(time_predicting, 5)
+            results.at[dataset_index, 'Time fit (s)'] = np.round(time_fitting, 5)
+            results.at[dataset_index, 'Time predict (s)'] = np.round(time_predicting, 5)
         if output_configuration.trace_memory:
             __log(message=f"Saving the memory usage",
                   print_message=output_configuration.verbose)
-            result['Peak memory fit (KiB)'] = np.round(peak_memory_fitting / 1024, 5)
-            result['Peak memory predict (KiB)'] = np.round(peak_memory_predicting / 1024, 5)
-        results.loc[dataset_index] = result
+            results.at[dataset_index, 'Peak memory fit (KiB)'] = np.round(peak_memory_fitting / 1024, 5)
+            results.at[dataset_index, 'Peak memory predict (KiB)'] = np.round(peak_memory_predicting / 1024, 5)
 
         # Save the anomaly scores plot, if requested
         if output_configuration.save_anomaly_scores_plot:

@@ -104,14 +104,13 @@ curve), while others require discrete anomaly labels (such as the F1 score). The
 several thresholding methods, such as `fixed_value_threshold`. 
 
 ```python
-from dtaianomaly.evaluation import fbeta, pr_auc, fixed_value_threshold
+from dtaianomaly.evaluation import Fbeta, PrAUC, FixedValueThresholding
 
 # Compute the F1 score, for which discrete anomaly labels are required
-predicted_anomaly_labels = fixed_value_threshold(labels, raw_anomaly_scores)
-f1_score = fbeta(labels, predicted_anomaly_labels, beta=1.0)
+f1_score = Fbeta(FixedValueThresholding(), beta=1.0).compute(labels, raw_anomaly_scores)
  
 # Compute the area under the precision-recall curve
-pr_auc_score = pr_auc(labels, raw_anomaly_scores)
+pr_auc_score = PrAUC().compute(labels, raw_anomaly_scores)
 ```
 
 #### 4. Visualizing the results
