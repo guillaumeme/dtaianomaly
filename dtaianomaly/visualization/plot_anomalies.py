@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +8,6 @@ def plot_data(
         trend_data: pd.DataFrame,
         file_path: Optional[str] = None,
         show_ground_truth: Optional[str] = None) -> plt.Figure:
-
     # Check if valid value is provided for 'show_ground_truth'
     if show_ground_truth not in [None, 'overlay', 'background']:
         raise ValueError("Parameter 'show_ground_truth' must be one of None, 'overlay', or 'background'!")
@@ -43,7 +41,6 @@ def plot_anomaly_scores(
         file_path: Optional[str] = None,
         show_anomaly_scores: str = 'separate',
         show_ground_truth: Optional[str] = None) -> plt.Figure:
-
     # Check if valid value is provided for 'show_anomaly_scores'
     if show_anomaly_scores not in ['separate', 'overlay']:
         raise ValueError("Parameter 'show_anomaly_scores' must be one of 'separate' or 'overlay'!")

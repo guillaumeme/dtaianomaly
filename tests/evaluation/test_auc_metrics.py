@@ -2,9 +2,9 @@
 import pytest
 import numpy as np
 
-from dtaianomaly.evaluation.auc_metrics import roc_auc, pr_auc
-from dtaianomaly.evaluation.classification_metrics import precision, recall
-from dtaianomaly.evaluation.thresholding import fixed_value_threshold
+from dtaianomaly.evaluation.auc_metrics import RocAUC, PrAUC
+from dtaianomaly.evaluation.classification_metrics import Precision, Recall
+from dtaianomaly.evaluation.thresholding import FixedValueThresholding
 from tests.evaluation.TestEvaluationUtil import TestEvaluationUtil
 
 
@@ -15,27 +15,31 @@ class TestAUCMetrics:
     nb_reps: int = 100
     length_synthetic: int = 1000
 
+    @staticmethod
+    def fixed_value_threshold(ground_truth, scores, threshold=None):
+        return FixedValueThresholding(threshold=threshold).apply(scores, ground_truth)
+
     def test_util(self):
-        predicted_02 = fixed_value_threshold(self.ground_truth, self.predicted, 0.2)
+        predicted_02 = self.fixed_value_threshold(self.ground_truth, self.predicted, 0.2)
         assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_02) == 5
         assert TestEvaluationUtil.false_positive(self.ground_truth, predicted_02) == 3
         assert TestEvaluationUtil.false_negative(self.ground_truth, predicted_02) == 0
         assert TestEvaluationUtil.true_negative(self.ground_truth, predicted_02) == 1
 
-        predicted_07 = fixed_value_threshold(self.ground_truth, self.predicted, 0.7)
+        predicted_07 = self.fixed_value_threshold(self.ground_truth, self.predicted, 0.7)
         assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_07) == 4
         assert TestEvaluationUtil.false_positive(self.ground_truth, predicted_07) == 0
         assert TestEvaluationUtil.false_negative(self.ground_truth, predicted_07) == 1
         assert TestEvaluationUtil.true_negative(self.ground_truth, predicted_07) == 4
 
     def tpr(self, threshold: float) -> float:
-        predicted = fixed_value_threshold(self.ground_truth, self.predicted, threshold)
+        predicted = self.fixed_value_threshold(self.ground_truth, self.predicted, threshold)
         tp = TestEvaluationUtil.true_positive(self.ground_truth, predicted)
         fn = TestEvaluationUtil.false_negative(self.ground_truth, predicted)
         return tp / (fn + tp)
 
     def fpr(self, threshold: float) -> float:
-        predicted = fixed_value_threshold(self.ground_truth, self.predicted, threshold)
+        predicted = self.fixed_value_threshold(self.ground_truth, self.predicted, threshold)
         fp = TestEvaluationUtil.false_positive(self.ground_truth, predicted)
         tn = TestEvaluationUtil.true_negative(self.ground_truth, predicted)
         return fp / (fp + tn)
@@ -96,57 +100,46 @@ class TestAUCMetrics:
         assert tpr_1 == pytest.approx(0/5)
         assert fpr_1 == pytest.approx(0/4)
 
-        assert roc_auc(self.ground_truth, self.predicted) == 1.0
+        assert RocAUC().compute(self.ground_truth, self.predicted) == 1.0
 
     def test_pr_auc(self):
-        predicted_0 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.0)
-        assert precision(self.ground_truth, predicted_0) == pytest.approx(5/9)
-        assert recall(self.ground_truth, predicted_0) == pytest.approx(5/5)
+        assert Precision(FixedValueThresholding(0.0)).compute(self.ground_truth, self.predicted) == pytest.approx(5/9)
+        assert Recall(FixedValueThresholding(0.0)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_01 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.1)
-        assert precision(self.ground_truth, predicted_01) == pytest.approx(5/9)
-        assert recall(self.ground_truth, predicted_01) == pytest.approx(5/5)
+        assert Precision(FixedValueThresholding(0.1)).compute(self.ground_truth, self.predicted) == pytest.approx(5/9)
+        assert Recall(FixedValueThresholding(0.1)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_02 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.2)
-        assert precision(self.ground_truth, predicted_02) == pytest.approx(5/8)
-        assert recall(self.ground_truth, predicted_02) == pytest.approx(5/5)
+        assert Precision(FixedValueThresholding(0.2)).compute(self.ground_truth, self.predicted) == pytest.approx(5/8)
+        assert Recall(FixedValueThresholding(0.2)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_03 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.3)
-        assert precision(self.ground_truth, predicted_03) == pytest.approx(5/7)
-        assert recall(self.ground_truth, predicted_03) == pytest.approx(5/5)
+        assert Precision(FixedValueThresholding(0.3)).compute(self.ground_truth, self.predicted) == pytest.approx(5/7)
+        assert Recall(FixedValueThresholding(0.3)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_04 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.4)
-        assert precision(self.ground_truth, predicted_04) == pytest.approx(5/6)
-        assert recall(self.ground_truth, predicted_04) == pytest.approx(5/5)
+        assert Precision(FixedValueThresholding(0.4)).compute(self.ground_truth, self.predicted) == pytest.approx(5/6)
+        assert Recall(FixedValueThresholding(0.4)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_05 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.5)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_05) == 5
-        assert precision(self.ground_truth, predicted_05) == pytest.approx(5/5)
-        assert recall(self.ground_truth, predicted_05) == pytest.approx(5/5)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(0.5).apply(self.predicted, self.ground_truth)) == 5
+        assert Precision(FixedValueThresholding(0.5)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
+        assert Recall(FixedValueThresholding(0.5)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_06 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.6)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_06) == 5
-        assert precision(self.ground_truth, predicted_06) == pytest.approx(5/5)
-        assert recall(self.ground_truth, predicted_06) == pytest.approx(5/5)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(0.6).apply(self.predicted, self.ground_truth)) == 5
+        assert Precision(FixedValueThresholding(0.6)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
+        assert Recall(FixedValueThresholding(0.6)).compute(self.ground_truth, self.predicted) == pytest.approx(5/5)
 
-        predicted_07 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.7)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_07) == 4
-        assert precision(self.ground_truth, predicted_07) == pytest.approx(4/4)
-        assert recall(self.ground_truth, predicted_07) == pytest.approx(4/5)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(0.7).apply(self.predicted, self.ground_truth)) == 4
+        assert Precision(FixedValueThresholding(0.7)).compute(self.ground_truth, self.predicted) == pytest.approx(4/4)
+        assert Recall(FixedValueThresholding(0.7)).compute(self.ground_truth, self.predicted) == pytest.approx(4/5)
 
-        predicted_08 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.8)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_08) == 3
-        assert precision(self.ground_truth, predicted_08) == pytest.approx(3/3)
-        assert recall(self.ground_truth, predicted_08) == pytest.approx(3/5)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(0.8).apply(self.predicted, self.ground_truth)) == 3
+        assert Precision(FixedValueThresholding(0.8)).compute(self.ground_truth, self.predicted) == pytest.approx(3/3)
+        assert Recall(FixedValueThresholding(0.8)).compute(self.ground_truth, self.predicted) == pytest.approx(3/5)
 
-        predicted_09 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=0.9)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_09) == 1
-        assert precision(self.ground_truth, predicted_09) == pytest.approx(1/1)
-        assert recall(self.ground_truth, predicted_09) == pytest.approx(1/5)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(0.9).apply(self.predicted, self.ground_truth)) == 1
+        assert Precision(FixedValueThresholding(0.9)).compute(self.ground_truth, self.predicted) == pytest.approx(1/1)
+        assert Recall(FixedValueThresholding(0.9)).compute(self.ground_truth, self.predicted) == pytest.approx(1/5)
 
-        predicted_1 = fixed_value_threshold(self.ground_truth, self.predicted, threshold=1.0)
-        assert TestEvaluationUtil.true_positive(self.ground_truth, predicted_1) == 0
-        assert precision(self.ground_truth, predicted_1) == pytest.approx(0.0)
-        assert recall(self.ground_truth, predicted_1) == pytest.approx(0.0)
+        assert TestEvaluationUtil.true_positive(self.ground_truth, FixedValueThresholding(1.0).apply(self.predicted, self.ground_truth)) == 0
+        assert Precision(FixedValueThresholding(1.0)).compute(self.ground_truth, self.predicted) == pytest.approx(0.0)
+        assert Recall(FixedValueThresholding(1.0)).compute(self.ground_truth, self.predicted) == pytest.approx(0.0)
 
-        assert pr_auc(self.ground_truth, self.predicted) == pytest.approx(1.0)
+        assert PrAUC().compute(self.ground_truth, self.predicted) == pytest.approx(1.0)
