@@ -258,17 +258,19 @@ class DataManager:
         self.check_index_exists(dataset_index)
         metadata = self.get_metadata(dataset_index)
 
+        # Remove the data files
+        if pd.notna(metadata['train_path']):
+            if not os.path.exists(self.__data_dir + '/' + metadata['train_path']):
+                os.remove(self.__data_dir + '/' + metadata['train_path'])
+        if not os.path.exists(self.__data_dir + '/' + metadata['test_path']):
+            os.remove(self.__data_dir + '/' + metadata['test_path'])
+
         # Update the index file
         self.__datasets_index.drop(index=dataset_index, inplace=True)
         self.__datasets_index.to_csv(self.__data_dir + '/' + self.__datasets_index_file)
 
         # Update the selected datasets
         self.__selected_datasets.drop(index=dataset_index, inplace=True)
-
-        # Remove the data files
-        if pd.notna(metadata['train_path']):
-            os.remove(self.__data_dir + '/' + metadata['train_path'])
-        os.remove(self.__data_dir + '/' + metadata['test_path'])
 
 
 def check_data(data: pd.DataFrame, path: str, name: str) -> None:

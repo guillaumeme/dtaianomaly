@@ -850,6 +850,32 @@ class TestAddData:
         tmp_data_manager.filter_available_datasets()
         assert not ('Col', 'dat1') in tmp_data_manager.get()
 
+    def test_remove_test_and_train_data_no_data_file(self, tmp_data_manager, data, tmp_path):
+        assert not os.path.exists(tmp_path / 'test_data.csv')
+        assert not os.path.exists(tmp_path / 'train_data.csv')
+
+        self.add_data_to_data_manager(tmp_data_manager, collection_name='Col',  dataset_name='dat1', test_data=data.copy(), test_path="test_data.csv", train_data=data.copy(), train_path='train_data.csv')
+        assert os.path.exists(tmp_path / 'test_data.csv')
+        assert os.path.exists(tmp_path / 'train_data.csv')
+        tmp_data_manager.select()
+        tmp_data_manager.filter_available_datasets()
+        assert ('Col', 'dat1') in tmp_data_manager.get()
+
+        # Manually remove the data
+        os.remove(tmp_path / 'test_data.csv')
+        os.remove(tmp_path / 'train_data.csv')
+        assert not os.path.exists(tmp_path / 'test_data.csv')
+        assert not os.path.exists(tmp_path / 'train_data.csv')
+
+        # Check if clearing still works
+        tmp_data_manager.clear()
+        tmp_data_manager.remove_dataset(('Col', 'dat1'))
+        assert not os.path.exists(tmp_path / 'test_data.csv')
+        assert not os.path.exists(tmp_path / 'train_data.csv')
+        tmp_data_manager.select()
+        tmp_data_manager.filter_available_datasets()
+        assert not ('Col', 'dat1') in tmp_data_manager.get()
+
     def test_remove_data_selected_index(self, tmp_data_manager, data, tmp_path):
         assert not os.path.exists(tmp_path / 'test_data.csv')
 
