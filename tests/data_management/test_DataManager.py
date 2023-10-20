@@ -815,6 +815,59 @@ class TestAddData:
         assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
         assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
+    def test_dataset_index_no_anomalies(self, tmp_data_manager, data):
+
+        data.index = ['second_' + str(i) for i in data.index]
+        data.index.name = 'timestamp'
+        data['is_anomaly'] = 0
+        raw_data_1 = data['attribute1'].values
+        raw_data_2 = data['attribute2'].values
+
+        self.add_data_to_data_manager(
+            tmp_data_manager,
+            collection_name="collection",
+            dataset_name="data1",
+            test_data=data.copy(),
+            test_path="test_data.csv",
+            dataset_type="real",
+            train_type="unsupervised",
+            train_is_normal=False,
+            trend="no trend",
+            stationarity="difference stationary",
+            period_size=100,
+            split_at=None
+        )
+
+        tmp_data_manager.select()
+        tmp_data_manager.filter_available_datasets()
+        assert ('collection', 'data1') in tmp_data_manager.get()
+
+        tmp_data_manager.clear()
+        tmp_data_manager.select({'collection_name': 'collection', 'dataset_name': 'data1'})
+        assert len(tmp_data_manager.get()) == 1
+
+        metadata = tmp_data_manager.get_metadata(tmp_data_manager.get(0))
+        assert metadata['test_path'] == 'test_data.csv'
+        assert pd.isna(metadata['train_path'])
+        assert metadata['dataset_type'] == 'real'
+        assert metadata['train_type'] == 'unsupervised'
+        assert not metadata['train_is_normal']
+        assert metadata['datetime_index']
+        assert metadata['trend'] == 'no trend'
+        assert metadata['stationarity'] == 'difference stationary'
+        assert metadata['period_size'] == 100
+        assert pd.isna(metadata['split_at'])
+        assert metadata['input_type'] == 'multivariate'
+        assert metadata['length'] == 1000
+        assert metadata['dimensions'] == 2
+        assert metadata['contamination'] == 200 / 1000
+        assert metadata['num_anomalies'] == 3
+        assert metadata['min_anomaly_length'] == 50
+        assert metadata['median_anomaly_length'] == 50
+        assert metadata['max_anomaly_length'] == 100
+        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
+        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
+
     def test_remove_test_data(self, tmp_data_manager, data, tmp_path):
         assert not os.path.exists(tmp_path / 'test_data.csv')
 

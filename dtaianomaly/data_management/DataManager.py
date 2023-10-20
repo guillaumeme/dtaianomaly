@@ -230,9 +230,9 @@ class DataManager:
             'dimensions': test_data.shape[1] - 1,  # Exclude the 'is_anomaly' column
             'contamination': test_data['is_anomaly'].sum() / test_data.shape[0],
             'num_anomalies': len(length_anomaly_sequences),
-            'min_anomaly_length': min(length_anomaly_sequences),
-            'median_anomaly_length': np.median(length_anomaly_sequences),
-            'max_anomaly_length': max(length_anomaly_sequences),
+            'min_anomaly_length': min(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
+            'median_anomaly_length': np.median(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
+            'max_anomaly_length': max(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
             'mean': np.mean(test_data.mean(axis=0).drop('is_anomaly')),
             'stddev': np.mean(test_data.std(axis=0).drop('is_anomaly')),
             'trend': trend,
@@ -242,6 +242,7 @@ class DataManager:
 
         # Add the row to the dataset index
         self.__datasets_index.loc[dataset_index, :] = new_row
+        self.__datasets_index.sort_index(inplace=True)  # Easier for humans to find stuff
         self.__selected_datasets.at[dataset_index] = False
 
         # Save the index and the data
@@ -267,6 +268,7 @@ class DataManager:
 
         # Update the index file
         self.__datasets_index.drop(index=dataset_index, inplace=True)
+        self.__datasets_index.sort_index(inplace=True)  # Easier for humans to find stuff
         self.__datasets_index.to_csv(self.__data_dir + '/' + self.__datasets_index_file)
 
         # Update the selected datasets
