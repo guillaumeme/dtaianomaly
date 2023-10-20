@@ -1171,3 +1171,4 @@ WebscopeS5,A4Benchmark-99,,univariate/WebscopeS5/A4Benchmark-99.test.csv,synthet
 Demo,Demo1,,demo/demo1.csv,synthetic,False,,unsupervised,False,univariate,1400.0,1.0,0.032857142857142856,1.0,46.0,46.0,46.0,9.976351369833262,0.7384094177456525,no trend,,100.0
 Demo,Demo2,,demo/demo2.csv,synthetic,False,,unsupervised,False,univariate,2400.0,1.0,0.019166666666666665,1.0,46.0,46.0,46.0,9.695934426745609,0.7994401476269083,no trend,,100.0
 Demo,Demo3,,demo/demo3.csv,synthetic,False,,unsupervised,False,univariate,2400.0,1.0,0.05708333333333333,2.0,46.0,68.5,91.0,9.663974696224969,0.8636443775090591,no trend,,100.0
+Demo,Demo4,,demo/demo4.csv,synthetic,False,,unsupervised,False,univariate,2400.0,1.0,0.06958333333333333,2.0,46.0,83.5,121.0,9.73151902966114,0.8311627445723319,no trend,,100.0

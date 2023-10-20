@@ -260,9 +260,9 @@ class DataManager:
 
         # Remove the data files
         if pd.notna(metadata['train_path']):
-            if not os.path.exists(self.__data_dir + '/' + metadata['train_path']):
+            if os.path.exists(self.__data_dir + '/' + metadata['train_path']):
                 os.remove(self.__data_dir + '/' + metadata['train_path'])
-        if not os.path.exists(self.__data_dir + '/' + metadata['test_path']):
+        if os.path.exists(self.__data_dir + '/' + metadata['test_path']):
             os.remove(self.__data_dir + '/' + metadata['test_path'])
 
         # Update the index file
