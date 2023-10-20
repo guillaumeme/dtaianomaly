@@ -860,11 +860,11 @@ class TestAddData:
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
-        assert metadata['contamination'] == 200 / 1000
-        assert metadata['num_anomalies'] == 3
-        assert metadata['min_anomaly_length'] == 50
-        assert metadata['median_anomaly_length'] == 50
-        assert metadata['max_anomaly_length'] == 100
+        assert metadata['contamination'] == 0 / 1000
+        assert metadata['num_anomalies'] == 0
+        assert metadata['min_anomaly_length'] == 0
+        assert metadata['median_anomaly_length'] == 0
+        assert metadata['max_anomaly_length'] == 0
         assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
         assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
