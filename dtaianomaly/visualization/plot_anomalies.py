@@ -123,7 +123,11 @@ def _add_anomalies_as_background(ax: plt.Axes, anomaly_labels: pd.Series) -> Non
 
 
 def _plot_data_with_anomaly_overlay(ax: plt.Axes, trend_data_attribute: pd.Series, anomaly_scores: np.array, nb_bins=100) -> None:
-    normalized_scores = (anomaly_scores - np.min(anomaly_scores)) / (np.max(anomaly_scores) - np.min(anomaly_scores))
+    # If there are no anomalies
+    if np.max(anomaly_scores) > np.min(anomaly_scores):
+        normalized_scores = (anomaly_scores - np.min(anomaly_scores)) / (np.max(anomaly_scores) - np.min(anomaly_scores))
+    else:
+        normalized_scores = np.zeros_like(anomaly_scores)
     binned_anomaly_scores = [np.floor(score * nb_bins) / nb_bins for score in normalized_scores]
     ax.set_title(str(trend_data_attribute.name))
     colormap = plt.get_cmap('RdYlGn', nb_bins).reversed()
