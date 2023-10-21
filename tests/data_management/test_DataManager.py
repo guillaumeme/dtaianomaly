@@ -945,3 +945,24 @@ class TestAddData:
         tmp_data_manager.select({'collection_name': 'Col', 'dataset_name': 'dat1'})  # Try to select the data
         tmp_data_manager.filter_available_datasets()
         assert not ('Col', 'dat1') in tmp_data_manager.get()
+
+    def test_remove_data_and_select(self, tmp_data_manager, data, tmp_path):
+        assert not os.path.exists(tmp_path / 'test_data.csv')
+
+        self.add_data_to_data_manager(tmp_data_manager, collection_name='Col', dataset_name='dat1', test_data=data, test_path="test_data.csv")  # This works
+        assert os.path.exists(tmp_path / 'test_data.csv')
+        tmp_data_manager.select()
+        tmp_data_manager.filter_available_datasets()
+        assert ('Col', 'dat1') in tmp_data_manager.get()
+
+        tmp_data_manager.select()  # Make sure it is selected
+        tmp_data_manager.remove_dataset(('Col', 'dat1'))
+        assert not os.path.exists(tmp_path / 'test_data.csv')
+
+        tmp_data_manager.select({'collection_name': 'Col', 'dataset_name': 'dat1'})  # Try to select the data
+        tmp_data_manager.filter_available_datasets()
+        assert not ('Col', 'dat1') in tmp_data_manager.get()
+
+        tmp_data_manager.select({'collection_name': 'Demo'})  # Select other datasets
+        for dataset in tmp_data_manager.get():
+            assert dataset[0] == 'Demo'
