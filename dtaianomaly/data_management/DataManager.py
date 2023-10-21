@@ -244,6 +244,7 @@ class DataManager:
         self.__datasets_index.loc[dataset_index, :] = new_row
         self.__datasets_index.sort_index(inplace=True)  # Easier for humans to find stuff
         self.__selected_datasets.at[dataset_index] = False
+        self.__selected_datasets.sort_index(inplace=True)
 
         # Save the index and the data
         self.__datasets_index.to_csv(self.__data_dir + '/' + self.__datasets_index_file)
@@ -273,6 +274,7 @@ class DataManager:
 
         # Update the selected datasets
         self.__selected_datasets.drop(index=dataset_index, inplace=True)
+        self.__selected_datasets.sort_index(inplace=True)
 
 
 def check_data(data: pd.DataFrame, path: str, name: str) -> None:
@@ -288,3 +290,14 @@ def check_data(data: pd.DataFrame, path: str, name: str) -> None:
     # Check if the 'is_anomaly' column only contains binary labels (both integers and floats)
     if not data['is_anomaly'].isin([0, 1, 0.0, 1.0, True, False]).all():
         raise ValueError(f"The 'is_anomaly' column of the {name} data should only contain binary labels ('0' or '1'), but contains values!")
+
+
+def main():
+    data_manager = DataManager('../../data')
+    data_manager.clear()
+    data_manager.select({'collection_name': 'Demo'})
+    print(data_manager.get())
+
+
+if __name__ == '__main__':
+    main()
