@@ -31,7 +31,7 @@ def main(data_manager: DataManager,
     algorithm = handle_algorithm_configuration(algorithm_configuration)
     algorithm_train_type = algorithm.train_type()
     metrics = handle_metric_configuration(metric_configuration)
-    output_configuration = handle_output_configuration(output_configuration)
+    output_configuration = handle_output_configuration(output_configuration, algorithm)
 
     __log(message='>>> Starting the workflow',
           print_message=output_configuration.verbose)

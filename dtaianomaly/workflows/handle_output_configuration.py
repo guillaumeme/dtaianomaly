@@ -4,14 +4,17 @@ import shutil
 import json
 from dataclasses import dataclass
 from typing import Dict, Any, Union, Optional
+from dtaianomaly.anomaly_detection import TimeSeriesAnomalyDetector
 
 PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 
 @dataclass
 class OutputConfiguration:
+
     # The directory where everything should be saved
     directory_path: str
+    algorithm_name: str
 
     # Whether the different intermediate information should be printed or not
     verbose: bool = False
@@ -36,14 +39,22 @@ class OutputConfiguration:
     invalid_train_type_raise_error: bool = True
 
     @property
+    def directory(self) -> str:
+        return f'{self.directory_path}/{self.algorithm_name}'
+
+    @property
     def results_path(self) -> str:
-        return f'{self.directory_path}/{self.results_file}'
+        return f'{self.directory}/{self.results_file}'
+
+    @property
+    def figure_directory_path(self) -> str:
+        return f'{self.directory}/{self.anomaly_scores_directory}'
 
     def figure_path(self, dataset_index: str) -> str:
-        return f'{self.directory_path}/{self.anomaly_scores_directory}/{dataset_index[0].lower()}_{dataset_index[1].lower()}.{self.anomaly_scores_file_format}'
+        return f'{self.figure_directory_path}/{dataset_index[0].lower()}_{dataset_index[1].lower()}.{self.anomaly_scores_file_format}'
 
 
-def handle_output_configuration(plain_output_configuration: Union[PlainOutputConfiguration, OutputConfiguration]) -> OutputConfiguration:
+def handle_output_configuration(plain_output_configuration: Union[PlainOutputConfiguration, OutputConfiguration], algorithm: TimeSeriesAnomalyDetector) -> OutputConfiguration:
 
     # If a proper output configuration is already given, then use that one
     if type(plain_output_configuration) is OutputConfiguration:
@@ -55,15 +66,14 @@ def handle_output_configuration(plain_output_configuration: Union[PlainOutputCon
             configuration_file = open(plain_output_configuration, 'r')
             plain_output_configuration = json.load(configuration_file)
             configuration_file.close()
-        output_configuration = OutputConfiguration(**plain_output_configuration)
+        output_configuration = OutputConfiguration(**plain_output_configuration, algorithm_name=algorithm.name)
 
     # Create the directory if it does not exist yet
-    os.makedirs(output_configuration.directory_path, exist_ok=True)
+    os.makedirs(output_configuration.directory, exist_ok=True)
 
     # Create a directory for the anomaly score plots if it does not exist yet, and clear it otherwise
-    anomaly_score_plots_dir = f'{output_configuration.directory_path}/{output_configuration.anomaly_scores_directory}'
-    if os.path.exists(anomaly_score_plots_dir):
-        shutil.rmtree(anomaly_score_plots_dir)
-    os.mkdir(f'{output_configuration.directory_path}/{output_configuration.anomaly_scores_directory}')
+    if os.path.exists(output_configuration.figure_directory_path):
+        shutil.rmtree(output_configuration.figure_directory_path)
+    os.mkdir(output_configuration.figure_directory_path)
 
     return output_configuration

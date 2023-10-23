@@ -13,6 +13,10 @@ class TimeSeriesAnomalyDetector(abc.ABC):
     def __init__(self):
         self.__decision_scores = None
 
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
+
     @abc.abstractmethod
     def train_type(self) -> TrainType:
         raise NotImplementedError("Abstract method 'is_supervised()' should be implemented by the specific anomaly detector!")
