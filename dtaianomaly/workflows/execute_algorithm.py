@@ -28,10 +28,10 @@ def main(data_manager: DataManager,
          output_configuration: Union[PlainOutputConfiguration, OutputConfiguration]) -> pd.DataFrame:
 
     data_manager = handle_data_configuration(data_manager, data_configuration)
-    algorithm = handle_algorithm_configuration(algorithm_configuration)
+    algorithm, algorithm_name = handle_algorithm_configuration(algorithm_configuration)
     algorithm_train_type = algorithm.train_type()
     metrics = handle_metric_configuration(metric_configuration)
-    output_configuration = handle_output_configuration(output_configuration, algorithm)
+    output_configuration = handle_output_configuration(output_configuration, algorithm_name)
 
     __log(message='>>> Starting the workflow',
           print_message=output_configuration.verbose)

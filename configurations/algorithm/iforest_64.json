@@ -1,4 +1,5 @@
 {
+  "name": "iforest_64",
   "anomaly_detector": "PyODAnomalyDetector",
   "pyod_model": "IForest",
   "windowing": {
