@@ -11,7 +11,8 @@ class AffiliationPrecision(ThresholdingMetric):
 
     def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
         ground_truth_events = convert_vector_to_events(ground_truth_anomalies)
-        predicted_events = convert_vector_to_events(predicted_anomaly_scores)
+        predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
+        predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
         return precision_from_events(predicted_events, ground_truth_events, t_range)
 
@@ -20,7 +21,8 @@ class AffiliationRecall(ThresholdingMetric):
 
     def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
         ground_truth_events = convert_vector_to_events(ground_truth_anomalies)
-        predicted_events = convert_vector_to_events(predicted_anomaly_scores)
+        predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
+        predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
         return recall_from_events(predicted_events, ground_truth_events, t_range)
 
@@ -33,7 +35,8 @@ class AffiliationFBeta(ThresholdingMetric):
 
     def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
         ground_truth_events = convert_vector_to_events(ground_truth_anomalies)
-        predicted_events = convert_vector_to_events(predicted_anomaly_scores)
+        predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
+        predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
         precision = precision_from_events(predicted_events, ground_truth_events, t_range)
         recall = recall_from_events(predicted_events, ground_truth_events, t_range)
