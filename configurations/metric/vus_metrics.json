@@ -1,4 +1,12 @@
 {
   "roc_vus": { },
-  "pr_vus": { }
+  "pr_vus": { },
+
+  "affiliation_f1_gt_contamination": {
+    "metric_name": "affiliation_fbeta",
+    "metric_parameters": {
+      "beta": 1.0
+    },
+    "thresholding_strategy": "contamination"
+  }
 }

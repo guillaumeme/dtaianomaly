@@ -2,6 +2,6 @@
   "anomaly_detector": "PyODAnomalyDetector",
   "pyod_model": "IForest",
   "windowing": {
-    "window_size": 100
+    "window_size": 64
   }
 }

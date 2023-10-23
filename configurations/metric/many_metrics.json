@@ -1,0 +1,25 @@
+{
+  "affiliation_f1": {
+    "metric_name": "affiliation_fbeta",
+    "metric_parameters": {
+      "beta": 1.0
+    },
+    "thresholding_strategy": "contamination",
+    "thresholding_parameters": {
+      "contamination": 0.1
+    }
+  },
+  "affiliation_f1_gt_contamination": {
+    "metric_name": "affiliation_fbeta",
+    "metric_parameters": {
+      "beta": 1.0
+    },
+    "thresholding_strategy": "contamination"
+  },
+
+  "roc_vus": { },
+  "pr_vus": { },
+
+  "roc_auc": { },
+  "pr_auc": { }
+}

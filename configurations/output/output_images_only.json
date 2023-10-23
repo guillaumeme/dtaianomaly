@@ -1,11 +1,11 @@
 {
   "directory_path": "results",
-  "verbose": true,
+  "verbose": false,
 
   "trace_time": true,
   "trace_memory": true,
 
-  "print_results": true,
+  "print_results": false,
   "save_results": true,
   "results_file": "results.csv",
 
