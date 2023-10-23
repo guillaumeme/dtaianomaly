@@ -69,7 +69,7 @@ run-main-script:
           --datasets_index_file datasets.csv
           --configuration_dir configurations
           --data data/Demo.json
-          --algorithm algorithm/iforest.json
+          --algorithm algorithm/iforest_64.json
           --metric metric/auc_metrics.json
           --output output/output_all.json
 
