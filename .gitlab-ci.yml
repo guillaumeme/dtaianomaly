@@ -40,6 +40,7 @@ stages:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov     # Packages for testing purposes
   script:
+    - echo $CI_COMMIT_REF_NAME $CI_DEFAULT_BRANCH
     # Test the requested package, print the code coverage, and generate a xml report of the tests
     - pytest ./tests/ --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
