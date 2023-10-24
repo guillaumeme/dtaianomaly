@@ -19,7 +19,7 @@ cache:
 
 # There are two stages in this pipeline: unittest and workflow
 stages:
-  - unittest       # For simple unit tests
+  - unit-test       # For simple unit tests
   - workflow       # For larger flows of the package
   - documentation  # For generating and checking the documentation
 
@@ -30,7 +30,7 @@ stages:
 
 # A template to run the different  unittests  in the different subpackages in separate jobs
 .unit-test:
-  stage: unittest  # Run in `unittest`stage
+  stage: unit-test  # Run in `unittest`stage
   before_script:
     - python --version ; pip --version
     - pip install -r requirements.txt
@@ -43,14 +43,14 @@ stages:
 unit-test-3.7:
   image: python:3.7
   extends: .unit-test
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 unit-test-3.8:
   image: python:3.8
   extends: .unit-test
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 # Save the coverage report and test report for Python 3.9
 unit-test-3.9:
@@ -66,14 +66,14 @@ unit-test-3.9:
 unit-test-3.10:
   image: python:3.10
   extends: .unit-test
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 unit-test-3.11:
   image: python:3.10
   extends: .unit-test
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 ####################################################################################
 ##################################### WORKFLOW #####################################
@@ -103,14 +103,14 @@ unit-test-3.11:
 main-script-3.7:
   image: python:3.7
   extends: .workflow-main-script
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 main-script-3.8:
   image: python:3.8
   extends: .workflow-main-script
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 main-script-3.9:  # Always execute this job
   image: python:3.9
@@ -119,14 +119,14 @@ main-script-3.9:  # Always execute this job
 main-script-3.10:
   image: python:3.10
   extends: .workflow-main-script
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 main-script-3.11:
   image: python:3.11
   extends: .workflow-main-script
-#  only:  # Commented or testing purposes
-#    - $CI_DEFAULT_BRANCH
+  only:  # Commented or testing purposes
+    - $CI_DEFAULT_BRANCH
 
 # Check if the notebooks still run without any problems
 # Just use python 3.9, because it is time-consuming
