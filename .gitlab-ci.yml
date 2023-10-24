@@ -101,6 +101,7 @@ unit-test-3.11:
     PYTHON_VERSION: ""
   image: python:$PYTHON_VERSION
   script:
+    - echo $CI_COMMIT_REF_NAME $CI_DEFAULT_BRANCH
     - python main.py
       --data_dir data
       --datasets_index_file datasets.csv
