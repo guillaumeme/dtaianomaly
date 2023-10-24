@@ -28,7 +28,7 @@ stages:
 # Adding this template ensures they are executed
 .run-always:
   rules:
-    -if true
+    -if True
 
 ####################################################################################
 #################################### UNIT TESTS ####################################
