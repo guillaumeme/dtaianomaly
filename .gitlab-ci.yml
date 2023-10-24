@@ -29,58 +29,58 @@ stages:
 #################################### UNIT TESTS ####################################
 ####################################################################################
 
-## A template to run the different  unittests  in the different subpackages in separate jobs
-#.unit-test:
-#  stage: unit-test  # Run in `unittest`stage
-#  before_script:
-#    - python --version ; pip --version
-#    - pip install -r requirements.txt
-#    - pip install pytest pytest-cov     # Packages for testing purposes
-#  script:
-#    # Test the requested package, print the code coverage, and generate a xml report of the tests
-#    - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
-#
-## Execute unit tests for multiple Python versions
-##unit-test-3.6:  # Succeeds, but main script with 3.6 fails
-##  image: python:3.6
-##  extends: .unit-test
-##  only:
-##    - $CI_DEFAULT_BRANCH
-#
-#unit-test-3.7:
-#  image: python:3.7
+# A template to run the different  unittests  in the different subpackages in separate jobs
+.unit-test:
+  stage: unit-test  # Run in `unittest`stage
+  variables:
+    PYTHON_VERSION: ""
+  before_script:
+    - python --version ; pip --version
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov     # Packages for testing purposes
+  script:
+    # Test the requested package, print the code coverage, and generate a xml report of the tests
+    - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
+  artifacts:
+    when: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
+    reports:
+      junit: report.xml
+    expire_in: 1 weeks
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
+
+# Execute unit tests for multiple Python versions
+#unit-test-3.6:  # Succeeds, but main script with 3.6 fails
+#  image: python:3.6
 #  extends: .unit-test
 #  only:
 #    - $CI_DEFAULT_BRANCH
-#
-#unit-test-3.8:
-#  image: python:3.8
-#  extends: .unit-test
-#  only:
-#    - $CI_DEFAULT_BRANCH
-#
-## Save the coverage report and test report for Python 3.9
-#unit-test-3.9:
-#  image: python:3.9
-#  extends: .unit-test
-#  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
-#  artifacts:
-#    when: always
-#    reports:
-#      junit: report.xml
-#    expire_in: 1 weeks
-#
-#unit-test-3.10:
-#  image: python:3.10
-#  extends: .unit-test
-#  only:
-#    - $CI_DEFAULT_BRANCH
-#
-#unit-test-3.11:
-#  image: python:3.11
-#  extends: .unit-test
-#  only:
-#    - $CI_DEFAULT_BRANCH
+
+unit-test-3.7:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.7"
+
+unit-test-3.8:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.8"
+
+unit-test-3.9:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.9"
+
+unit-test-3.10:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.10"
+
+unit-test-3.11:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.11"
 
 ####################################################################################
 ##################################### WORKFLOW #####################################
