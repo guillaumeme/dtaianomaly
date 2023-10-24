@@ -1,15 +1,15 @@
 {
   "directory_path": "results",
-  "verbose": true,
+  "verbose": false,
 
   "trace_time": true,
   "trace_memory": true,
 
-  "print_results": true,
+  "print_results": false,
   "save_results": true,
   "results_file": "results.csv",
 
-  "save_anomaly_scores_plot": true,
+  "save_anomaly_scores_plot": false,
   "anomaly_scores_directory": "anomaly_score_plots",
   "anomaly_scores_file_format": "svg",
   "show_anomaly_scores": "overlay",

@@ -1,0 +1,8 @@
+{
+  "name": "OCSVM_64",
+  "anomaly_detector": "PyODAnomalyDetector",
+  "pyod_model": "OCSVM",
+  "windowing": {
+    "window_size": 64
+  }
+}

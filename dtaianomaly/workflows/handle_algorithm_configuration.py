@@ -1,13 +1,13 @@
 
 import json
 import importlib
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Tuple
 from dtaianomaly.anomaly_detection import *
 
 AlgorithmConfiguration = Union[Dict[str, Any], str]
 
 
-def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfiguration) -> TimeSeriesAnomalyDetector:
+def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfiguration) -> Tuple[TimeSeriesAnomalyDetector, str]:
 
     # Read the algorithm configuration file if it is a string
     if type(algorithm_configuration) is str:
@@ -19,4 +19,4 @@ def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfigurati
     anomaly_detector_class_object: TimeSeriesAnomalyDetector = getattr(importlib.import_module('dtaianomaly.anomaly_detection'), algorithm_configuration['anomaly_detector'])
 
     # Load and return the specific anomaly detector instance
-    return anomaly_detector_class_object.load(parameters=algorithm_configuration)
+    return anomaly_detector_class_object.load(parameters=algorithm_configuration), algorithm_configuration['name']

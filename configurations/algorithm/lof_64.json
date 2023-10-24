@@ -1,7 +1,8 @@
 {
+  "name": "LOF_64",
   "anomaly_detector": "PyODAnomalyDetector",
-  "pyod_model": "KNN",
+  "pyod_model": "LOF",
   "windowing": {
-    "window_size": 100
+    "window_size": 64
   }
 }

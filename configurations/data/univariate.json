@@ -1,0 +1,7 @@
+{
+  "select": [
+    {
+      "input_type": "univariate"
+    }
+  ]
+}
