@@ -31,7 +31,6 @@ stages:
 # A template to run the different  unittests  in the different subpackages in separate jobs
 .unit-test:
   stage: unittest  # Run in `unittest`stage
-  extends: .run-source-code
   before_script:
     - python --version ; pip --version
     - pip install -r requirements.txt
