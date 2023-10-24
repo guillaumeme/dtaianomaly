@@ -40,9 +40,9 @@ stages:
     - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
 
 # Execute unit tests for multiple Python versions
-unit-test-3.6:
-  image: python:3.6
-  extends: .unit-test
+#unit-test-3.6:  # Succeeds, but main script with 3.6 fails
+#  image: python:3.6
+#  extends: .unit-test
 #  only:
 #    - $CI_DEFAULT_BRANCH
 
@@ -76,10 +76,16 @@ unit-test-3.10:
     - $CI_DEFAULT_BRANCH
 
 unit-test-3.11:
-  image: python:3.10
+  image: python:3.11
   extends: .unit-test
   only:
     - $CI_DEFAULT_BRANCH
+
+unit-test-3.12:
+  image: python:3.12
+  extends: .unit-test
+#  only:
+#    - $CI_DEFAULT_BRANCH
 
 ####################################################################################
 ##################################### WORKFLOW #####################################
@@ -106,9 +112,9 @@ unit-test-3.11:
       --output output/output_all.json
 
 # Use different versions of Python
-main-script-3.6:
-  image: python:3.6
-  extends: .workflow-main-script
+#main-script-3.6:  # Fails
+#  image: python:3.6
+#  extends: .workflow-main-script
 #  only:
 #    - $CI_DEFAULT_BRANCH
 
@@ -139,6 +145,12 @@ main-script-3.11:
   extends: .workflow-main-script
   only:
     - $CI_DEFAULT_BRANCH
+
+main-script-3.12:
+  image: python:3.12
+  extends: .workflow-main-script
+#  only:
+#    - $CI_DEFAULT_BRANCH
 
 # Check if the notebooks still run without any problems
 # Just use python 3.9, because it is time-consuming

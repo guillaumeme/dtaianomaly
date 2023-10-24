@@ -1,0 +1,19 @@
+{
+  "directory_path": "results",
+  "verbose": false,
+
+  "trace_time": true,
+  "trace_memory": true,
+
+  "print_results": false,
+  "save_results": true,
+  "results_file": "results.csv",
+
+  "save_anomaly_scores_plot": false,
+  "anomaly_scores_directory": "anomaly_score_plots",
+  "anomaly_scores_file_format": "svg",
+  "show_anomaly_scores": "overlay",
+  "show_ground_truth": null,
+
+  "invalid_train_type_raise_error": true
+}
