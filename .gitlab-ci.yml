@@ -113,6 +113,7 @@ unit-test-3.11:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
+    - if: $PYTHON_VERSION == ""
 
 # Use different versions of Python
 #main-script-3.6:  # Fails
