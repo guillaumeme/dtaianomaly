@@ -1,6 +1,6 @@
-numpy==1.23.0
-pyod==1.1.0
-matplotlib==3.7.3
-pandas==2.0.3
-scipy==1.10.1
-scikit-learn~=1.2.2
+numpy
+pyod
+matplotlib
+pandas
+scipy
+scikit-learn

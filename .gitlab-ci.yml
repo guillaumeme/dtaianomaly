@@ -39,32 +39,30 @@ stages:
     # Test the requested package, print the code coverage, and generate a xml report of the tests
     - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
 
-# Test the unit tests for python 3.7
+# Execute unit tests for multiple Python versions
 unit-test-3.7:
   image: python:3.7
   extends: .unit-test
   only:
     - $CI_DEFAULT_BRANCH
 
-# Test the unit tests for python 3.8
 unit-test-3.8:
   image: python:3.8
   extends: .unit-test
   only:
     - $CI_DEFAULT_BRANCH
 
-# Test for Python version 3.9, and generate the coverage report and the junit report for this version only
+# Save the coverage report and test report for Python 3.9
 unit-test-3.9:
   image: python:3.9
   extends: .unit-test
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
-    when: always  # Always save the urest report, and let it expire after a week
+    when: always
     reports:
       junit: report.xml
     expire_in: 1 weeks
 
-# Test the unit tests for python 3.10
 unit-test-3.10:
   image: python:3.10
   extends: .unit-test
@@ -99,21 +97,27 @@ unit-test-3.10:
 main-script-3.7:
   image: python:3.7
   extends: .workflow-main-script
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
 main-script-3.8:
   image: python:3.8
   extends: .workflow-main-script
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
-main-script-3.9:
+main-script-3.9:  # Always execute this job
   image: python:3.9
   extends: .workflow-main-script
 
 main-script-3.10:
   image: python:3.10
   extends: .workflow-main-script
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
 # Check if the notebooks still run without any problems
-# Just use python 3.9, because it is time consuming
+# Just use python 3.9, because it is time-consuming
 run-notebooks:
   image: python:3.9
   extends: .workflow
