@@ -43,14 +43,14 @@ stages:
 unit-test-3.7:
   image: python:3.7
   extends: .unit-test
-  only:
-    - $CI_DEFAULT_BRANCH
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
 unit-test-3.8:
   image: python:3.8
   extends: .unit-test
-  only:
-    - $CI_DEFAULT_BRANCH
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
 # Save the coverage report and test report for Python 3.9
 unit-test-3.9:
@@ -66,8 +66,14 @@ unit-test-3.9:
 unit-test-3.10:
   image: python:3.10
   extends: .unit-test
-  only:
-    - $CI_DEFAULT_BRANCH
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
+
+unit-test-3.11:
+  image: python:3.10
+  extends: .unit-test
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
 
 ####################################################################################
 ##################################### WORKFLOW #####################################
@@ -116,14 +122,19 @@ main-script-3.10:
 #  only:  # Commented or testing purposes
 #    - $CI_DEFAULT_BRANCH
 
+main-script-3.11:
+  image: python:3.11
+  extends: .workflow-main-script
+#  only:  # Commented or testing purposes
+#    - $CI_DEFAULT_BRANCH
+
 # Check if the notebooks still run without any problems
 # Just use python 3.9, because it is time-consuming
 run-notebooks:
   image: python:3.9
   extends: .workflow
-  before_script:
-    - pip install jupyter
   script:
+    - pip install jupyter
     - mv dtaianomaly notebooks
     - cd notebooks
     - jupyter nbconvert --to notebook --execute *.ipynb
