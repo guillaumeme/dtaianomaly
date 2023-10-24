@@ -40,7 +40,12 @@ stages:
     - pip install pytest pytest-cov     # Packages for testing purposes
   script:
     # Test the requested package, print the code coverage, and generate a xml report of the tests
-    - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
+    - if [ "$PYTHON_VERSION" = "$DEFAULT_PYTHON_VERSION" ] ; then 
+        echo pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
+      else 
+        pytest ./tests
+      fi
+  coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
     reports:
@@ -49,13 +54,13 @@ stages:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
+    - if: $PYTHON_VERSION == "3.8"  # For testing purposes
 
 # Execute unit tests for multiple Python versions
 #unit-test-3.6:  # Succeeds, but main script with 3.6 fails
-#  image: python:3.6
 #  extends: .unit-test
-#  only:
-#    - $CI_DEFAULT_BRANCH
+#  variables:
+#    PYTHON_VERSION: "3.6"
 
 unit-test-3.7:
   extends: .unit-test
