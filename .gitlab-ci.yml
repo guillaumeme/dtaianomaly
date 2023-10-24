@@ -51,7 +51,6 @@ stages:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
-    - if: $PYTHON_VERSION == "3.8"  # For testing purposes
 
 # Execute unit tests for multiple Python versions
 #unit-test-3.6:  # Succeeds, but main script with 3.6 fails
