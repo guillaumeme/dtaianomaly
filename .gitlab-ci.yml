@@ -46,11 +46,11 @@ stages:
         pytest ./tests
       fi
   coverage: '/(?i)TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
-  artifacts:
-    when: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
-    reports:
-      junit: report.xml
-    expire_in: 1 weeks
+#  artifacts:
+#    when: always
+#    reports:
+#      junit: report.xml
+#    expire_in: 1 weeks
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
