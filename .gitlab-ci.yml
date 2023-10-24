@@ -24,12 +24,6 @@ stages:
   - workflow       # For larger flows of the package
   - documentation  # For generating and checking the documentation
 
-# Jobs without rules are not executed for some reason
-# Adding this template ensures they are executed
-.run-always:
-  rules:
-    -if: '1' == '1'
-
 ####################################################################################
 #################################### UNIT TESTS ####################################
 ####################################################################################
@@ -155,14 +149,14 @@ main-script-3.11:
 # Just use the default python version, because it is time-consuming
 run-notebooks:
   image: python:$DEFAULT_PYTHON_VERSION
-  extends:
-    - .workflow
-    - .run-always
+  extends: .workflow
   script:
     - pip install jupyter
     - mv dtaianomaly notebooks
     - cd notebooks
     - jupyter nbconvert --to notebook --execute *.ipynb
+  rules:
+    - if: 'true'  # Always run
 
 ####################################################################################
 ################################### DOCUMENTATION ##################################
@@ -179,11 +173,11 @@ run-notebooks:
 
 # Check the code in the documentation
 doctest:
-  extends:
-    - .documentation
-    - .run-always
+  extends: .documentation
   script:
     - make doctest
+  rules:
+    - if: 'true'  # Always run
 
 # Generate the documentation
 pages:
