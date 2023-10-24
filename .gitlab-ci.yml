@@ -114,10 +114,9 @@ stages:
 
 # Use different versions of Python
 #main-script-3.6:  # Fails
-#  image: python:3.6
 #  extends: .workflow-main-script
-#  only:
-#    - $CI_DEFAULT_BRANCH
+#  variables:
+#    PYTHON_VERSION: "3.6"
 
 main-script-3.7:
   extends: .workflow-main-script
@@ -130,6 +129,7 @@ main-script-3.8:
     PYTHON_VERSION: "3.8"
 
 main-script-3.9:
+  extends: .workflow-main-script
   variables:
     PYTHON_VERSION: "3.9"
 
