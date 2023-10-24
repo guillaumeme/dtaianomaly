@@ -149,8 +149,9 @@ main-script-3.11:
 # Check if the notebooks still run without any problems
 # Just use the default python version, because it is time-consuming
 run-notebooks:
-  image: python:$DEFAULT_PYTHON_VERSION
   extends: .workflow
+  variables:
+    PYTHON_VERSION: $DEFAULT_PYTHON_VERSION
   script:
     - pip install jupyter
     - mv dtaianomaly notebooks
