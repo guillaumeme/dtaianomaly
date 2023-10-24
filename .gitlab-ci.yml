@@ -155,8 +155,6 @@ run-notebooks:
     - mv dtaianomaly notebooks
     - cd notebooks
     - jupyter nbconvert --to notebook --execute *.ipynb
-  rules:
-    - if: 'true'  # Always run
 
 ####################################################################################
 ################################### DOCUMENTATION ##################################
@@ -176,8 +174,6 @@ doctest:
   extends: .documentation
   script:
     - make doctest
-  rules:
-    - if: 'true'  # Always run
 
 # Generate the documentation
 pages:
