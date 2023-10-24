@@ -40,16 +40,22 @@ stages:
     - pytest ./tests --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
 
 # Execute unit tests for multiple Python versions
+unit-test-3.6:
+  image: python:3.6
+  extends: .unit-test
+#  only:
+#    - $CI_DEFAULT_BRANCH
+
 unit-test-3.7:
   image: python:3.7
   extends: .unit-test
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 unit-test-3.8:
   image: python:3.8
   extends: .unit-test
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 # Save the coverage report and test report for Python 3.9
@@ -66,13 +72,13 @@ unit-test-3.9:
 unit-test-3.10:
   image: python:3.10
   extends: .unit-test
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 unit-test-3.11:
   image: python:3.10
   extends: .unit-test
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 ####################################################################################
@@ -100,16 +106,22 @@ unit-test-3.11:
       --output output/output_all.json
 
 # Use different versions of Python
+main-script-3.6:
+  image: python:3.6
+  extends: .workflow-main-script
+#  only:
+#    - $CI_DEFAULT_BRANCH
+
 main-script-3.7:
   image: python:3.7
   extends: .workflow-main-script
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 main-script-3.8:
   image: python:3.8
   extends: .workflow-main-script
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 main-script-3.9:  # Always execute this job
@@ -119,13 +131,13 @@ main-script-3.9:  # Always execute this job
 main-script-3.10:
   image: python:3.10
   extends: .workflow-main-script
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 main-script-3.11:
   image: python:3.11
   extends: .workflow-main-script
-  only:  # Commented or testing purposes
+  only:
     - $CI_DEFAULT_BRANCH
 
 # Check if the notebooks still run without any problems
