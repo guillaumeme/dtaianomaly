@@ -149,8 +149,7 @@ main-script-3.11:
 # Just use the default python version, because it is time-consuming
 run-notebooks:
   extends: .workflow
-  variables:
-    PYTHON_VERSION: $DEFAULT_PYTHON_VERSION
+  image: python:$DEFAULT_PYTHON_VERSION
   script:
     - pip install jupyter
     - mv dtaianomaly notebooks
