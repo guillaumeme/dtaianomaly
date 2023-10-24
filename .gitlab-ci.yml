@@ -24,6 +24,11 @@ stages:
   - workflow       # For larger flows of the package
   - documentation  # For generating and checking the documentation
 
+# Jobs without rules are not executed for some reason
+# Adding this template ensures they are executed
+.run-always:
+  rules:
+    -if true
 
 ####################################################################################
 #################################### UNIT TESTS ####################################
@@ -150,7 +155,9 @@ main-script-3.11:
 # Just use the default python version, because it is time-consuming
 run-notebooks:
   image: python:$DEFAULT_PYTHON_VERSION
-  extends: .workflow
+  extends:
+    - .workflow
+    - .run-always
   script:
     - pip install jupyter
     - mv dtaianomaly notebooks
@@ -172,7 +179,9 @@ run-notebooks:
 
 # Check the code in the documentation
 doctest:
-  extends: .documentation
+  extends:
+    - .documentation
+    - .run-always
   script:
     - make doctest
 
