@@ -62,7 +62,7 @@ raw_anomaly_scores = anomaly_detector.decision_function(trend_data)
 # Compute the probability of an observation being an anomaly (in range [0, 1])
 anomaly_probabilities = anomaly_detector.predict_proba(trend_data)
 ```
-![Anomaly scores](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/notebooks/README_demo.svg)
+![Anomaly scores](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/raw/main/notebooks/README_demo.svg?inline=false)
 
 ## Examples
 Several examples of how `dtaianomaly` can be used are provided in the [notebooks](notebooks). Here
