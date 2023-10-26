@@ -1,7 +1,7 @@
 # Time Series Anomaly Detection
 
-[![pipeline status](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
-[![coverage report](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/time-series-anomaly-detection/-/commits/main)
+[![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
+[![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomalybadges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
 [![Downloads](https://static.pepy.tech/badge/dtaianomaly)](https://pepy.tech/project/dtaianomaly)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
 [![PyPI license](https://img.shields.io/pypi/l/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
