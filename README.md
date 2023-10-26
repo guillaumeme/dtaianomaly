@@ -1,7 +1,5 @@
 # Time Series Anomaly Detection
 
-[![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
-[![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomalybadges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
 [![Downloads](https://static.pepy.tech/badge/dtaianomaly)](https://pepy.tech/project/dtaianomaly)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
 [![PyPI license](https://img.shields.io/pypi/l/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
@@ -64,7 +62,7 @@ raw_anomaly_scores = anomaly_detector.decision_function(trend_data)
 # Compute the probability of an observation being an anomaly (in range [0, 1])
 anomaly_probabilities = anomaly_detector.predict_proba(trend_data)
 ```
-![Anomaly scores](notebooks/README_demo.svg)
+![Anomaly scores](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/notebooks/README_demo.svg)
 
 ## Examples
 Several examples of how `dtaianomaly` can be used are provided in the [notebooks](notebooks). Here
