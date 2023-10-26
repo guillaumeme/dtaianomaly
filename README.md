@@ -1,5 +1,9 @@
 # Time Series Anomaly Detection
 
+
+[![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/pipelines)
+[![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
+[![Latest Release](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/badges/release.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/releases)
 [![Downloads](https://static.pepy.tech/badge/dtaianomaly)](https://pepy.tech/project/dtaianomaly)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
 [![PyPI license](https://img.shields.io/pypi/l/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
@@ -14,7 +18,7 @@ check out the [documentation](https://u0143709.pages.gitlab.kuleuven.be/dtaianom
 for more information. 
 
 ## Installation
-The easiest way to install `dtaianomaly` is through [PyPi](https://pypi.org/project/dtaianomaly/):
+The easiest way to install the latest release of `dtaianomaly` is through [PyPi](https://pypi.org/project/dtaianomaly/):
 ```
 pip install dtaianomaly
 ```
