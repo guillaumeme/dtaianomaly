@@ -14,20 +14,16 @@ def dataset_index_file() -> pd.DataFrame:
 
 class TestInitialize:
 
-    def test_invalid_data_directory_path(self):
-        with pytest.raises(ValueError):
-            _ = DataManager('invalid_path', 'datasets.csv')
-
     def test_invalid_dataset_index_file_path(self):
         with pytest.raises(ValueError):
-            _ = DataManager('data', 'invalid_datasets.csv')
+            _ = DataManager('invalid_datasets.csv')
 
     def test_invalid_dataset_index_file_index(self, tmp_path):
         dataset_index_path = tmp_path / "datasets.csv"
         pd.DataFrame(columns=['collection_name_invalid', 'dataset_name_invalid', 'some_other_column']).to_csv(dataset_index_path, index=False)
 
         with pytest.raises(IndexError):
-            _ = DataManager(str(tmp_path), "datasets.csv")
+            _ = DataManager(str(tmp_path) + "/datasets.csv")
 
     def test_invalid_dataset_index_file_missing_properties(self, tmp_path, dataset_index_file):
         dataset_index_path = tmp_path / "datasets.csv"
@@ -39,7 +35,7 @@ class TestInitialize:
             pd.DataFrame(columns=columns).to_csv(dataset_index_path, index=False)
 
             with pytest.raises(ValueError):
-                _ = DataManager(str(tmp_path), "datasets.csv")
+                _ = DataManager(str(tmp_path) + "/datasets.csv")
 
     def test_invalid_dataset_index_file_extra_properties(self, tmp_path, dataset_index_file):
         dataset_index_path = tmp_path / "datasets.csv"
@@ -50,10 +46,10 @@ class TestInitialize:
         pd.DataFrame(columns=required_columns).to_csv(dataset_index_path, index=False)
 
         with pytest.raises(ValueError):
-            _ = DataManager(str(tmp_path), "datasets.csv")
+            _ = DataManager(str(tmp_path) + "/datasets.csv")
 
     def test_valid_parameters(self):
-        _ = DataManager('data', 'datasets.csv')
+        _ = DataManager('data/datasets.csv')
 
 
 class TestSelectGet:
@@ -435,7 +431,7 @@ class TestAddData:
     def tmp_data_manager(self, tmp_path) -> DataManager:
         shutil.copy('data/datasets.csv', tmp_path / 'datasets.csv')
         shutil.copytree('data/demo', tmp_path / 'demo')  # To make sure that there is some data
-        return DataManager(str(tmp_path), 'datasets.csv')
+        return DataManager(str(tmp_path) + '/datasets.csv')
 
     @pytest.fixture
     def data(self) -> pd.DataFrame:

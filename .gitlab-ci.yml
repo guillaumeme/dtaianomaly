@@ -53,10 +53,10 @@ stages:
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
 
 # Execute unit tests for multiple Python versions
-#unit-test-3.6:  # Succeeds, but main script with 3.6 fails
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.6"
+unit-test-3.6:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.6"
 
 unit-test-3.7:
   extends: .unit-test
@@ -102,8 +102,7 @@ unit-test-3.11:
   image: python:$PYTHON_VERSION
   script:
     - python main.py
-      --data_dir data
-      --datasets_index_file datasets.csv
+      --datasets_index_file data/datasets.csv
       --configuration_dir configurations
       --data data/Demo.json
       --algorithm algorithm/iforest_64.json
@@ -115,10 +114,10 @@ unit-test-3.11:
     - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
 
 # Use different versions of Python
-#main-script-3.6:  # Fails
-#  extends: .workflow-main-script
-#  variables:
-#    PYTHON_VERSION: "3.6"
+main-script-3.6:
+  extends: .workflow-main-script
+  variables:
+    PYTHON_VERSION: "3.6"
 
 main-script-3.7:
   extends: .workflow-main-script

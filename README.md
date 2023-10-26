@@ -52,7 +52,7 @@ The three key features of `dtaianomaly` are as follows:
 ```python
 from dtaianomaly.anomaly_detection import PyODAnomalyDetector, Windowing
 
-trend_data = ... # Some time series as a numpy array
+trend_data = ... # Some time series as a numpy array of shape (n_samples, n_features)
 
 # Initialize an IForest that takes as features each window of 100 observations
 anomaly_detector = PyODAnomalyDetector('IForest', Windowing(window_size=100))
