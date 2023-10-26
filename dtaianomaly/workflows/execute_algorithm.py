@@ -171,12 +171,18 @@ def main(data_manager: DataManager,
                 show_ground_truth=output_configuration.show_ground_truth
             )
 
-    # Save the results, if requested
-    if output_configuration.save_results:
-        if output_configuration.trace_memory:
+        # Save the results after each iteration, if requested
+        if output_configuration.save_results and output_configuration.constantly_save_results:
             __log(message=f">>> Saving the results to disk\n"
                           f"path: {output_configuration.results_path}",
                   print_message=output_configuration.verbose)
+            results.to_csv(output_configuration.results_path)
+
+    # Save the results, if requested
+    if output_configuration.save_results:
+        __log(message=f">>> Saving the results to disk\n"
+                      f"path: {output_configuration.results_path}",
+              print_message=output_configuration.verbose)
         results.to_csv(output_configuration.results_path)
 
     if output_configuration.print_results:

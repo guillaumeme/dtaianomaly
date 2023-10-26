@@ -17,20 +17,18 @@ _COLUMN_NAMES = {
 # Inspired by Timeeval (https://github.com/HPI-Information-Systems/TimeEval/tree/main)
 class DataManager:
 
-    def __init__(self, data_dir: str, datasets_index_file: str = 'datasets.csv'):
-
-        # Check if the data directory exists
-        if not os.path.exists(data_dir):
-            raise ValueError(f"The given data directory '{data_dir}' does not exist!")
-        self.__data_dir: str = data_dir
+    def __init__(self, datasets_index_file: str = 'datasets.csv'):
 
         # Check if the index file exists
-        if not os.path.exists(data_dir + '/' + datasets_index_file):
-            raise ValueError(f"There is no file '{datasets_index_file}' in the directory '{data_dir}'!")
+        if not os.path.exists(datasets_index_file):
+            raise ValueError(f"There is no file '{datasets_index_file}'!")
+
+        # Separately save the directory of the datasets index file
+        self.__data_dir: str = os.path.dirname(os.path.abspath(datasets_index_file))
         self.__datasets_index_file: str = datasets_index_file
 
         # Check if the index file contains the correct index columns
-        with open(self.__data_dir + '/' + self.__datasets_index_file, 'r') as file:
+        with open(self.__datasets_index_file, 'r') as file:
             columns = file.readline().strip().split(',')
             if 'collection_name' not in columns and 'dataset_name' not in columns:
                 raise IndexError(f"The dataset index file does not contain columns 'collection_name' and 'dataset_name'!")
@@ -44,7 +42,7 @@ class DataManager:
                                  f"Required columns: {_COLUMN_NAMES}")
 
         # Read the dataset index file
-        self.__datasets_index: pd.DataFrame = pd.read_csv(self.__data_dir + '/' + self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
+        self.__datasets_index: pd.DataFrame = pd.read_csv(self.__datasets_index_file, index_col=['collection_name', 'dataset_name'])
 
         # Read the dataset index file
         self.__selected_datasets: pd.Series = pd.Series(index=self.__datasets_index.index, data=False)
@@ -247,7 +245,7 @@ class DataManager:
         self.__selected_datasets.sort_index(inplace=True)
 
         # Save the index and the data
-        self.__datasets_index.to_csv(self.__data_dir + '/' + self.__datasets_index_file)
+        self.__datasets_index.to_csv(self.__datasets_index_file)
         if not os.path.exists(self.__data_dir + '/' + os.path.dirname(test_path)):
             os.makedirs(self.__data_dir + '/' + os.path.dirname(test_path))
         test_data.to_csv(self.__data_dir + '/' + test_path)
@@ -270,7 +268,7 @@ class DataManager:
         # Update the index file
         self.__datasets_index.drop(index=dataset_index, inplace=True)
         self.__datasets_index.sort_index(inplace=True)  # Easier for humans to find stuff
-        self.__datasets_index.to_csv(self.__data_dir + '/' + self.__datasets_index_file)
+        self.__datasets_index.to_csv(self.__datasets_index_file)
 
         # Update the selected datasets
         self.__selected_datasets.drop(index=dataset_index, inplace=True)

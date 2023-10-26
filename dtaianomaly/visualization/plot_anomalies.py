@@ -133,4 +133,5 @@ def _plot_data_with_anomaly_overlay(ax: plt.Axes, trend_data_attribute: pd.Serie
     colormap = plt.get_cmap('RdYlGn', nb_bins).reversed()
     for i in range(0, trend_data_attribute.shape[0]):
         color = colormap(binned_anomaly_scores[i])
-        ax.plot(trend_data_attribute.loc[i:i + 2], c=color)
+        # +2 because the second index is exclusive (and we want the closed interval [i, i+1])
+        ax.plot(trend_data_attribute.iloc[i:i + 2], c=color)

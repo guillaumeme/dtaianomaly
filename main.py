@@ -10,11 +10,8 @@ if __name__ == '__main__':
 
     # Create a parser and parse the arguments
     parser = argparse.ArgumentParser(description="Time series anomaly detection.")
-    parser.add_argument('--data_dir', default='data',
-                        help='The directory containing the datasets the datasets and the index file for the '
-                             'datasets.')
     parser.add_argument('--datasets_index_file', default='datasets.csv',
-                        help='The index file containing metadata about the datasets.')
+                        help='The path to the dataset index file containing metadata about the datasets.')
     parser.add_argument('--configuration_dir', default='configurations',
                         help='The directory containing the configuration files. The provided configurations '
                              'should be relative to this path.')
@@ -90,7 +87,7 @@ if __name__ == '__main__':
 
     # Execute the algorithm
     execute_algorithm(
-        DataManager(args.data_dir, args.datasets_index_file),
+        DataManager(args.datasets_index_file),
         data_configuration,
         algorithm_configuration,
         metric_configuration,

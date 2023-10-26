@@ -10,6 +10,11 @@ class RocVUS(Metric):
         self.__num_thresholds: int = num_thresholds
 
     def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
+
+        # Check if there are any anomalies in the ground truth
+        if np.sum(ground_truth_anomalies) == 0:
+            return 0.0
+
         score_sorted = -np.sort(-predicted_anomaly_scores)
         thresholds = score_sorted[np.linspace(0, predicted_anomaly_scores.shape[0] - 1, num=self.__num_thresholds, dtype=int)]
 
@@ -55,6 +60,10 @@ class PrVUS(Metric):
         self.__num_thresholds: int = num_thresholds
 
     def compute(self, ground_truth_anomalies: np.array, predicted_anomaly_scores: np.array) -> float:
+
+        if np.sum(ground_truth_anomalies) == 0:
+            return 0.0
+
         score_sorted = -np.sort(-predicted_anomaly_scores)
         thresholds = score_sorted[np.linspace(0, predicted_anomaly_scores.shape[0] - 1, num=self.__num_thresholds, dtype=int)]
 

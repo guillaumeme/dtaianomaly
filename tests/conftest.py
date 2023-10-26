@@ -6,7 +6,7 @@ from dtaianomaly.data_management.DataManager import DataManager
 
 @pytest.fixture
 def data_manager() -> DataManager:
-    return DataManager('data', 'datasets.csv')
+    return DataManager('data/datasets.csv')
 
 
 @pytest.fixture

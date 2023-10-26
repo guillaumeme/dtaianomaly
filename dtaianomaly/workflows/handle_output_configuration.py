@@ -2,15 +2,16 @@
 import os
 import shutil
 import json
-from dataclasses import dataclass
 from typing import Dict, Any, Union, Optional
-from dtaianomaly.workflows.handle_algorithm_configuration import AlgorithmConfiguration
 
 PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 
-@dataclass
 class OutputConfiguration:
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     # The directory where everything should be saved
     directory_path: str
@@ -26,6 +27,7 @@ class OutputConfiguration:
     # If the raw results should be saved as a file
     print_results: bool = False
     save_results: bool = False
+    constantly_save_results: bool = False
     results_file: str = 'results.csv'
 
     # if a figure of the anomaly scores should be saved
