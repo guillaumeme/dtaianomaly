@@ -9,7 +9,12 @@ authors = [
 keywords = ["machine-learning", "time-series", "anomaly-detection", "data-mining"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: MIT License"
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
 ]
 dynamic = ["dependencies"]
 
@@ -24,6 +29,7 @@ file = "LICENSE"
 homepage = "https://pypi.org/project/dtaianomaly/"
 repository = "https://gitlab.kuleuven.be/u0143709/dtaianomaly"
 changelog = "https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/CHANGELOG.md"
+documentation = "https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/index.html"
 
 [build-system]
 requires = ["setuptools", "wheel", "build"]

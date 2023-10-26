@@ -9,7 +9,9 @@ from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
 
 class TimeSeriesAnomalyDetector(abc.ABC):
-
+    """
+    Abstract class for all anomaly detectors.
+    """
     def __init__(self):
         self.__decision_scores = None
 

@@ -4,10 +4,14 @@ import importlib
 from typing import Dict, Any, Union, Tuple
 from dtaianomaly.anomaly_detection import *
 
-AlgorithmConfiguration = Union[Dict[str, Any], str]
+AlgorithmConfiguration = Union[Dict[str, Any], str, TimeSeriesAnomalyDetector]
 
 
 def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfiguration) -> Tuple[TimeSeriesAnomalyDetector, str]:
+
+    # If an algorithm is given, then simply return this algorithm
+    if isinstance(algorithm_configuration, TimeSeriesAnomalyDetector):
+        return algorithm_configuration
 
     # Read the algorithm configuration file if it is a string
     if type(algorithm_configuration) is str:

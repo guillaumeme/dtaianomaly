@@ -166,7 +166,7 @@ run-notebooks:
   image: python:$DEFAULT_PYTHON_VERSION-slim
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
-    - python -m pip install sphinx toml
+    - python -m pip install sphinx toml sphinx_rtd_theme
     - cd docs
 
 # Check the code in the documentation
