@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file.
- 
+
+## [0.1.1] - 2023-10-26
+
+This update doesn't include a lot of changes. It only slightly modified the
+readme.
+
+### Added
+- Added an official release to the repository, and a badge to indicate
+  the latest release. 
+
+### Changed
+
+### Fixed
+- Fixed the link to the image showcasing the anomaly scores of an 
+  IForest on a Demo time series. 
+
 ## [0.1.0] - 2023-10-26
 
 First release of `dtaianomaly`! While our toolbox is still a work in progress, 
