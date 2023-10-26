@@ -2,7 +2,27 @@
 Welcome to DTAIAnomaly's documentation!
 ========================================
 
-This file will form the basis for the documentation of ``dtaianomaly``! The documentation
-is currently still work in progress, but will be available in the near future.
+DTAIAnomaly is an easy-to-use Python package for time series anomaly detection. Its main
+goal is to offer a simple interface to detect anomalies in time series data using
+state-of-the-art methods. Additionally, DTAIAnomaly provides a benchmark framework to
+quantitatively evaluate time series anomaly detection methods on a large repository of
+time series.
 
+The source is available on `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`_.
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Getting started
+
+   getting_started/quickstart
+   getting_started/installation
+   getting_started/data_management
+   getting_started/evaluation
+   getting_started/experiments
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Documentation
+
+   api/cheatsheet
+   api/api_reference

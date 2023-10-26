@@ -14,7 +14,10 @@ class AffiliationPrecision(ThresholdingMetric):
         predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
         predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
-        return precision_from_events(predicted_events, ground_truth_events, t_range)
+        try:
+            return precision_from_events(predicted_events, ground_truth_events, t_range)
+        except ValueError:
+            return np.nan
 
 
 class AffiliationRecall(ThresholdingMetric):
@@ -24,7 +27,10 @@ class AffiliationRecall(ThresholdingMetric):
         predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
         predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
-        return recall_from_events(predicted_events, ground_truth_events, t_range)
+        try:
+            return recall_from_events(predicted_events, ground_truth_events, t_range)
+        except ValueError:
+            return np.nan
 
 
 class AffiliationFBeta(ThresholdingMetric):
@@ -38,6 +44,9 @@ class AffiliationFBeta(ThresholdingMetric):
         predicted_anomaly_labels = self._get_anomaly_labels(predicted_anomaly_scores, ground_truth_anomalies)
         predicted_events = convert_vector_to_events(predicted_anomaly_labels)
         t_range = (0, ground_truth_anomalies.shape[0])
-        precision = precision_from_events(predicted_events, ground_truth_events, t_range)
-        recall = recall_from_events(predicted_events, ground_truth_events, t_range)
+        try:
+            precision = precision_from_events(predicted_events, ground_truth_events, t_range)
+            recall = recall_from_events(predicted_events, ground_truth_events, t_range)
+        except ValueError:
+            return np.nan
         return (1 + self.__beta**2) * (precision * recall) / (self.__beta**2 * precision + recall)
