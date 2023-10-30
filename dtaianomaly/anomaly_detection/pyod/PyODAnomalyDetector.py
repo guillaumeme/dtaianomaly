@@ -47,7 +47,7 @@ class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
 
     def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
         windowed_decision_scores = self.__pyod_anomaly_detector.decision_function(self.__windowing.create_windows(trend_data))
-        return self.__windowing.reverse_windowing(windowed_decision_scores)
+        return self.__windowing.reverse_windowing(windowed_decision_scores, trend_data.shape[0])
 
     def predict_confidence(self, trend_data: np.ndarray, contamination: float) -> np.array:
         warnings.warn('To compute the confidence of an anomaly detector, the train data should be i.i.d., '
