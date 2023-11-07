@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2023-11-07
+
+There was another, similar bug. 
+
+### Added
+
+### Changed
+
+### Fixed
+- Also added a `__init__.py` file in the utility directory for the affiliation metrics.
+
 ## [0.1.2] - 2023-11-07
 
 This update is to fix a crucial but small bug. 
