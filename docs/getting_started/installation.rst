@@ -4,7 +4,7 @@ Installation
 From PyPi
 ---------
 
-``dtaianomaly`` is available through :ref:`PyPI <https://pypi.org/project/dtaianomaly/>`:
+``dtaianomaly`` is available through `PyPI <https://pypi.org/project/dtaianomaly/>`_:
 
 .. code-block:: bash
 
@@ -17,7 +17,7 @@ From GitLab
 -----------
 
 Alternatively, it is possible to install the latest, *unreleased* version directly
-from :ref:`GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`:
+from `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`_:
 
 .. code-block:: bash
 
@@ -27,12 +27,11 @@ from :ref:`GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`:
 From source
 -----------
 
-``dtaianomaly`` can also be installed directly from the source code through the
-following steps:
-
-First, download the source from :ref:`GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`.
-Next, navigate to the root root directory of the repository in the terminal. Finally,
-``dtaianomaly`` can be installed through the following command:
+``dtaianomaly`` can also be installed directly from the source code. First, download
+the source from `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`_. It is also
+possible to download the source code for a specific release on `this webpage <https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/releases>`_.
+Unzip the files, and navigate to the root directory of the repository in the terminal.
+Finally, ``dtaianomaly`` can be installed through the following command:
 
 .. code-block:: bash
 

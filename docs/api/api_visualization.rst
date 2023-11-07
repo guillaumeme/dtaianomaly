@@ -1,5 +1,4 @@
 Visualization module
 ====================
 
-.. automodule::dtaianomaly.visualization
-    :members:
+.. automodule:: dtaianomaly.visualization

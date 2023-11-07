@@ -10,10 +10,10 @@ from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
 from dtaianomaly.visualization.plot_anomalies import plot_anomaly_scores
 
-from dtaianomaly.workflows.handle_data_configuration import DataConfiguration, handle_data_configuration
-from dtaianomaly.workflows.handle_algorithm_configuration import AlgorithmConfiguration, handle_algorithm_configuration
-from dtaianomaly.workflows.handle_metric_configuration import MetricConfiguration, handle_metric_configuration
-from dtaianomaly.workflows.handle_output_configuration import PlainOutputConfiguration, OutputConfiguration, handle_output_configuration
+from dtaianomaly.workflow.handle_data_configuration import DataConfiguration, handle_data_configuration
+from dtaianomaly.workflow.handle_algorithm_configuration import AlgorithmConfiguration, handle_algorithm_configuration
+from dtaianomaly.workflow.handle_metric_configuration import MetricConfiguration, handle_metric_configuration
+from dtaianomaly.workflow.handle_output_configuration import PlainOutputConfiguration, OutputConfiguration, handle_output_configuration
 
 
 def __log(message: str, print_message: bool) -> None:
@@ -26,7 +26,17 @@ def main(data_manager: DataManager,
          algorithm_configuration: AlgorithmConfiguration,
          metric_configuration: MetricConfiguration,
          output_configuration: Union[PlainOutputConfiguration, OutputConfiguration]) -> pd.DataFrame:
+    """
+    Execute an anomaly detector.
 
+    :param data_manager:
+    :param data_configuration:
+    :param algorithm_configuration:
+    :param metric_configuration:
+    :param output_configuration:
+
+    :return:
+    """
     data_manager = handle_data_configuration(data_manager, data_configuration)
     algorithm, algorithm_name = handle_algorithm_configuration(algorithm_configuration)
     algorithm_train_type = algorithm.train_type()

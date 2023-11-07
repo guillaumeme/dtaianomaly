@@ -1,5 +1,4 @@
-Data management dodule
+Data management module
 ======================
 
-.. automodule::dtaianomaly.data_management
-    :members:
+.. automodule:: dtaianomaly.data_management

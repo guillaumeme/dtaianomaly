@@ -1,4 +1,8 @@
 
+"""
+The evaluation documentation.
+"""
+
 from .affiliation_metrics import AffiliationPrecision, AffiliationRecall, AffiliationFBeta
 from .auc_metrics import RocAUC, PrAUC
 from .classification_metrics import Precision, Recall, Fbeta

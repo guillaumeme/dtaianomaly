@@ -11,5 +11,5 @@ API Reference
    api_data_management
    api_evaluation
    api_visualization
-   api_workflows
+   api_workflow
 

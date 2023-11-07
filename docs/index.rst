@@ -14,11 +14,11 @@ The source is available on `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianom
    :maxdepth: 1
    :caption: Getting started
 
-   getting_started/quickstart
    getting_started/installation
    getting_started/data_management
+   getting_started/anomaly_detection
    getting_started/evaluation
-   getting_started/experiments
+   getting_started/large_scale_experiments
 
 .. toctree::
    :maxdepth: 1

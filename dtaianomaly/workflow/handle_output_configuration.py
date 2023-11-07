@@ -9,6 +9,10 @@ PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 class OutputConfiguration:
 
+    """
+    The output configuration.
+    """
+
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
