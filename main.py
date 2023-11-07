@@ -2,8 +2,11 @@
 import argparse
 import json
 
-from dtaianomaly.workflows import execute_algorithm
+from dtaianomaly.workflow import execute_algorithm
 from dtaianomaly.data_management import DataManager
+
+
+from dtaianomaly.anomaly_detection import PyODAnomalyDetector
 
 
 if __name__ == '__main__':
@@ -19,19 +22,23 @@ if __name__ == '__main__':
                         help='The name of the configuration file for the experiment. This file'
                              'contains the paths to the configuration files for the data, the '
                              'algorithm, the metrics and the output. '
-                             '(More information at ...)')
+                             '(More information at https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html)')
     parser.add_argument('--data',
-                        help="The path of the configuration file regarding which data to read. Ignored \n"
-                             "More information at ... Ignored if the '--config' parameter is given.")
+                        help="The path of the configuration file regarding which data to read. "
+                             "Ignored if the '--config' parameter is given. "
+                             "(More information at https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html)")
     parser.add_argument('--algorithm',
-                        help="The path of the configuration file regarding the anomaly detector to load.\n"
-                             "More information at ... Ignored if the '--config' parameter is given.")
+                        help="The path of the configuration file regarding the anomaly detector to load. "
+                             "Ignored if the '--config' parameter is given. "
+                             "(More information at https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html)")
     parser.add_argument('--metric',
-                        help="The path of the configuration file regarding the evaluation metrics.\n"
-                             "More information at ... Ignored if the '--config' parameter is given.")
+                        help="The path of the configuration file regarding the evaluation metrics. "
+                             "Ignored if the '--config' parameter is given. "
+                             "(More information at https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html)")
     parser.add_argument('--output',
-                        help="The path of the configuration file regarding the output of the workflow.\n"
-                             "More information at ... Ignored if the '--config' parameter is given.")
+                        help="The path of the configuration file regarding the output of the workflow. "
+                             "Ignored if the '--config' parameter is given. "
+                             "(More information at https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html)")
     args = parser.parse_args()
 
     # Variables for the different configurations

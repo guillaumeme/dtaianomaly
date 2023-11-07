@@ -1,5 +1,4 @@
 Evaluation module
 =================
 
-.. automodule::dtaianomaly.evaluation
-    :members:
+.. automodule:: dtaianomaly.evaluation

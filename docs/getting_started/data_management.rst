@@ -38,6 +38,8 @@ of the index file. The below snippet shows how to initialize :py:class:`DataMana
     `This webpage <https://hpi-information-systems.github.io/timeeval-evaluation-paper/notebooks/Datasets.html>`__.
 
 
+.. _select_time_series:
+
 Selecting time series
 ---------------------
 
@@ -112,7 +114,7 @@ Obtaining the time series
 
 The :py:meth:`DataManager.select` method updates the internal state of the :py:class:`DataManager`
 to maintain the selected time series. The :py:meth:`DataManager.get` method can be used to obtain
-an index to the selected time series, which can be used to load the :ref:`time series <Loading the time series>`.
+an index to the selected time series, which can be used to load the :ref:`time series <data_management_load_time_series>`.
 The below snippet illustrates how to obtain all and only a single data set index:
 
 .. code-block:: python
@@ -120,6 +122,8 @@ The below snippet illustrates how to obtain all and only a single data set index
     all_selected_datasets = data_manager.get()
     selected_dataset_at_0 = data_manager.get(index=0)
 ..
+
+.. _data_management_load_time_series:
 
 Loading the time series
 -----------------------

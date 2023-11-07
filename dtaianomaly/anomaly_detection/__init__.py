@@ -1,6 +1,11 @@
 
-from .TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
-from .utility.Windowing import Windowing
-from .utility.TrainType import TrainType
+"""
+The anomaly detection documentation.
+"""
 
-from .pyod.PyODAnomalyDetector import PyODAnomalyDetector
+from .TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
+
+from .utility import Windowing
+from .utility import TrainType
+
+from .pyod import PyODAnomalyDetector
