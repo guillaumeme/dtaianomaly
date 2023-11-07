@@ -1,6 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2023-11-07
+
+This update is to fix a crucial but small bug. 
+
+### Added
+- The documentation has been extended (though far from finalized).
+
+### Changed
+
+### Fixed
+- The `__init__.py` files in the `anomaly_detection` module were updated
+  to properly import classes that are not directly in the `anomaly_detection`,
+  but rather in a sub folder. 
+
 ## [0.1.1] - 2023-10-26
 
 This update doesn't include a lot of changes. It only slightly modified the
