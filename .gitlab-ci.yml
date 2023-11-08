@@ -47,10 +47,6 @@ stages:
     reports:
       junit: report.xml
     expire_in: 1 weeks
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-    - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
 
 # Execute unit tests for multiple Python versions
 unit-test-3.6:
@@ -108,10 +104,6 @@ unit-test-3.11:
       --algorithm algorithm/iforest_64.json
       --metric metric/auc_metrics.json
       --output output/output_all.json
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-    - if: $PYTHON_VERSION == $DEFAULT_PYTHON_VERSION
 
 # Use different versions of Python
 main-script-3.6:
@@ -184,6 +176,3 @@ pages:
   artifacts:
     paths:
     - public
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
