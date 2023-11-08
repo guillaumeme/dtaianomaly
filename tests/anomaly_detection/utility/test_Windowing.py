@@ -13,12 +13,18 @@ class TestWindowing:
     nb_reps = 50
 
 
-class TestWindowingWindowSize(TestWindowing):
+class TestWindowingGetter(TestWindowing):
 
     def test_get_window_size(self):
         for random_window_size in np.random.choice(np.arange(self.min_window_size, self.max_window_size + 1), self.nb_reps):
             windowing = Windowing(window_size=random_window_size)
             assert windowing.window_size == random_window_size
+
+    def test_get_stride(self):
+        window_size = 100
+        for random_stride in np.random.choice(np.arange(1, window_size), self.nb_reps):
+            windowing = Windowing(window_size=window_size, stride=random_stride)
+            assert windowing.stride == random_stride
 
 
 class TestCreateWindows(TestWindowing):
@@ -159,7 +165,7 @@ class TestReverseWindowing(TestWindowing):
     def test_mean_reduction_small(self):
         scores = np.arange(8)
         windowing = Windowing(window_size=3, reduction='mean')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 0    # [0]
@@ -177,7 +183,7 @@ class TestReverseWindowing(TestWindowing):
         # Mean and median is the for np.arange
         scores = 2**np.arange(8)
         windowing = Windowing(window_size=3, reduction='mean')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 1    # [1]
@@ -194,7 +200,7 @@ class TestReverseWindowing(TestWindowing):
     def test_median_reduction_small(self):
         scores = np.arange(8)
         windowing = Windowing(window_size=3, reduction='median')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 0    # [0]
@@ -212,7 +218,7 @@ class TestReverseWindowing(TestWindowing):
         # Mean and median is the for np.arange
         scores = 2**np.arange(8)
         windowing = Windowing(window_size=3, reduction='median')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 1    # [1]
@@ -229,7 +235,7 @@ class TestReverseWindowing(TestWindowing):
     def test_max_reduction_small(self):
         scores = np.arange(8)
         windowing = Windowing(window_size=3, reduction='max')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 0    # [0]
@@ -246,7 +252,7 @@ class TestReverseWindowing(TestWindowing):
     def test_sum_reduction_small(self):
         scores = np.arange(8)
         windowing = Windowing(window_size=3, reduction='sum')
-        reverse_windowing = windowing.reverse_windowing(scores)
+        reverse_windowing = windowing.reverse_windowing(scores, 10)
         assert len(reverse_windowing.shape) == 1
         assert reverse_windowing.shape[0] == 10
         assert reverse_windowing[0] == 0    # [0]
@@ -261,6 +267,161 @@ class TestReverseWindowing(TestWindowing):
         assert reverse_windowing[9] == 7    # [7]
 
 
+class TestStride(TestWindowing):
+
+    def test_create_windows_univariate_stride_2(self):
+        # Setup
+        time_series = np.arange(10).reshape(-1, 1)
+        assert len(time_series.shape) == 2
+        assert time_series.shape[1] == 1
+        # Create windows
+        windowing = Windowing(window_size=3, stride=2)
+        windows = windowing.create_windows(time_series)
+        # Check size
+        assert windows.shape[0] == 5
+        for window in windows:
+            assert window.shape[0] == 3
+        # Check content
+        assert np.array_equal(windows[0], np.array([0, 1, 2]))
+        assert np.array_equal(windows[1], np.array([2, 3, 4]))
+        assert np.array_equal(windows[2], np.array([4, 5, 6]))
+        assert np.array_equal(windows[3], np.array([6, 7, 8]))
+        assert np.array_equal(windows[4], np.array([7, 8, 9]))  # Smaller stride for last
+
+    def test_create_windows_univariate_stride_3(self):
+        # Setup
+        time_series = np.arange(10).reshape(-1, 1)
+        assert len(time_series.shape) == 2
+        assert time_series.shape[1] == 1
+        # Create windows
+        windowing = Windowing(window_size=3, stride=3)
+        windows = windowing.create_windows(time_series)
+        # Check size
+        assert windows.shape[0] == 4
+        for window in windows:
+            assert window.shape[0] == 3
+        # Check content
+        assert np.array_equal(windows[0], np.array([0, 1, 2]))
+        assert np.array_equal(windows[1], np.array([3, 4, 5]))
+        assert np.array_equal(windows[2], np.array([6, 7, 8]))
+        assert np.array_equal(windows[3], np.array([7, 8, 9]))
+
+    def test_create_windows_univariate_stride_3_nice_fit(self):
+        # Setup
+        time_series = np.arange(9).reshape(-1, 1)
+        assert len(time_series.shape) == 2
+        assert time_series.shape[1] == 1
+        # Create windows
+        windowing = Windowing(window_size=3, stride=3)
+        windows = windowing.create_windows(time_series)
+        # Check size
+        assert windows.shape[0] == 3
+        for window in windows:
+            assert window.shape[0] == 3
+        # Check content
+        assert np.array_equal(windows[0], np.array([0, 1, 2]))
+        assert np.array_equal(windows[1], np.array([3, 4, 5]))
+        assert np.array_equal(windows[2], np.array([6, 7, 8]))
+
+    def test_create_windows_multivariate_stride_2(self):
+        # Setup
+        time_series = np.array([np.arange(10), np.arange(10)*10]).T
+        assert len(time_series.shape) == 2
+        assert time_series.shape[1] == 2
+        # Create windows
+        windowing = Windowing(window_size=3, stride=2)
+        windows = windowing.create_windows(time_series)
+        # Check size
+        assert windows.shape[0] == 5
+        for window in windows:
+            assert len(window.shape) == 1
+            assert window.shape[0] == 3 * 2
+        # Check content
+        assert np.array_equal(windows[0], np.array([0, 0, 1, 10, 2, 20]))
+        assert np.array_equal(windows[1], np.array([2, 20, 3, 30, 4, 40]))
+        assert np.array_equal(windows[2], np.array([4, 40, 5, 50, 6, 60]))
+        assert np.array_equal(windows[3], np.array([6, 60, 7, 70, 8, 80]))
+        assert np.array_equal(windows[4], np.array([7, 70, 8, 80, 9, 90]))
+
+    def test_reverse_windowing_stride_2(self):
+        scores = np.arange(8)
+        windowing = Windowing(window_size=3, stride=2, reduction='mean')
+        reverse_windowing = windowing.reverse_windowing(scores, 17)
+        assert len(reverse_windowing.shape) == 1
+        assert reverse_windowing.shape[0] == 17
+        assert reverse_windowing[0] == 0  # [0, 1, 2]
+        assert reverse_windowing[1] == 0  # [0, 1, 2]
+        assert reverse_windowing[2] == 0.5  # [0, 1, 2]
+        assert reverse_windowing[3] == 1
+        assert reverse_windowing[4] == 1.5
+        assert reverse_windowing[5] == 2
+        assert reverse_windowing[6] == 2.5
+        assert reverse_windowing[7] == 3
+        assert reverse_windowing[8] == 3.5
+        assert reverse_windowing[9] == 4
+        assert reverse_windowing[10] == 4.5
+        assert reverse_windowing[11] == 5
+        assert reverse_windowing[12] == 5.5
+        assert reverse_windowing[13] == 6
+        assert reverse_windowing[14] == 6.5
+        assert reverse_windowing[15] == 7
+        assert reverse_windowing[16] == 7
+
+    def test_reverse_windowing_stride_2_no_nice_fit(self):
+        scores = np.arange(8)
+        windowing = Windowing(window_size=3, stride=2, reduction='mean')
+        reverse_windowing = windowing.reverse_windowing(scores, 16)
+        assert len(reverse_windowing.shape) == 1
+        assert reverse_windowing.shape[0] == 16
+        assert reverse_windowing[0] == 0  # [0, 1, 2]
+        assert reverse_windowing[1] == 0  # [0, 1, 2]
+        assert reverse_windowing[2] == 0.5  # [0, 1, 2]
+        assert reverse_windowing[3] == 1
+        assert reverse_windowing[4] == 1.5
+        assert reverse_windowing[5] == 2
+        assert reverse_windowing[6] == 2.5
+        assert reverse_windowing[7] == 3
+        assert reverse_windowing[8] == 3.5
+        assert reverse_windowing[9] == 4
+        assert reverse_windowing[10] == 4.5
+        assert reverse_windowing[11] == 5
+        assert reverse_windowing[12] == 5.5
+        assert reverse_windowing[13] == 6.5
+        assert reverse_windowing[14] == 6.5
+        assert reverse_windowing[15] == 7.0
+
+    def test_reverse_windowing_stride_3(self):
+        scores = np.arange(8)
+        windowing = Windowing(window_size=3, stride=3, reduction='mean')
+        reverse_windowing = windowing.reverse_windowing(scores, 24)
+        assert len(reverse_windowing.shape) == 1
+        assert reverse_windowing.shape[0] == 24
+        assert reverse_windowing[0] == 0  # [0, 1, 2]
+        assert reverse_windowing[1] == 0  # [0, 1, 2]
+        assert reverse_windowing[2] == 0  # [0, 1, 2]
+        assert reverse_windowing[3] == 1
+        assert reverse_windowing[4] == 1
+        assert reverse_windowing[5] == 1
+        assert reverse_windowing[6] == 2
+        assert reverse_windowing[7] == 2
+        assert reverse_windowing[8] == 2
+        assert reverse_windowing[9] == 3
+        assert reverse_windowing[10] == 3
+        assert reverse_windowing[11] == 3
+        assert reverse_windowing[12] == 4
+        assert reverse_windowing[13] == 4
+        assert reverse_windowing[14] == 4
+        assert reverse_windowing[15] == 5
+        assert reverse_windowing[16] == 5
+        assert reverse_windowing[17] == 5
+        assert reverse_windowing[18] == 6
+        assert reverse_windowing[19] == 6
+        assert reverse_windowing[20] == 6
+        assert reverse_windowing[21] == 7
+        assert reverse_windowing[22] == 7
+        assert reverse_windowing[23] == 7
+
+
 class TestWindowingReduction(TestWindowing):
 
     def test_invalid_reduction(self):
@@ -273,14 +434,14 @@ class TestWindowingReduction(TestWindowing):
         with pytest.raises(ValueError):
             _ = Windowing(window_size=16, reduction='something-random')
 
-    def test_mean_reduction(self):
+    def test_mean_reduction(self):  # Result of mean reduction tested above
         _ = Windowing(window_size=16, reduction='mean')
 
-    def test_median_reduction(self):
+    def test_median_reduction(self):  # Result of median reduction tested above
         _ = Windowing(window_size=16, reduction='median')
 
-    def test_max_reduction(self):
+    def test_max_reduction(self):  # Result of max reduction tested above
         _ = Windowing(window_size=16, reduction='max')
 
-    def test_sum_reduction(self):
+    def test_sum_reduction(self):  # Result of sum reduction tested above
         _ = Windowing(window_size=16, reduction='sum')
