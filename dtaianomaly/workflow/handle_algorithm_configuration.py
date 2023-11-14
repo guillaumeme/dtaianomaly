@@ -25,5 +25,5 @@ def handle_algorithm_configuration(algorithm_configuration: AlgorithmConfigurati
     # Load the specific anomaly detector class
     anomaly_detector_class_object: TimeSeriesAnomalyDetector = getattr(importlib.import_module('dtaianomaly.anomaly_detection'), algorithm_configuration['anomaly_detector'])
 
-    # Load and return the specific anomaly detector instance
-    return anomaly_detector_class_object.load(parameters=algorithm_configuration), algorithm_configuration['name']
+    # Load and return the specific anomaly detector instance, with the given hyperparameters
+    return anomaly_detector_class_object.load(parameters=algorithm_configuration['hyperparameters']), algorithm_configuration['name']

@@ -3,7 +3,7 @@ import time
 import tracemalloc
 import pandas as pd
 import numpy as np
-from typing import Union
+from typing import Union, Optional
 
 from dtaianomaly.data_management import DataManager
 from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
@@ -25,7 +25,8 @@ def main(data_manager: DataManager,
          data_configuration: DataConfiguration,
          algorithm_configuration: AlgorithmConfiguration,
          metric_configuration: MetricConfiguration,
-         output_configuration: Union[PlainOutputConfiguration, OutputConfiguration]) -> pd.DataFrame:
+         output_configuration: Union[PlainOutputConfiguration, OutputConfiguration],
+         seed: Optional[int] = 0) -> pd.DataFrame:
     """
     Execute an anomaly detector.
 
@@ -34,6 +35,7 @@ def main(data_manager: DataManager,
     :param algorithm_configuration:
     :param metric_configuration:
     :param output_configuration:
+    :param seed:
 
     :return:
     """
@@ -46,7 +48,8 @@ def main(data_manager: DataManager,
     __log(message='>>> Starting the workflow',
           print_message=output_configuration.verbose)
 
-    results_columns = list(metrics.keys())
+    results_columns = ['Seed']
+    results_columns += list(metrics.keys())
     if output_configuration.trace_time:
         results_columns += ['Time fit (s)', 'Time predict (s)']
     if output_configuration.trace_memory:
@@ -107,9 +110,20 @@ def main(data_manager: DataManager,
                 data_train, _ = data_manager.load_raw_data(dataset_index, train=True)
             ground_truth_train = None
 
+        # Read the test data
+        __log(message=f">> Loading the test data",
+              print_message=output_configuration.verbose)
+        data_test, ground_truth_test = data_manager.load_raw_data(dataset_index, train=False)
+
         # Initialize the memory tracing variables to avoid warnings
         peak_memory_fitting = np.nan
         peak_memory_predicting = np.nan
+
+        # Set the seed
+        __log(message=f">> Setting the seed to '{seed}'",
+              print_message=output_configuration.verbose)
+        np.random.seed(seed=seed)
+        results.at[dataset_index, 'Seed'] = seed
 
         # Fit the algorithm
         __log(message=f">> Fitting the algorithm",
@@ -122,11 +136,6 @@ def main(data_manager: DataManager,
         if output_configuration.trace_memory:
             _, peak_memory_fitting = tracemalloc.get_traced_memory()
             tracemalloc.stop()
-
-        # Read the test data
-        __log(message=f">> Loading the test data",
-              print_message=output_configuration.verbose)
-        data_test, ground_truth_test = data_manager.load_raw_data(dataset_index, train=False)
 
         # Predict the decision scores
         __log(message=f">> Predicting the decision scores on the test data",

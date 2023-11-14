@@ -6,13 +6,12 @@ from dtaianomaly.workflow import execute_algorithm
 from dtaianomaly.data_management import DataManager
 
 
-from dtaianomaly.anomaly_detection import PyODAnomalyDetector
-
-
 if __name__ == '__main__':
 
     # Create a parser and parse the arguments
     parser = argparse.ArgumentParser(description="Time series anomaly detection.")
+    parser.add_argument('--seed', default=0,
+                        help='The seed to set before detecting anomalies in every time series.')
     parser.add_argument('--datasets_index_file', default='datasets.csv',
                         help='The path to the dataset index file containing metadata about the datasets.')
     parser.add_argument('--configuration_dir', default='configurations',
@@ -94,9 +93,10 @@ if __name__ == '__main__':
 
     # Execute the algorithm
     execute_algorithm(
-        DataManager(args.datasets_index_file),
-        data_configuration,
-        algorithm_configuration,
-        metric_configuration,
-        output_configuration
+        data_manager=DataManager(args.datasets_index_file),
+        data_configuration=data_configuration,
+        algorithm_configuration=algorithm_configuration,
+        metric_configuration=metric_configuration,
+        output_configuration=output_configuration,
+        seed=args.seed
     )
