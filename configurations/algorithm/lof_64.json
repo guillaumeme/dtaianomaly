@@ -1,8 +1,10 @@
 {
   "name": "LOF_64",
   "anomaly_detector": "PyODAnomalyDetector",
-  "pyod_model": "LOF",
-  "windowing": {
-    "window_size": 64
+  "hyperparameters": {
+    "pyod_model": "LOF",
+    "windowing": {
+      "window_size": 64
+    }
   }
 }

@@ -1,0 +1,6 @@
+{
+  "data": "data/Demo.json",
+  "algorithm": "algorithm/iforest_64.json",
+  "metric": "metric/many_metrics.json",
+  "output": "output/output_all.json"
+}

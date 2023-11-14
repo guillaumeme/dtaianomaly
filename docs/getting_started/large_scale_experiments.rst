@@ -32,6 +32,7 @@ to start a workflow:
 .. code-block:: bash
 
     python main.py
+        --seed <seed to set before detecting anomalies in a time series>
         --datasets_index_file <path to the dataset index file>
         --configuration_dir <path to the directory containing all the configuration files>
         --config <path to the general configuration file, relative to 'configuration_dir'>
@@ -52,7 +53,6 @@ priority to the ``--config`` argument.
 
 Configuration files
 -------------------
-
 
 Below is described how the configuration files should be formatted. Additionally, some
 configurations are available `here <https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/tree/main/configurations>`_.
@@ -87,46 +87,48 @@ and all time series with at most 10 000 observations in the ``'KDD-TSAD'`` colle
 
 .. note::
 
-    Note that, in the end, only the available time series are selected using the
+    In the end, only the available time series are selected using the
     :py:meth:`DataManager.filter_selected_datasets` method, because it makes no sense
     to execute a workflow on time series that are not available.
 
 Algorithms
 ~~~~~~~~~~
 
-The :py:class:`TimeSeriesAnomalyDetector` has a static method :py:meth:`TimeSeriesAnomalyDetector.load`
-to load specific anomaly detectors with its parameters. The specific anomaly detector
-is indicated through the ``'anomaly_detector'`` keyword. This equals the class name of
-the anomaly detector. The various anomaly detectors differ (slightly) in how their
-configuration should look like. Therefore, the different types are discussed below.
+The algorithm configuration requires three key-value pairs:
+1. ``'name'``: the semantic name to use when referring to the anomaly detector. This can
+be useful to use when quantifying the effect of hyperparameters, for example.
+2. ``'anomaly_detector'``: the class name of the specific anomaly detector to use. For example, for
+a :py:class:`PyODAnomalyDetector`, the value would be ``'PyODAnomalyDetector'``.
+3. ``'hyper_parameters'``: the hyperparameters to use for the specific anomaly detector. This should
+be a dictionary, and the arguments are passed on :py:meth:`TimeSeriesAnomalyDetector.load` method of
+the anomaly detector given by the ``'anomaly_detector'``.
 
-PyOD anomaly detectors
-''''''''''''''''''''''
-
-A :py:class:`PyODAnomalyDetector` is a wrapper around an anomaly detector from the
-`PyOD <https://pyod.readthedocs.io/en/latest/>`_ library. Initializing this anomaly
-detector requires ``'anomaly_detector': 'PyODAnomalyDetecotr'`` in the configuration
-file. Additionally, three more parameters are required:
-1. ``'pyod_model'``: The name of the PyOD model, for example ``'IForest'`` or ``'LOF'``.
-2. ``'pyod_model_parameters'``: The parameters of the PyOD model, for example the number of trees
-for the ``'IForest'`` model or the number of neighbors for the ``'LOF'`` model. This property is
-optional, and default parameters are used if it isn't given.
-3. ``'windowing'``: A dictionary mapping the parameter names of a py:class:`Windowing` object onto the
-corresponding values, such as ``'window_size'`` and ``'stride'``.
+Below we show the configuration file for a :py:class:`PyodAnomalyDetector`, which uses an
+IForest to detect anomalies.
 
 .. code-block:: json
 
     {
+      "name": "IForest (w=64)",
       "anomaly_detector": "PyODAnomalyDetector",
-      "pyod_model": "IForest",
-      "pyod_model_parameters": {
-        "n_estimators": 100
-      },
-      "windowing": {
-        "window_size": 100
+      "hyperparameters": {
+        "pyod_model": "IForest",
+        "windowing": {
+          "window_size": 64
+        },
+        "pyod_model_parameters": {
+          "n_estimators": 100
+        }
       }
     }
 
+.. note::
+
+    While the general structure of the anomaly detector configuration is relatively
+    fixed (i.e., keys ``'name'``, ``'anomaly_detector'`` and ``'hyperparameters'``),
+    the hyperparameters dictionary can vary depending on the anomaly detector. We
+    therefore refer to the documentation of the :py:meth:`TimeSeriesAnomalyDetector.load`
+    method of the specific anomaly detector you want to load for more information.
 
 Metrics
 ~~~~~~~
