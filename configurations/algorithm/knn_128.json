@@ -1,0 +1,10 @@
+{
+  "name": "KNN_128",
+  "anomaly_detector": "PyODAnomalyDetector",
+  "hyperparameters": {
+    "pyod_model": "KNN",
+    "windowing": {
+      "window_size": 128
+    }
+  }
+}

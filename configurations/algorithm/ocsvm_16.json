@@ -1,0 +1,10 @@
+{
+  "name": "OCSVM_16",
+  "anomaly_detector": "PyODAnomalyDetector",
+  "hyperparameters": {
+    "pyod_model": "OCSVM",
+    "windowing": {
+      "window_size": 16
+    }
+  }
+}

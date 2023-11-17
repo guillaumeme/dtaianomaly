@@ -10,8 +10,11 @@ if __name__ == '__main__':
 
     # Create a parser and parse the arguments
     parser = argparse.ArgumentParser(description="Time series anomaly detection.")
-    parser.add_argument('--seed', default=0,
+    parser.add_argument('--seed', default=0, type=int,
                         help='The seed to set before detecting anomalies in every time series.')
+    parser.add_argument('--n_jobs', default=1, type=int,
+                        help='The number of jobs that to run in parallel, in which each job corresponds to '
+                             'detecting anomalies in a single time series')
     parser.add_argument('--datasets_index_file', default='datasets.csv',
                         help='The path to the dataset index file containing metadata about the datasets.')
     parser.add_argument('--configuration_dir', default='configurations',
@@ -98,5 +101,6 @@ if __name__ == '__main__':
         algorithm_configuration=algorithm_configuration,
         metric_configuration=metric_configuration,
         output_configuration=output_configuration,
-        seed=args.seed
+        seed=args.seed,
+        n_jobs=args.n_jobs
     )

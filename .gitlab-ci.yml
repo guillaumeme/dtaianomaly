@@ -108,31 +108,49 @@ unit-test-3.11:
 # Use different versions of Python
 main-script-3.6:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.6
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.6"
 
 main-script-3.7:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.7
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.7"
 
 main-script-3.8:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.8
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.8"
 
 main-script-3.9:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.9
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.9"
 
 main-script-3.10:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.10
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.10"
 
 main-script-3.11:
   extends: .workflow-main-script
+  needs:
+    - job: unit-test-3.11
+      artifacts: false
   variables:
     PYTHON_VERSION: "3.11"
 
@@ -140,12 +158,17 @@ main-script-3.11:
 # Just use the default python version, because it is time-consuming
 run-notebooks:
   extends: .workflow
+  needs: []  # Start as soon as possible, because this takes some time
   image: python:$DEFAULT_PYTHON_VERSION
   script:
+    - pip install seaborn
     - pip install jupyter
     - mv dtaianomaly notebooks
     - cd notebooks
     - jupyter nbconvert --to notebook --execute *.ipynb
+  artifacts:
+    paths:
+      - notebooks/analyze_results.ipynb
 
 ####################################################################################
 ################################### DOCUMENTATION ##################################
@@ -157,7 +180,7 @@ run-notebooks:
   image: python:$DEFAULT_PYTHON_VERSION-slim
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
-    - python -m pip install sphinx toml sphinx_rtd_theme
+    - python -m pip install sphinx toml sphinx_rtd_theme nbsphinx
     - cd docs
 
 # Check the code in the documentation
@@ -169,6 +192,9 @@ doctest:
 # Generate the documentation
 pages:
   extends: .documentation
+  needs:
+    - job: run-notebooks
+      artifacts: true
   script:
     - make html
   after_script:
