@@ -1,0 +1,10 @@
+{
+  "name": "LOF_128",
+  "anomaly_detector": "PyODAnomalyDetector",
+  "hyperparameters": {
+    "pyod_model": "LOF",
+    "windowing": {
+      "window_size": 128
+    }
+  }
+}

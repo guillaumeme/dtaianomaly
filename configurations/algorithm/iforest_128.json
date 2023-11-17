@@ -1,0 +1,10 @@
+{
+  "name": "iforest_128",
+  "anomaly_detector": "PyODAnomalyDetector",
+  "hyperparameters": {
+    "pyod_model": "IForest",
+    "windowing": {
+      "window_size": 128
+    }
+  }
+}

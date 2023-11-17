@@ -2,7 +2,7 @@
 import os
 import shutil
 import json
-from typing import Dict, Any, Union, Optional
+from typing import Dict, Any, Union, Optional, Tuple
 
 PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
@@ -52,11 +52,14 @@ class OutputConfiguration:
     def results_path(self) -> str:
         return f'{self.directory}/{self.results_file}'
 
+    def intermediate_results_path(self, dataset_index: Tuple[str, str]) -> str:
+        return f'{self.directory}/tmp_intermediate_results_{dataset_index[0].lower()}_{dataset_index[1].lower()}.csv'
+
     @property
     def figure_directory_path(self) -> str:
         return f'{self.directory}/{self.anomaly_scores_directory}'
 
-    def figure_path(self, dataset_index: str) -> str:
+    def figure_path(self, dataset_index: Tuple[str, str]) -> str:
         return f'{self.figure_directory_path}/{dataset_index[0].lower()}_{dataset_index[1].lower()}.{self.anomaly_scores_file_format}'
 
 

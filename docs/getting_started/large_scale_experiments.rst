@@ -33,6 +33,7 @@ to start a workflow:
 
     python main.py
         --seed <seed to set before detecting anomalies in a time series>
+        --n_jobs <The number of time series to detect anomalies in, in parallel>
         --datasets_index_file <path to the dataset index file>
         --configuration_dir <path to the directory containing all the configuration files>
         --config <path to the general configuration file, relative to 'configuration_dir'>
