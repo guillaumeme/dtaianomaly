@@ -187,6 +187,7 @@ run-notebooks:
 doctest:
   extends: .documentation
   script:
+    - pip install -r ../requirements.txt
     - make doctest
 
 # Generate the documentation
