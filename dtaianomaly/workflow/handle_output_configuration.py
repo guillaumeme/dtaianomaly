@@ -1,6 +1,5 @@
 
 import os
-import shutil
 import json
 from typing import Dict, Any, Union, Optional, Tuple
 
@@ -8,7 +7,6 @@ PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 
 class OutputConfiguration:
-
     """
     The output configuration.
     """
@@ -34,12 +32,16 @@ class OutputConfiguration:
     constantly_save_results: bool = False
     results_file: str = 'results.csv'
 
-    # if a figure of the anomaly scores should be saved
+    # If a figure of the anomaly scores should be saved
     save_anomaly_scores_plot: bool = False
-    anomaly_scores_directory: str = 'anomaly_score_plots'
-    anomaly_scores_file_format: str = 'svg'
-    show_anomaly_scores: str = 'overlay'
-    show_ground_truth: Optional[str] = None
+    anomaly_scores_plots_directory: str = 'anomaly_score_plots'
+    anomaly_scores_plots_file_format: str = 'svg'
+    anomaly_scores_plots_show_anomaly_scores: str = 'overlay'
+    anomaly_scores_plots_show_ground_truth: Optional[str] = None
+
+    # If the raw anomaly scores should be saved or not
+    save_anomaly_scores: bool = False
+    anomaly_scores_directory: str = 'anomaly_scores'
 
     # Raise an error of the train type of the algorithm does not match the train type of the dataset
     invalid_train_type_raise_error: bool = True
@@ -53,14 +55,25 @@ class OutputConfiguration:
         return f'{self.directory}/{self.results_file}'
 
     def intermediate_results_path(self, dataset_index: Tuple[str, str]) -> str:
-        return f'{self.directory}/tmp_intermediate_results_{dataset_index[0].lower()}_{dataset_index[1].lower()}.csv'
+        return f'{self.directory}/tmp_intermediate_results_{self.dataset_index_to_str(dataset_index)}.csv'
 
     @property
-    def figure_directory_path(self) -> str:
+    def anomaly_score_plots_directory_path(self) -> str:
+        return f'{self.directory}/{self.anomaly_scores_plots_directory}'
+
+    def anomaly_score_plot_path(self, dataset_index: Tuple[str, str]) -> str:
+        return f'{self.anomaly_score_plots_directory_path}/{self.dataset_index_to_str(dataset_index)}.{self.anomaly_scores_plots_file_format}'
+
+    @property
+    def anomaly_scores_directory_path(self) -> str:
         return f'{self.directory}/{self.anomaly_scores_directory}'
 
-    def figure_path(self, dataset_index: Tuple[str, str]) -> str:
-        return f'{self.figure_directory_path}/{dataset_index[0].lower()}_{dataset_index[1].lower()}.{self.anomaly_scores_file_format}'
+    def anomaly_scores_path(self, dataset_index: Tuple[str, str]) -> str:
+        return f'{self.anomaly_scores_directory_path}/{self.dataset_index_to_str(dataset_index)}'
+
+    @staticmethod
+    def dataset_index_to_str(dataset_index: Tuple[str, str]) -> str:
+        return f'{dataset_index[0].lower()}_{dataset_index[1].lower()}'
 
 
 def handle_output_configuration(plain_output_configuration: Union[PlainOutputConfiguration, OutputConfiguration], algorithm_name: str) -> OutputConfiguration:
@@ -81,9 +94,12 @@ def handle_output_configuration(plain_output_configuration: Union[PlainOutputCon
     # Create the directory if it does not exist yet
     os.makedirs(output_configuration.directory, exist_ok=True)
 
-    # Create a directory for the anomaly score plots if it does not exist yet, and clear it otherwise
-    if os.path.exists(output_configuration.figure_directory_path):
-        shutil.rmtree(output_configuration.figure_directory_path)
-    os.mkdir(output_configuration.figure_directory_path)
+    # Create a directory for the anomaly score plots, if they should be saved
+    if output_configuration.save_anomaly_scores_plot and not os.path.exists(output_configuration.anomaly_score_plots_directory_path):
+        os.mkdir(output_configuration.anomaly_score_plots_directory_path)
+
+    # Create a directory for the anomaly scores, if they should be saved
+    if output_configuration.save_anomaly_scores and not os.path.exists(output_configuration.anomaly_scores_directory_path):
+        os.mkdir(output_configuration.anomaly_scores_directory_path)
 
     return output_configuration

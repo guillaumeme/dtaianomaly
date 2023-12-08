@@ -103,7 +103,7 @@ unit-test-3.11:
       --data data/Demo.json
       --algorithm algorithm/iforest_64.json
       --metric metric/auc_metrics.json
-      --output output/output_all.json
+      --output output/output_nothing.json
 
 # Use different versions of Python
 main-script-3.6:
