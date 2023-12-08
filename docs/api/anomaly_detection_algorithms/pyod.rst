@@ -1,4 +1,5 @@
 PyOD: Python library for detecting Outlying Objects
 ===================================================
 
-.. note:: The documentation is currently under construction.
+.. autoclass:: dtaianomaly.anomaly_detection.PyODAnomalyDetector
+   :members:

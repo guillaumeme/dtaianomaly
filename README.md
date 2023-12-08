@@ -81,12 +81,17 @@ we list some of the most important ones to get to know `dtaianomaly`:
 
 ## Dependencies
 Time series are represented as [NumPy](https://numpy.org/)-arrays to detect anomalies, but can 
-also be represented as [Pandas](https://pandas.pydata.org/) DataFrames for visualization. Anomaly
-detection algorithms use the [PyOD](https://pyod.readthedocs.io/en/latest/) library. We use 
-[matplotlib](https://matplotlib.org/) for visualization. 
-
-`dtaianomaly` also depends on [scikit-learn](https://scikit-learn.org/stable/) and 
+also be represented as [Pandas](https://pandas.pydata.org/) DataFrames. We use [matplotlib](https://matplotlib.org/) for 
+visualization. `dtaianomaly` also depends on [scikit-learn](https://scikit-learn.org/stable/) and 
 [scipy](https://www.scipy.org/), but we plan on removing these dependencies in the near future.
+
+Several anomaly detectors require additional dependencies. For example, 
+[PyOD](https://pyod.readthedocs.io/en/latest/) must be installed to use 
+`PyODAnomalyDetector`, and [stumpy](https://stumpy.readthedocs.io/en/latest/) must
+be installed for a matrix profile based anomaly detector. The dependencies of
+each detector can be found in a `requirements.txt`-file in the same directory
+as the source code of the anomaly detector.  We do this to avoid having to install 
+all dependencies, even those that are not necessary for a particular user.
 
 ## Contact
 Feel free to email to [louis.carpentier@kuleuven.be](mailto:louis.carpentier@kuleuven.be) if 

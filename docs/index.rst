@@ -24,5 +24,9 @@ The source is available on `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianom
    :maxdepth: 1
    :caption: Documentation
 
-   api/cheatsheet
-   api/api_reference
+   api/anomaly_detection
+   api/data_management
+   api/evaluation
+   api/visualization
+   api/workflow
+
