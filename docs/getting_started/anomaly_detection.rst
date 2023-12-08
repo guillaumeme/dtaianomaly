@@ -1,9 +1,10 @@
 Anomaly detection
 =================
 
-.. note::
-    The documentation is currently under construction. Soon this page will contain the relevant information.
-
+.. warning::
+    Dependencies specific to an anomaly detector are not installed by default as mentioned
+    in :ref:`this warning <anomaly_detection_warning>`. Make sure that all required dependencies
+    are installed before using an anomaly detector!
 
 Initialization of an anomaly detector
 -------------------------------------

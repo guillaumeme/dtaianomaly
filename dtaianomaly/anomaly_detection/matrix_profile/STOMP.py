@@ -2,14 +2,11 @@
 import numpy as np
 from typing import Optional, Dict
 
+import stumpy
+
 from dtaianomaly.anomaly_detection import TrainType
 from dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
 from dtaianomaly.anomaly_detection.utility.Windowing import Windowing
-
-try:
-    import stumpy
-except ImportError:
-    raise ImportError("Install 'stumpy' in order to use 'STOMP' anomaly detector!")
 
 
 class STOMP(TimeSeriesAnomalyDetector):

@@ -4,14 +4,12 @@ import importlib
 from typing import Optional, Dict, Union
 import warnings
 
+from pyod.models.base import BaseDetector
+
 from dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
 from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 from dtaianomaly.anomaly_detection.utility.Windowing import Windowing
 
-try:
-    from pyod.models.base import BaseDetector
-except ImportError:
-    raise ImportError("Install 'pyod' in order to use 'PyODAnomalyDetector'!")
 
 _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
     # key is the name to use when loading, value is the name of the module in PYOD
