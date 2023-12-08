@@ -1,11 +1,15 @@
 
 import numpy as np
-import stumpy
 from typing import Optional, Dict
 
 from dtaianomaly.anomaly_detection import TrainType
 from dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
 from dtaianomaly.anomaly_detection.utility.Windowing import Windowing
+
+try:
+    import stumpy
+except ImportError:
+    raise ImportError("Install 'stumpy' in order to use 'STOMP' anomaly detector!")
 
 
 class STOMP(TimeSeriesAnomalyDetector):
@@ -65,10 +69,10 @@ class STOMP(TimeSeriesAnomalyDetector):
     def train_type(self) -> TrainType:
         return TrainType.UNSUPERVISED
 
-    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
+    def _fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
         return self  # STOMP does not require any fitting
 
-    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
+    def _decision_function(self, trend_data: np.ndarray) -> np.array:
         if trend_data.shape[1] == 1:
             matrix_profile = stumpy.stump(trend_data.squeeze(), m=self.__windowing.window_size, normalize=self.__normalize, p=self.__p, k=self.__k)
             matrix_profile = matrix_profile[:, self.__k - 1]

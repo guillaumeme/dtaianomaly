@@ -3,11 +3,15 @@ import numpy as np
 import importlib
 from typing import Optional, Dict, Union
 import warnings
-from pyod.models.base import BaseDetector
 
 from dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
 from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 from dtaianomaly.anomaly_detection.utility.Windowing import Windowing
+
+try:
+    from pyod.models.base import BaseDetector
+except ImportError:
+    raise ImportError("Install 'pyod' in order to use 'PyODAnomalyDetector'!")
 
 _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
     # key is the name to use when loading, value is the name of the module in PYOD
@@ -21,7 +25,9 @@ _SUPPORTED_PYOD_ANOMALY_DETECTORS = {
 
 
 class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
-
+    """
+    Anomaly detector based on the PyOD library.
+    """
     def __init__(self, pyod_anomaly_detector: Union[BaseDetector, str], windowing: Windowing):
         super().__init__()
 
@@ -41,11 +47,11 @@ class PyODAnomalyDetector(TimeSeriesAnomalyDetector):
     def train_type(self) -> TrainType:
         return TrainType.UNSUPERVISED  # All PyOD anomaly detectors are unsupervised (https://pyod.readthedocs.io/en/latest/api_cc.html#pyod.models.base.BaseDetector.fit)
 
-    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PyODAnomalyDetector':
+    def _fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'PyODAnomalyDetector':
         self.__pyod_anomaly_detector.fit(self.__windowing.create_windows(trend_data))
         return self
 
-    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
+    def _decision_function(self, trend_data: np.ndarray) -> np.array:
         windowed_decision_scores = self.__pyod_anomaly_detector.decision_function(self.__windowing.create_windows(trend_data))
         return self.__windowing.reverse_windowing(windowed_decision_scores, trend_data.shape[0])
 

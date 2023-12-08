@@ -21,7 +21,7 @@ from `GitLab <https://gitlab.kuleuven.be/u0143709/dtaianomaly>`_:
 
 .. code-block:: bash
 
-    pip uninstall git+https://gitlab.kuleuven.be/u0143709/dtaianomaly.git
+    pip install git+https://gitlab.kuleuven.be/u0143709/dtaianomaly.git
 
 
 From source
@@ -38,3 +38,14 @@ Finally, ``dtaianomaly`` can be installed through the following command:
     pip install .
 
 
+Dependencies
+------------
+
+The core dependencies of ´´dtaianomaly`` are `NumPy <https://numpy.org/>`_,
+`Pandas <https://pandas.pydata.org/>`_, `matplotlib <https://matplotlib.org/>`_,
+`scikit-learn <https://scikit-learn.org/stable/>`_ and `scipy <https://www.scipy.org/>`_.
+
+Note that certain anomaly detectors may also depend on additional packages, which
+are not installed by default. This is to avoid installing unnecessary dependencies.
+Any additional dependencies may be found in a ``requirements.txt``-file alongside the
+source code of the anomaly detector or in the documentation itself.

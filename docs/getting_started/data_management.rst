@@ -5,7 +5,7 @@ It is very simple to load data within ``dtaianomaly``. This is done through the
 :py:class:`DataManager` class. It allows to dynamically select time series that
 satisfy certain criteria, without having to load all time series. Below are the
 core functionalities discussed. For more information, please refer to the
-:doc:`documentation <../api/api_data_management>`.
+:doc:`documentation <../api/data_management>`.
 
 .. note::
     The reasoning of :py:class:`DataManager` is inspired by

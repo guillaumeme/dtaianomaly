@@ -20,22 +20,33 @@ class TimeSeriesAnomalyDetector(abc.ABC):
         raise NotImplementedError("Abstract method 'is_supervised()' should be implemented by the specific anomaly detector!")
 
     def fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None) -> 'TimeSeriesAnomalyDetector':
+        """
+        Fit the anomaly detector
+        :param trend_data:
+        :param labels:
+        :return:
+        """
         self.__decision_scores = None
-        self._fit_anomaly_detector(trend_data, labels)
+        self._fit(trend_data, labels)
         return self
 
     @abc.abstractmethod
-    def _fit_anomaly_detector(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
-        raise NotImplementedError("Abstract method 'fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
+    def _fit(self, trend_data: np.ndarray, labels: Optional[np.array] = None):
+        raise NotImplementedError("Abstract method '_fit(np.ndarray, Optional[np.array])' should be implemented by the specific anomaly detector!")
 
     def decision_function(self, trend_data: np.ndarray) -> np.array:
+        """
+        Compute the decision function of this anomaly detector
+        :param trend_data:
+        :return:
+        """
         if self.__decision_scores is None:
-            self.__decision_scores = self._compute_decision_scores(trend_data)
+            self.__decision_scores = self._decision_function(trend_data)
         return self.__decision_scores
 
     @abc.abstractmethod
-    def _compute_decision_scores(self, trend_data: np.ndarray) -> np.array:
-        raise NotImplementedError("Abstract method 'decision_scores(np.ndarray)' should be implemented by the specific anomaly detector!")
+    def _decision_function(self, trend_data: np.ndarray) -> np.array:
+        raise NotImplementedError("Abstract method '_decision_function(np.ndarray)' should be implemented by the specific anomaly detector!")
 
     @staticmethod
     @abc.abstractmethod

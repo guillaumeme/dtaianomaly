@@ -1,3 +1,4 @@
+
 Anomaly detection module
 ========================
 
@@ -5,7 +6,8 @@ Anomaly detection module
 
 .. toctree::
    :maxdepth: 2
-   :caption: Anomaly Detection Algorithms
 
+   anomaly_detection_algorithms/time_series_anomaly_detector
+   anomaly_detection_algorithms/utility
    anomaly_detection_algorithms/pyod
    anomaly_detection_algorithms/matrix_profile
