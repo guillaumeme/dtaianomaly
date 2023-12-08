@@ -11,10 +11,10 @@
   "results_file": "results.csv",
 
   "save_anomaly_scores_plot": false,
-  "anomaly_scores_directory": "anomaly_score_plots",
-  "anomaly_scores_file_format": "svg",
-  "show_anomaly_scores": "overlay",
-  "show_ground_truth": null,
+  "anomaly_scores_plots_directory": "anomaly_score_plots",
+  "anomaly_scores_plots_file_format": "svg",
+  "anomaly_scores_plots_show_anomaly_scores": "overlay",
+  "anomaly_scores_plots_show_ground_truth": null,
 
   "invalid_train_type_raise_error": true
 }

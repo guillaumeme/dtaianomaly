@@ -59,10 +59,15 @@ def main(data_manager: DataManager,
         results_columns += ['Time fit (s)', 'Time predict (s)']
     if output_configuration.trace_memory:
         results_columns += ['Peak memory fit (KiB)', 'Peak memory predict (KiB)']
+
     results = pd.DataFrame(
         index=pd.MultiIndex.from_tuples(data_manager.get(), names=['collection_name', 'dataset_name']),
         columns=results_columns
     )
+    # Append to the existing results
+    if os.path.exists(output_configuration.results_path):
+        existing_results = pd.read_csv(output_configuration.results_path, index_col=['collection_name', 'dataset_name'])
+        results = results.fillna(existing_results).combine_first(existing_results)
 
     __log(message=f">>> Iterating over the datasets\n"
                   f"Total number of datasets: {len(data_manager.get())}",
@@ -225,18 +230,25 @@ def __detect_anomalies(
     # Save the anomaly scores plot, if requested
     if output_configuration.save_anomaly_scores_plot:
         __log(message=f">> Saving the anomaly score plot\n"
-                      f"path: {output_configuration.figure_path(dataset_index)}\n"
-                      f"format: {output_configuration.anomaly_scores_file_format}\n"
-                      f"show_anomaly_scores: {output_configuration.show_anomaly_scores}\n"
-                      f"show_ground_truth: {output_configuration.show_ground_truth}",
+                      f"path: {output_configuration.anomaly_score_plot_path(dataset_index)}\n"
+                      f"format: {output_configuration.anomaly_scores_plots_file_format}\n"
+                      f"show_anomaly_scores: {output_configuration.anomaly_scores_plots_show_anomaly_scores}\n"
+                      f"show_ground_truth: {output_configuration.anomaly_scores_plots_show_ground_truth}",
               print_message=output_configuration.verbose)
         plot_anomaly_scores(
             trend_data=data_manager.load(dataset_index),
             anomaly_scores=algorithm.decision_function(data_test),
-            file_path=output_configuration.figure_path(dataset_index),
-            show_anomaly_scores=output_configuration.show_anomaly_scores,
-            show_ground_truth=output_configuration.show_ground_truth
+            file_path=output_configuration.anomaly_score_plot_path(dataset_index),
+            show_anomaly_scores=output_configuration.anomaly_scores_plots_show_anomaly_scores,
+            show_ground_truth=output_configuration.anomaly_scores_plots_show_ground_truth
         )
+
+    # Save the anomaly scores, if requested
+    if output_configuration.save_anomaly_scores:
+        __log(message=f">>> Saving the anomaly scores to disk\n"
+                      f"path: {output_configuration.anomaly_scores_path(dataset_index)}",
+              print_message=output_configuration.verbose)
+        np.save(output_configuration.anomaly_scores_path(dataset_index), algorithm.decision_function(data_test))
 
     # Save the results after each iteration, if requested
     if output_configuration.save_results and output_configuration.constantly_save_results:

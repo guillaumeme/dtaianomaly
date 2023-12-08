@@ -131,6 +131,19 @@ IForest to detect anomalies.
     therefore refer to the documentation of the :py:meth:`TimeSeriesAnomalyDetector.load`
     method of the specific anomaly detector you want to load for more information.
 
+
+.. _note_module_path_in_algorithm_config:
+.. note::
+
+    The workflow searches for the correct file in :py:mod:`dtaianomaly.anomaly_detection`
+    module. Because of this, a custom anomaly detector will not be recognized by the
+    workflow by default. For this, you need to include an item ``'module_path'`` in the
+    configuration, which dictates where the custom anomaly detector is located,
+    relative from where the workflow has been started. Also make sure that the directory
+    containing your code contains a (potentially empty) ``__init__.py`` file, to make
+    sure the directory is recognized as a module.
+
+
 Metrics
 ~~~~~~~
 
