@@ -1,4 +1,3 @@
-
 import numpy as np
 from typing import Optional, Dict
 
@@ -81,7 +80,7 @@ class STOMP(TimeSeriesAnomalyDetector):
 
     @staticmethod
     def load(parameters: Dict[str, any]) -> 'TimeSeriesAnomalyDetector':
-        return STOMP(**parameters['hyperparameters'])
+        return STOMP(**parameters)
 
 
 def main():
