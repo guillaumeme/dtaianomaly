@@ -118,26 +118,6 @@ class TestSelectGet:
             assert selected_dataset_index[0] == 'Demo'
             assert selected_dataset_index[1] == 'Demo1'
 
-    def test_select_bool_non_bool_value(self, data_manager):
-        with pytest.raises(ValueError):
-            data_manager.select({'datetime_index': None})
-
-    def test_select_bool_multiple_values(self, data_manager):
-        with pytest.raises(ValueError):
-            data_manager.select({'datetime_index': [True, False]})
-
-    def test_select_bool_property(self, data_manager):
-        result_data_manager = data_manager.select({'datetime_index': True})
-        assert result_data_manager == data_manager
-        for selected_dataset_index in data_manager.get():
-            assert data_manager.get_metadata(selected_dataset_index)['datetime_index']
-        result_data_manager = data_manager.clear()
-        assert result_data_manager == data_manager
-        result_data_manager = data_manager.select({'datetime_index': False})
-        assert result_data_manager == data_manager
-        for selected_dataset_index in data_manager.get():
-            assert not data_manager.get_metadata(selected_dataset_index)['datetime_index']
-
     def test_select_numerical_non_numeric_value(self, data_manager):
         with pytest.raises(ValueError):
             data_manager.select({'length': None})
@@ -405,13 +385,9 @@ class TestAddData:
             test_path: str = "some_test_path.csv",
             dataset_type: str = "",
             train_type: str = "",
-            train_is_normal: bool = True,
-            trend: str = "",
-            stationarity: str = "",
             train_data: pd.DataFrame = None,
             train_path: str = None,
-            period_size: int = None,
-            split_at: int = None):
+            period_size: int = None):
         data_manager.add_dataset(
             collection_name=collection_name,
             dataset_name=dataset_name,
@@ -419,13 +395,9 @@ class TestAddData:
             test_path=test_path,
             dataset_type=dataset_type,
             train_type=train_type,
-            train_is_normal=train_is_normal,
-            trend=trend,
-            stationarity=stationarity,
             train_data=train_data,
             train_path=train_path,
-            period_size=period_size,
-            split_at=split_at)
+            period_size=period_size)
 
     @pytest.fixture
     def tmp_data_manager(self, tmp_path) -> DataManager:
@@ -566,13 +538,9 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="synthetic",
             train_type="semi-supervised",
-            train_is_normal=True,
-            trend="kubic trend",
-            stationarity="trend_stationary",
             train_data=data.copy(),
             train_path="train_data.csv",
-            period_size=100,
-            split_at=None
+            period_size=100
         )
 
         tmp_data_manager.select()
@@ -588,12 +556,7 @@ class TestAddData:
         assert metadata['train_path'] == 'train_data.csv'
         assert metadata['dataset_type'] == 'synthetic'
         assert metadata['train_type'] == 'semi-supervised'
-        assert metadata['train_is_normal']
-        assert not metadata['datetime_index']
-        assert metadata['trend'] == 'kubic trend'
-        assert metadata['stationarity'] == 'trend_stationary'
         assert metadata['period_size'] == 100
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'univariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 1
@@ -602,8 +565,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 50
         assert metadata['median_anomaly_length'] == 50
         assert metadata['max_anomaly_length'] == 100
-        assert metadata['mean'] == pytest.approx(raw_data.mean())
-        assert metadata['stddev'] == pytest.approx(raw_data.std(), rel=1e-2)
 
     def test_dataset_index_assignment_multivariate(self, tmp_data_manager, data):
         raw_data_1 = data['attribute1'].values
@@ -617,13 +578,9 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="real",
             train_type="supervised",
-            train_is_normal=True,
-            trend="linear trend",
-            stationarity="stationary",
             train_data=data.copy(),
             train_path="train_data.csv",
-            period_size=100,
-            split_at=None
+            period_size=100
         )
 
         tmp_data_manager.select()
@@ -639,12 +596,7 @@ class TestAddData:
         assert metadata['train_path'] == 'train_data.csv'
         assert metadata['dataset_type'] == 'real'
         assert metadata['train_type'] == 'supervised'
-        assert metadata['train_is_normal']
-        assert not metadata['datetime_index']
-        assert metadata['trend'] == 'linear trend'
-        assert metadata['stationarity'] == 'stationary'
         assert metadata['period_size'] == 100
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
@@ -653,8 +605,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 50
         assert metadata['median_anomaly_length'] == 50
         assert metadata['max_anomaly_length'] == 100
-        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
-        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
     def test_dataset_index_assignment_anomaly_at_end(self, tmp_data_manager, data):
         raw_data_1 = data['attribute1'].values
@@ -671,13 +621,9 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="real",
             train_type="supervised",
-            train_is_normal=True,
-            trend="linear trend",
-            stationarity="stationary",
             train_data=data.copy(),
             train_path="train_data.csv",
-            period_size=None,
-            split_at=None
+            period_size=None
         )
 
         tmp_data_manager.select()
@@ -693,12 +639,7 @@ class TestAddData:
         assert metadata['train_path'] == 'train_data.csv'
         assert metadata['dataset_type'] == 'real'
         assert metadata['train_type'] == 'supervised'
-        assert metadata['train_is_normal']
-        assert not metadata['datetime_index']
-        assert metadata['trend'] == 'linear trend'
-        assert metadata['stationarity'] == 'stationary'
         assert pd.isna(metadata['period_size'])
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
@@ -707,8 +648,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 10
         assert metadata['median_anomaly_length'] == 50
         assert metadata['max_anomaly_length'] == 100
-        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
-        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
     def test_dataset_index_assignment_no_train_data(self, tmp_data_manager, data):
         raw_data_1 = data['attribute1'].values
@@ -722,11 +661,7 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="real",
             train_type="unsupervised",
-            train_is_normal=False,
-            trend="no trend",
-            stationarity="difference stationary",
-            period_size=100,
-            split_at=None
+            period_size=100
         )
 
         tmp_data_manager.select()
@@ -742,12 +677,7 @@ class TestAddData:
         assert pd.isna(metadata['train_path'])
         assert metadata['dataset_type'] == 'real'
         assert metadata['train_type'] == 'unsupervised'
-        assert not metadata['train_is_normal']
-        assert not metadata['datetime_index']
-        assert metadata['trend'] == 'no trend'
-        assert metadata['stationarity'] == 'difference stationary'
         assert metadata['period_size'] == 100
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
@@ -756,8 +686,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 50
         assert metadata['median_anomaly_length'] == 50
         assert metadata['max_anomaly_length'] == 100
-        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
-        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
     def test_dataset_index_assignment_datetime_index(self, tmp_data_manager, data):
         data.index = ['second_' + str(i) for i in data.index]
@@ -774,11 +702,7 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="real",
             train_type="unsupervised",
-            train_is_normal=False,
-            trend="no trend",
-            stationarity="difference stationary",
-            period_size=100,
-            split_at=None
+            period_size=100
         )
 
         tmp_data_manager.select()
@@ -794,12 +718,7 @@ class TestAddData:
         assert pd.isna(metadata['train_path'])
         assert metadata['dataset_type'] == 'real'
         assert metadata['train_type'] == 'unsupervised'
-        assert not metadata['train_is_normal']
-        assert metadata['datetime_index']
-        assert metadata['trend'] == 'no trend'
-        assert metadata['stationarity'] == 'difference stationary'
         assert metadata['period_size'] == 100
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
@@ -808,8 +727,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 50
         assert metadata['median_anomaly_length'] == 50
         assert metadata['max_anomaly_length'] == 100
-        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
-        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
     def test_dataset_index_no_anomalies(self, tmp_data_manager, data):
 
@@ -827,11 +744,7 @@ class TestAddData:
             test_path="test_data.csv",
             dataset_type="real",
             train_type="unsupervised",
-            train_is_normal=False,
-            trend="no trend",
-            stationarity="difference stationary",
-            period_size=100,
-            split_at=None
+            period_size=100
         )
 
         tmp_data_manager.select()
@@ -847,12 +760,7 @@ class TestAddData:
         assert pd.isna(metadata['train_path'])
         assert metadata['dataset_type'] == 'real'
         assert metadata['train_type'] == 'unsupervised'
-        assert not metadata['train_is_normal']
-        assert metadata['datetime_index']
-        assert metadata['trend'] == 'no trend'
-        assert metadata['stationarity'] == 'difference stationary'
         assert metadata['period_size'] == 100
-        assert pd.isna(metadata['split_at'])
         assert metadata['input_type'] == 'multivariate'
         assert metadata['length'] == 1000
         assert metadata['dimensions'] == 2
@@ -861,8 +769,6 @@ class TestAddData:
         assert metadata['min_anomaly_length'] == 0
         assert metadata['median_anomaly_length'] == 0
         assert metadata['max_anomaly_length'] == 0
-        assert metadata['mean'] == pytest.approx((raw_data_1.mean() + raw_data_2.mean()) / 2)
-        assert metadata['stddev'] == pytest.approx((raw_data_1.std() + raw_data_2.std()) / 2, rel=1e-2)
 
     def test_remove_test_data(self, tmp_data_manager, data, tmp_path):
         assert not os.path.exists(tmp_path / 'test_data.csv')
