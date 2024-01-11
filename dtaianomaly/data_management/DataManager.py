@@ -7,12 +7,11 @@ DatasetIndex = Tuple[str, str]
 
 
 _COLUMN_NAMES = {
-    'train_path', 'test_path', 'dataset_type', 'datetime_index', 'split_at',
-    'train_type', 'train_is_normal', 'input_type', 'length', 'dimensions',
+    'train_path', 'test_path', 'dataset_type',
+    'train_type', 'input_type', 'length', 'dimensions',
     'contamination', 'num_anomalies', 'min_anomaly_length', 'median_anomaly_length',
-    'max_anomaly_length', 'mean', 'stddev', 'trend', 'stationarity', 'period_size'
+    'max_anomaly_length', 'period_size'
 }
-
 
 # Inspired by Timeeval (https://github.com/HPI-Information-Systems/TimeEval/tree/main)
 class DataManager:
@@ -176,13 +175,9 @@ class DataManager:
                     test_path: str,
                     dataset_type: str,
                     train_type: str,
-                    train_is_normal: bool,
-                    trend: str,
-                    stationarity: str,
                     train_data: Optional[pd.DataFrame] = None,
                     train_path: Optional[str] = None,
-                    period_size: Optional[int] = None,
-                    split_at: Optional[int] = None) -> None:
+                    period_size: Optional[int] = None) -> None:
 
         # Check if the dataset already exists
         dataset_index = (collection_name, dataset_name)
@@ -219,10 +214,7 @@ class DataManager:
             'train_path': train_path,
             'test_path': test_path,
             'dataset_type': dataset_type,
-            'datetime_index': set(test_data.index) != set(range(test_data.shape[0])),
-            'split_at': split_at,
             'train_type': train_type,
-            'train_is_normal': train_is_normal,
             'input_type': 'multivariate' if test_data.shape[1] > 2 else 'univariate',  # '2' to take 'is_anomaly' into account
             'length': test_data.shape[0],
             'dimensions': test_data.shape[1] - 1,  # Exclude the 'is_anomaly' column
@@ -231,10 +223,6 @@ class DataManager:
             'min_anomaly_length': min(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
             'median_anomaly_length': np.median(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
             'max_anomaly_length': max(length_anomaly_sequences) if len(length_anomaly_sequences) > 0 else 0,
-            'mean': np.mean(test_data.mean(axis=0).drop('is_anomaly')),
-            'stddev': np.mean(test_data.std(axis=0).drop('is_anomaly')),
-            'trend': trend,
-            'stationarity': stationarity,
             'period_size': period_size
         })
 
