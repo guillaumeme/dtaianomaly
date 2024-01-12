@@ -45,6 +45,9 @@ class OutputConfiguration:
 
     # Raise an error of the train type of the algorithm does not match the train type of the dataset
     invalid_train_type_raise_error: bool = True
+    create_fit_predict_error_log: bool = True
+    reraise_fit_predict_errors: bool = True
+
 
     @property
     def directory(self) -> str:
@@ -70,6 +73,13 @@ class OutputConfiguration:
 
     def anomaly_scores_path(self, dataset_index: Tuple[str, str]) -> str:
         return f'{self.anomaly_scores_directory_path}/{self.dataset_index_to_str(dataset_index)}'
+
+    @property
+    def error_log_dir(self):
+        return f'{self.directory}/errors'
+
+    def error_log_file(self, dataset_index: Tuple[str, str]) -> str:
+        return f'{self.error_log_dir}/error_{self.dataset_index_to_str(dataset_index)}.txt'
 
     @staticmethod
     def dataset_index_to_str(dataset_index: Tuple[str, str]) -> str:
@@ -101,5 +111,9 @@ def handle_output_configuration(plain_output_configuration: Union[PlainOutputCon
     # Create a directory for the anomaly scores, if they should be saved
     if output_configuration.save_anomaly_scores and not os.path.exists(output_configuration.anomaly_scores_directory_path):
         os.mkdir(output_configuration.anomaly_scores_directory_path)
+
+    # Create a directory for the error logs, if they should be created
+    if output_configuration.create_fit_predict_error_log and not os.path.exists(output_configuration.error_log_dir):
+        os.mkdir(output_configuration.error_log_dir)
 
     return output_configuration
