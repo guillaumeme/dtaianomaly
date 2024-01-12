@@ -19,5 +19,7 @@
   "save_anomaly_scores": true,
   "anomaly_scores_directory": "anomaly_scores",
 
-  "invalid_train_type_raise_error": true
+  "invalid_train_type_raise_error": true,
+  "create_fit_predict_error_log": true,
+  "reraise_fit_predict_errors": false
 }

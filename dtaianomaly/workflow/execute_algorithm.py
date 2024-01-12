@@ -107,7 +107,9 @@ def main(data_manager: DataManager,
             __log(message=f">>> Cleaning up the intermediate files",
                   print_message=output_configuration.verbose)
             for dataset_index in data_manager.get():
-                os.remove(output_configuration.intermediate_results_path(dataset_index))
+                # Check if the file exists, because an error might be thrown
+                if os.path.isfile(output_configuration.intermediate_results_path(dataset_index)):
+                    os.remove(output_configuration.intermediate_results_path(dataset_index))
 
     if output_configuration.print_results:
         __log(message=f">>> Printing the results to the output stream", print_message=output_configuration.verbose)
@@ -179,30 +181,47 @@ def __detect_anomalies(
     np.random.seed(seed=seed)
     results['Seed'] = seed
 
-    # Fit the algorithm
-    __log(message=f">> Fitting the algorithm", print_message=output_configuration.verbose)
-    if output_configuration.trace_memory:
-        tracemalloc.start()
-    start_fitting = time.time()
-    algorithm.fit(data_train, ground_truth_train)
-    time_fitting = time.time() - start_fitting
-    if output_configuration.trace_memory:
-        _, peak_memory_fitting = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+    try:
+        # Fit the algorithm
+        __log(message=f">> Fitting the algorithm", print_message=output_configuration.verbose)
+        if output_configuration.trace_memory:
+            tracemalloc.start()
+        start_fitting = time.time()
+        algorithm.fit(data_train, ground_truth_train)
+        time_fitting = time.time() - start_fitting
+        if output_configuration.trace_memory:
+            _, peak_memory_fitting = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
 
-    # Predict the decision scores
-    __log(message=f">> Predicting the decision scores on the test data",
-          print_message=output_configuration.verbose)
-    if output_configuration.trace_memory:
-        tracemalloc.start()
-    start_predicting = time.time()
-    # decision_function instead of predict_proba to not include normalization time
-    # Additionally, the scores are cached to avoid recomputing them.
-    algorithm.decision_function(data_test)
-    time_predicting = time.time() - start_predicting
-    if output_configuration.trace_memory:
-        _, peak_memory_predicting = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+        # Predict the decision scores
+        __log(message=f">> Predicting the decision scores on the test data",
+              print_message=output_configuration.verbose)
+        if output_configuration.trace_memory:
+            tracemalloc.start()
+        start_predicting = time.time()
+        # decision_function instead of predict_proba to not include normalization time
+        # Additionally, the scores are cached to avoid recomputing them.
+        algorithm.decision_function(data_test)
+        time_predicting = time.time() - start_predicting
+        if output_configuration.trace_memory:
+            _, peak_memory_predicting = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+
+    except Exception as e:
+        message = f"An exception occurred while detecting anomalies!\n" \
+                  f"Dataset index: {dataset_index}\n" \
+                  f"Error message file: {output_configuration.error_log_file(dataset_index)}\n" \
+                  "\n" \
+                  f"Error message: {str(e)}"
+        __log(message=message, print_message=output_configuration.verbose)
+        if output_configuration.create_fit_predict_error_log:
+            with open(output_configuration.error_log_file(dataset_index), 'w') as error_file:
+                error_file.write(message)
+
+        if output_configuration.reraise_fit_predict_errors:
+            raise e
+
+        return results
 
     # Write away the results
     __log(message=f">> Storing the results",
