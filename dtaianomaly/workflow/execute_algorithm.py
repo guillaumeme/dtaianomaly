@@ -12,7 +12,7 @@ from dtaianomaly.anomaly_detection import TimeSeriesAnomalyDetector
 from dtaianomaly.anomaly_detection.utility.TrainType import TrainType
 
 from dtaianomaly.evaluation.Metric import Metric
-from dtaianomaly.visualization.plot_anomalies import plot_anomaly_scores
+from dtaianomaly.visualization import plot_anomaly_scores
 
 from dtaianomaly.workflow.handle_data_configuration import DataConfiguration, handle_data_configuration
 from dtaianomaly.workflow.handle_algorithm_configuration import AlgorithmConfiguration, handle_algorithm_configuration
@@ -128,7 +128,7 @@ def __detect_anomalies(
         seed: int) -> pd.Series:
 
     __log(message=f">>> Handling dataset '{dataset_index}'", print_message=output_configuration.verbose)
-    results = pd.Series(name=dataset_index, index=results_columns)
+    results = pd.Series(name=dataset_index, index=results_columns, dtype=float)
 
     __log(message=f">> Checking  algorithm-dataset compatibility", print_message=output_configuration.verbose)
     algorithm_train_type = algorithm.train_type()
@@ -256,7 +256,7 @@ def __detect_anomalies(
               print_message=output_configuration.verbose)
         plot_anomaly_scores(
             trend_data=data_manager.load(dataset_index),
-            anomaly_scores=algorithm.decision_function(data_test),
+            anomaly_scores=algorithm.predict_proba(data_test),
             file_path=output_configuration.anomaly_score_plot_path(dataset_index),
             show_anomaly_scores=output_configuration.anomaly_scores_plots_show_anomaly_scores,
             show_ground_truth=output_configuration.anomaly_scores_plots_show_ground_truth
