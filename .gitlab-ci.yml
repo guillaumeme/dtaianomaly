@@ -182,13 +182,13 @@ run-notebooks:
   before_script:
     - apt-get update && apt-get install make --no-install-recommends -y
     - python -m pip install sphinx toml sphinx_rtd_theme nbsphinx
+    - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
     - cd docs
 
 # Check the code in the documentation
 doctest:
   extends: .documentation
   script:
-    - pip install -r ../requirements.txt
     - make doctest
 
 # Generate the documentation
