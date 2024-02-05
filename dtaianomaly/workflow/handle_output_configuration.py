@@ -8,7 +8,72 @@ PlainOutputConfiguration = Union[Dict[str, Dict[str, Any]], str]
 
 class OutputConfiguration:
     """
-    The output configuration.
+    The output configuration, i.e., the information that can be outputted during a workflow.
+
+    Properties
+    ----------
+    directory_path : str
+        The name of the path where all the results should be stored.
+    algorithm_name : str
+        The name of the algorithm, which is used to store the information in a subdirectory.
+    verbose : bool, default = False
+        Whether to print intermediate information to the output stream.
+    trace_time : bool, default = False
+        If the running time of the algorithm should be traced.
+    trace_memory : bool, default = False
+        If the memory usage of the algorithm should be traced.
+    print_results : bool, default = False
+        if the final results should be printed to the output stream. Has no effect if ``verbose == False``.
+    save_results : bool, default = False
+        If the final results should be saved.
+    constantly_save_results: bool, default = False
+        If the intermediate results (of the algorihtm on each time series) should be saved.
+    results_file : str, default = 'results.csv'
+        The name for the file containing all the final results.
+    save_anomaly_scores_plot : bool, default = False
+        Whether a plot with the anomaly scores should be saved for each execution of the algorithm.
+    anomaly_scores_plots_directory : str, default = 'anomaly_score_plots'
+        The directory (within the algorihtm directory) where the plots should be saved.
+    anomaly_scores_plots_file_format : str, default = 'svg'
+        The format of the anomaly score plots.
+    anomaly_scores_plots_show_anomaly_scores : str, default = 'overlay'
+        How to visualize the anomaly scores in the anomaly score plots.
+        See :py:func:`dtaianomaly.visualization.plot_anomaly_scores` for more details.
+    anomaly_scores_plots_show_ground_truth : str, default = None
+        How to visualize the ground truth in the anomaly score plots.
+        See :py:func:`dtaianomaly.visualization.plot_anomaly_scores` for more details.
+    save_anomaly_scores : bool, default = False
+        Whether the raw anomaly scores (not just the quantitative evaluation) should be saved.
+    anomaly_scores_directory : str, default = 'anomaly_scores'
+        The directory (within the algorithm directory) where the raw anomaly scores should be saved.
+    invalid_train_type_raise_error : bool, default = True
+        Whether an error should be raised if the training type of the algorithm does not match
+        the type of the time series.
+    create_fit_predict_error_log : bool, default = True
+        Whether an error log should be created for errors occurring during fitting or predicting
+        with the anomaly detector.
+    reraise_fit_predict_errors : bool, default = True
+        If the errors encountered during fitting or predicting should be reraised. This thus
+        effectively stops the workflow.
+
+    Note
+    ----
+    To initialize an :py:class:`~dtaianomaly.worflow.OutputConfiguration`. The exact name above
+    must be passed to the ``__init__`` method. This includes the two obligated parameters ``directory_path``
+    and ``algorithm_name``, as well as the optional parameters. The order in which these parameters are
+    given does not matter. An example is given below.
+
+    >>> from dtaianomaly.workflow import OutputConfiguration
+    >>> configuration = OutputConfiguration(
+    ...     # First, the obligated parameters
+    ...     directory_path='path/to/the/results',
+    ...     algorithm_name='my_algorithm',
+    ...     # Other, optional parameters
+    ...     print_results=True,             # Show the results in the output stream
+    ...     save_anomaly_scores_plot=True,  # Plot the anomaly scores
+    ...     save_anomaly_scores=True,        # Plot the anomaly scores
+    ...     # ...
+    ... )
     """
 
     def __init__(self, **kwargs):
@@ -47,7 +112,6 @@ class OutputConfiguration:
     invalid_train_type_raise_error: bool = True
     create_fit_predict_error_log: bool = True
     reraise_fit_predict_errors: bool = True
-
 
     @property
     def directory(self) -> str:
@@ -91,6 +155,7 @@ def handle_output_configuration(plain_output_configuration: Union[PlainOutputCon
     # If a proper output configuration is already given, then use that one
     if type(plain_output_configuration) is OutputConfiguration:
         output_configuration = plain_output_configuration
+        output_configuration.algorithm_name = algorithm_name
 
     # Otherwise, convert the json file or the plain configuration to an output configuration
     else:

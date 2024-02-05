@@ -25,97 +25,147 @@ def __log(message: str, print_message: bool) -> None:
         print(message)
 
 
-def main(data_manager: DataManager,
-         data_configuration: DataConfiguration,
-         algorithm_configuration: AlgorithmConfiguration,
-         metric_configuration: MetricConfiguration,
-         output_configuration: Union[PlainOutputConfiguration, OutputConfiguration],
-         seed: Optional[int] = 0,
-         n_jobs: int = 1) -> pd.DataFrame:
+def execute_algorithms(data_manager: DataManager,
+                       data_configuration: DataConfiguration,
+                       algorithm_configuration: AlgorithmConfiguration,
+                       metric_configuration: MetricConfiguration,
+                       output_configuration: Union[PlainOutputConfiguration, OutputConfiguration],
+                       seed: Optional[int] = 0,
+                       n_jobs: int = 1) -> Dict[str, pd.DataFrame]:
     """
-    Execute an anomaly detector.
+    Execute a workflow, i.e., use one or more anomaly detectors to detect anomalies
+    in a number of time series and save the results.
 
-    :param data_manager:
-    :param data_configuration:
-    :param algorithm_configuration:
-    :param metric_configuration:
-    :param output_configuration:
-    :param seed:
-    :param n_jobs:
+    Parameters
+    ----------
+    data_manager : :py:class:`~dtaianomaly.data_management.DataManager`
+        The :py:class:`~dtaianomaly.data_management.DataManager` object that is
+        used to read all the time series data.
+    data_configuration : Dict[str, Any] or str
+        The data configuration, used to select the time series in which anomalies
+        will be detected in this workflow. If a string is provided, it represents
+        a path to the configuration file in json format.
+    algorithm_configuration : Dict[str, Any], str or Tuple[:py:class:`~dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector`, str]
+        The algorithm configuration, used to load the required anomaly detectors to
+        test in this workflow. If a string is provided, it represents a path to the
+        configuration file in json format. Alternatively, a :py:class:`~dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector`
+        can be used in combination with a str, which means that a specific anomaly
+        detector, with its name, is provided.
+    metric_configuration : Dict[str, Any] or str
+        The metric configuration, used to load various evaluation metrics which
+        will quantify the performance of the anomaly detector. If a string is
+        provided, it represents a path to the configuration file in json format.
+    output_configuration : Dict[str, Any], str or :py:class:`~dtaianomaly.workflow.OutputConfiguration`
+        The output configuration, used to decide which information should be
+        outputted during the workflow. If a string is provided, it represents
+        a path to the configuration file in json format. Alternatively, a :py:class:`~dtaianomaly.workflow.OutputConfiguration`
+        can be given directly, which encapsulates all possible settings on
+        how the workflow will output information.
+    seed : int, Optional, default = 0
+        The random seed, which is set before the execution of each algorithm on
+        each time series. By default, seed 0 will be used to guarantee reproducible
+        experiments. If the seed is explicitly set to ``None``, only then no
+        seed is used.
+    n_jobs : int, default = 1
+        The number of parallel jobs to use. This can hugely reduce the required running
+        time because the algorithm can detect anomalies in multiple time series simultaneously.
+        The detectors themselves will only use a single core for detecting anomalies in a
+        single time series.
 
-    :return:
+    Note
+    ----
+    - Please visit `this webpage <https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/large_scale_experiments.html#configuration-files>`_
+      for more information regarding the format of the different configuration files.
+    - The configuration files equal dictionaries, with as keys the different properties
+      that can be configured and as values the corresponding value to which the
+      property is configured.
+    - the workflow will have several other effects, beside generating the results and
+      returning them. This includes generating files and storing various results,
+      depending on the ``output_configuration`` parameter.
+
+    Returns
+    -------
+    Dict[str, pd.DataFrame]
+        A dictionary containing the results of the workflow. Each key equals the name of
+        an anomaly detector, and the corresponding dataframe contains the concrete results
+        of the algorithm for each time series.
     """
     data_manager = handle_data_configuration(data_manager, data_configuration)
-    algorithm, algorithm_name = handle_algorithm_configuration(algorithm_configuration)
+    algorithms = handle_algorithm_configuration(algorithm_configuration)
     metrics = handle_metric_configuration(metric_configuration)
-    output_configuration = handle_output_configuration(output_configuration, algorithm_name)
 
-    __log(message='>>> Starting the workflow',
-          print_message=output_configuration.verbose)
+    all_results = {}
+    for algorithm_name, algorithm in algorithms.items():
 
-    results_columns = ['Seed']
-    results_columns += list(metrics.keys())
-    if output_configuration.trace_time:
-        results_columns += ['Time fit (s)', 'Time predict (s)']
-    if output_configuration.trace_memory:
-        results_columns += ['Peak memory fit (KiB)', 'Peak memory predict (KiB)']
+        output_configuration_algorithm = handle_output_configuration(output_configuration, algorithm_name)
+        __log(message='>>> Starting the workflow',
+              print_message=output_configuration_algorithm.verbose)
 
-    results = pd.DataFrame(
-        index=pd.MultiIndex.from_tuples(data_manager.get(), names=['collection_name', 'dataset_name']),
-        columns=results_columns
-    )
-    # Append to the existing results
-    if os.path.exists(output_configuration.results_path):
-        existing_results = pd.read_csv(output_configuration.results_path, index_col=['collection_name', 'dataset_name'])
-        results = results.fillna(existing_results).combine_first(existing_results)
+        results_columns = ['Seed']
+        results_columns += list(metrics.keys())
+        if output_configuration_algorithm.trace_time:
+            results_columns += ['Time fit (s)', 'Time predict (s)']
+        if output_configuration_algorithm.trace_memory:
+            results_columns += ['Peak memory fit (KiB)', 'Peak memory predict (KiB)']
 
-    __log(message=f">>> Iterating over the datasets\n"
-                  f"Total number of datasets: {len(data_manager.get())}",
-          print_message=output_configuration.verbose)
-    all_dataset_results: List[pd.Series] = []
-    if n_jobs > 1:
-        jobs = [
-            (data_manager, index, algorithm, output_configuration, metrics, results_columns, seed)
-            for index in data_manager.get()
-        ]
-        with multiprocessing.Pool(n_jobs) as pool:
-            all_dataset_results = pool.starmap(__detect_anomalies, jobs)
-    else:
-        for dataset_index in data_manager.get():
-            all_dataset_results.append(__detect_anomalies(
-                data_manager=data_manager,
-                dataset_index=dataset_index,
-                algorithm=algorithm,
-                output_configuration=output_configuration,
-                metrics=metrics,
-                results_columns=results_columns,
-                seed=seed
-            ))
+        results = pd.DataFrame(
+            index=pd.MultiIndex.from_tuples(data_manager.get(), names=['collection_name', 'dataset_name']),
+            columns=results_columns
+        )
+        # Append to the existing results
+        if os.path.exists(output_configuration_algorithm.results_path):
+            existing_results = pd.read_csv(output_configuration_algorithm.results_path, index_col=['collection_name', 'dataset_name'])
+            results = results.fillna(existing_results).combine_first(existing_results)
 
-    __log(message=f">>> Formatting the results of the individual datasets", print_message=output_configuration.verbose)
-    for dataset_result in all_dataset_results:
-        results.at[dataset_result.name] = dataset_result
-
-    # Save the results, if requested
-    if output_configuration.save_results:
-        __log(message=f">>> Saving the results to disk\n"
-                      f"path: {output_configuration.results_path}",
-              print_message=output_configuration.verbose)
-        results.to_csv(output_configuration.results_path)
-
-        if output_configuration.constantly_save_results:
-            __log(message=f">>> Cleaning up the intermediate files",
-                  print_message=output_configuration.verbose)
+        __log(message=f">>> Iterating over the datasets\n"
+                      f"Total number of datasets: {len(data_manager.get())}",
+              print_message=output_configuration_algorithm.verbose)
+        all_dataset_results: List[pd.Series] = []
+        if n_jobs > 1:
+            jobs = [
+                (data_manager, dataset_index, algorithm, output_configuration_algorithm, metrics, results_columns, seed)
+                for dataset_index in data_manager.get()
+            ]
+            with multiprocessing.Pool(n_jobs) as pool:
+                all_dataset_results = pool.starmap(__detect_anomalies, jobs)
+        else:
             for dataset_index in data_manager.get():
-                # Check if the file exists, because an error might be thrown
-                if os.path.isfile(output_configuration.intermediate_results_path(dataset_index)):
-                    os.remove(output_configuration.intermediate_results_path(dataset_index))
+                all_dataset_results.append(__detect_anomalies(
+                    data_manager=data_manager,
+                    dataset_index=dataset_index,
+                    algorithm=algorithm,
+                    output_configuration=output_configuration_algorithm,
+                    metrics=metrics,
+                    results_columns=results_columns,
+                    seed=seed
+                ))
 
-    if output_configuration.print_results:
-        __log(message=f">>> Printing the results to the output stream", print_message=output_configuration.verbose)
-        print(results)
+        __log(message=f">>> Formatting the results of the individual datasets", print_message=output_configuration_algorithm.verbose)
+        for dataset_result in all_dataset_results:
+            results.at[dataset_result.name] = dataset_result
 
-    return results
+        # Save the results, if requested
+        if output_configuration_algorithm.save_results:
+            __log(message=f">>> Saving the results to disk\n"
+                          f"path: {output_configuration_algorithm.results_path}",
+                  print_message=output_configuration_algorithm.verbose)
+            results.to_csv(output_configuration_algorithm.results_path)
+
+            if output_configuration_algorithm.constantly_save_results:
+                __log(message=f">>> Cleaning up the intermediate files",
+                      print_message=output_configuration_algorithm.verbose)
+                for dataset_index in data_manager.get():
+                    # Check if the file exists, because an error might be thrown
+                    if os.path.isfile(output_configuration_algorithm.intermediate_results_path(dataset_index)):
+                        os.remove(output_configuration_algorithm.intermediate_results_path(dataset_index))
+
+        if output_configuration_algorithm.print_results:
+            __log(message=f">>> Printing the results to the output stream", print_message=output_configuration_algorithm.verbose)
+            print(results)
+
+        all_results[algorithm_name] = results
+
+    return all_results
 
 
 def __detect_anomalies(

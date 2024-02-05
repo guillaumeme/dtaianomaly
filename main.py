@@ -2,7 +2,7 @@
 import argparse
 import json
 
-from dtaianomaly.workflow import execute_algorithm
+from dtaianomaly.workflow import execute_algorithms
 from dtaianomaly.data_management import DataManager
 
 
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         output_configuration = args.configuration_dir + '/' + output_configuration
 
     # Execute the algorithm
-    execute_algorithm(
+    execute_algorithms(
         data_manager=DataManager(args.datasets_index_file),
         data_configuration=data_configuration,
         algorithm_configuration=algorithm_configuration,
