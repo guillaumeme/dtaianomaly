@@ -18,7 +18,7 @@ and :ref:`how the configuration files are formatted <large_scale_experiments_con
 Executing a workflow
 --------------------
 
-A workflow can be executed through the :py:meth:`dtaianomaly.workflow.execute` method.
+A workflow can be executed through the :py:meth:`~dtaianomaly.workflow.execute_algorithm` method.
 This method requires a :py:class:'dtaianomaly.data_management.DataManager' to read the
 data, as well as the different configurations described below. These configurations
 can be a string representing the path to the ``json`` file, or a Python dictionary.
@@ -95,6 +95,10 @@ and all time series with at most 10 000 observations in the ``'KDD-TSAD'`` colle
 Algorithms
 ~~~~~~~~~~
 
+It is possible to either execute a single algorithm or a large set of algorithms. Below,
+we first describe how the configuration of a single algorithm looks like. Afterwards, the
+configuration for multiple algorithms is described, which uses single-algorithm configurations.
+
 The algorithm configuration requires three key-value pairs:
 1. ``'name'``: the semantic name to use when referring to the anomaly detector. This can
 be useful to use when quantifying the effect of hyperparameters, for example.
@@ -142,6 +146,28 @@ IForest to detect anomalies.
     relative from where the workflow has been started. Also make sure that the directory
     containing your code contains a (potentially empty) ``__init__.py`` file, to make
     sure the directory is recognized as a module.
+
+Oftentimes, it is desirable to setup an experiment with a large number
+of datasets and algorithms. This can be done by adapting the configuration
+file for the algorithms as follows. Only one key is obligated to be in the
+configuration: ``'algorithm_configurations'``. The corresponding value is
+a list of configurations for single anomaly detectors, as described above.
+The concrete value can either be a string representing the path of the
+``json`` configuration file (relative to where the workflow started) or
+directly a dictionary with correct configurations (or a combination of both!).
+Additionally, there is an optional key ``'collection'``. When provided, a
+sub directory will be created, in which all the results of the workflow
+are saved, allowing to group all information related to the workflow-run.
+
+.. code-block:: json
+
+    {
+      "collection" : "multiple_algorithms",
+      "algorithm_configurations": [
+          "configurations/algorithm/iforest_16.json",
+          "configurations/algorithm/iforest_64.json"
+      ]
+    }
 
 
 Metrics
