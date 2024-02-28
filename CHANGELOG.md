@@ -97,7 +97,7 @@ for additional information!
    traditional metrics such as precision, recall, and F1-score, but also more recent 
    metrics that were tailored for time series anomaly detection such as the
    [Affiliation Score](https://dl.acm.org/doi/10.1145/3534678.3539339)
-   and [Volume under the surface (VUS)](https://dl.acm.org/doi/10.14778/3551793.3551830)
+  [notebooks](notebooks) and [Volume under the surface (VUS)](https://dl.acm.org/doi/10.14778/3551793.3551830)
 
 - `visualization`: This module allows to easily visualize the data and anomalies, as 
    time series and anomalies inherently are great for visual inspection.
