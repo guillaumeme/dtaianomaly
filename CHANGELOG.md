@@ -1,6 +1,40 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 2024-02-28
+
+This release mostly increased the amount of functionality, but also offers some
+more quality-of-life features. 
+
+### Added
+- TSB-UAD has been integrated, thus increasing the amount of available algorithms.
+- Options to read the results from a workflow and visualize them. 
+- An option has been added to log errors in the workflow, without letting 
+  the entire workflow crash and stop. 
+- Anomaly detector `STOMP` (based on the Matrix Profile) has been added.
+- An option to include a specific stride when windowing the time series using the 
+  `Windowing` class has been added.
+
+### Changed
+- Changed how the algorithm configuration works. 
+  - you can provide multiple algorithms in one configuration to facilitate large 
+    scale experiments in which multiple algorithms are compared. 
+  - An option was implemented to provide template configurations, and then 
+    fill in the templates given a number of possible values in a grid-like 
+    fashion. this allows to more easily tune various parameters of anomaly 
+    detectors. 
+- The number of features in the `DataManager` are reduced such that only a limitted
+  set of important features remain. 
+
+### Fixed
+- Some bugs related to visualizing the data have been fixed. 
+- There was a problem with using custom algorithms in the workflow, due to an
+  unknown path. 
+- Added the opportunity to perform anomaly detection in parallel over multiple
+  time series, thus reducing the total required running time.
+
+
+  
 ## [0.1.3] - 2023-11-07
 
 There was another, similar bug. 
