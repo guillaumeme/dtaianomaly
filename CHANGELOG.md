@@ -16,6 +16,9 @@ more quality-of-life features.
   `Windowing` class has been added.
 
 ### Changed
+- Due to the dependency on TSB-UAD, this version (and likely also future versions)
+  won't be available on PyPi anymore, because TSB-UAD is installed from source, which
+  means is not supported through PyPi
 - Changed how the algorithm configuration works. 
   - you can provide multiple algorithms in one configuration to facilitate large 
     scale experiments in which multiple algorithms are compared. 
@@ -33,8 +36,6 @@ more quality-of-life features.
 - Added the opportunity to perform anomaly detection in parallel over multiple
   time series, thus reducing the total required running time.
 
-
-  
 ## [0.1.3] - 2023-11-07
 
 There was another, similar bug. 

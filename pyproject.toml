@@ -2,7 +2,7 @@
 name = "dtaianomaly"
 version = "0.1.4"
 description = "A simple-to-use Python package for time series anomaly detection!"
-requires-python = ">=3.8,<=3.8"
+requires-python = ">=3.7,<=3.8"
 authors = [
     {name = "Louis Carpentier", email = "louis.carpentier@kuleuven.be"}
 ]
