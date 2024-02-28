@@ -1,0 +1,13 @@
+{
+  "name": "LSTM",
+  "anomaly_detector": "TSBUADAnomalyDetector",
+  "hyperparameters": {
+    "tsb_uad_model": "LSTM",
+    "model_parameters": {
+      "predict_time_steps": 1,
+      "epochs": 50,
+      "patience": 5,
+      "verbose": 0
+    }
+  }
+}

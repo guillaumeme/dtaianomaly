@@ -1,11 +1,13 @@
 import os
 import time
 import tracemalloc
+import json
 import multiprocessing
 from typing import Union, Optional, List, Dict
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from dtaianomaly.data_management.DataManager import DataManager, DatasetIndex
 from dtaianomaly.anomaly_detection import TimeSeriesAnomalyDetector
@@ -95,11 +97,14 @@ def execute_algorithms(data_manager: DataManager,
     metrics = handle_metric_configuration(metric_configuration)
 
     all_results = {}
-    for algorithm_name, algorithm in algorithms.items():
+    for algorithm_name, (algorithm, algorithm_configuration) in algorithms.items():
 
         output_configuration_algorithm = handle_output_configuration(output_configuration, algorithm_name)
-        __log(message='>>> Starting the workflow',
+        __log(message=f'>>> Starting the workflow for {algorithm_name}',
               print_message=output_configuration_algorithm.verbose)
+
+        with open(f'{output_configuration_algorithm.directory}/algorithm_config.json', 'w+') as algorithm_config_file:
+            json.dump(algorithm_configuration, algorithm_config_file, indent=2)
 
         results_columns = ['Seed']
         results_columns += list(metrics.keys())
@@ -279,10 +284,14 @@ def __detect_anomalies(
     __log(message=f"Computing the evaluation metrics metrics",
           print_message=output_configuration.verbose)
     predicted_proba = algorithm.predict_proba(data_test)
+
     for metric_name, metric in metrics.items():
         __log(message=f"Computing the evaluation metric '{metric_name}'",
               print_message=output_configuration.verbose)
-        results[metric_name] = metric.compute(ground_truth_test, predicted_proba)
+        try:
+            results[metric_name] = metric.compute(ground_truth_test, predicted_proba)
+        except Exception:
+            results[metric_name] = np.nan
         __log(message=f"Evaluation: '{results[metric_name]}'",
               print_message=output_configuration.verbose)
     if output_configuration.trace_time:
@@ -304,13 +313,14 @@ def __detect_anomalies(
                       f"show_anomaly_scores: {output_configuration.anomaly_scores_plots_show_anomaly_scores}\n"
                       f"show_ground_truth: {output_configuration.anomaly_scores_plots_show_ground_truth}",
               print_message=output_configuration.verbose)
-        plot_anomaly_scores(
+        fig = plot_anomaly_scores(
             trend_data=data_manager.load(dataset_index),
             anomaly_scores=algorithm.predict_proba(data_test),
             file_path=output_configuration.anomaly_score_plot_path(dataset_index),
             show_anomaly_scores=output_configuration.anomaly_scores_plots_show_anomaly_scores,
             show_ground_truth=output_configuration.anomaly_scores_plots_show_ground_truth
         )
+        plt.close(fig)
 
     # Save the anomaly scores, if requested
     if output_configuration.save_anomaly_scores:

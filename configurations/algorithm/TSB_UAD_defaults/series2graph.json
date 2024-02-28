@@ -1,0 +1,8 @@
+{
+  "name": "series2graph",
+  "anomaly_detector": "TSBUADAnomalyDetector",
+  "hyperparameters": {
+    "tsb_uad_model": "Series2Graph",
+    "model_parameters": { }
+  }
+}
