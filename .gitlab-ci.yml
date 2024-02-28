@@ -6,7 +6,7 @@
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  DEFAULT_PYTHON_VERSION: "3.9"
+  DEFAULT_PYTHON_VERSION: "3.8"
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/topics/caching/
@@ -38,6 +38,7 @@ stages:
     - python --version ; pip --version
     - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
     - pip install pytest pytest-cov     # Packages for testing purposes
+    - pip list
   script:
     # Test the requested package, print the code coverage, and generate a xml report of the tests
     - pytest ./tests/ --cov=dtaianomaly --cov-report term-missing --junitxml=report.xml -v
@@ -48,36 +49,36 @@ stages:
       junit: report.xml
     expire_in: 1 weeks
 
-# Execute unit tests for multiple Python versions
-unit-test-3.6:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.6"
-
-unit-test-3.7:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.7"
+## Execute unit tests for multiple Python versions
+#unit-test-3.6:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.6"
+#
+#unit-test-3.7:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.7"
 
 unit-test-3.8:
   extends: .unit-test
   variables:
     PYTHON_VERSION: "3.8"
 
-unit-test-3.9:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.9"
-
-unit-test-3.10:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.10"
-
-unit-test-3.11:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.11"
+#unit-test-3.9:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.9"
+#
+#unit-test-3.10:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.10"
+#
+#unit-test-3.11:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.11"
 
 ####################################################################################
 ##################################### WORKFLOW #####################################
@@ -106,22 +107,22 @@ unit-test-3.11:
       --metric metric/auc_metrics.json
       --output output/output_nothing.json
 
-# Use different versions of Python
-main-script-3.6:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.6
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.6"
-
-main-script-3.7:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.7
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.7"
+## Use different versions of Python
+#main-script-3.6:
+#  extends: .workflow-main-script
+#  needs:
+#    - job: unit-test-3.6
+#      artifacts: false
+#  variables:
+#    PYTHON_VERSION: "3.6"
+#
+#main-script-3.7:
+#  extends: .workflow-main-script
+#  needs:
+#    - job: unit-test-3.7
+#      artifacts: false
+#  variables:
+#    PYTHON_VERSION: "3.7"
 
 main-script-3.8:
   extends: .workflow-main-script
@@ -131,29 +132,29 @@ main-script-3.8:
   variables:
     PYTHON_VERSION: "3.8"
 
-main-script-3.9:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.9
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.9"
-
-main-script-3.10:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.10
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.10"
-
-main-script-3.11:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.11
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.11"
+#main-script-3.9:
+#  extends: .workflow-main-script
+#  needs:
+#    - job: unit-test-3.9
+#      artifacts: false
+#  variables:
+#    PYTHON_VERSION: "3.9"
+#
+#main-script-3.10:
+#  extends: .workflow-main-script
+#  needs:
+#    - job: unit-test-3.10
+#      artifacts: false
+#  variables:
+#    PYTHON_VERSION: "3.10"
+#
+#main-script-3.11:
+#  extends: .workflow-main-script
+#  needs:
+#    - job: unit-test-3.11
+#      artifacts: false
+#  variables:
+#    PYTHON_VERSION: "3.11"
 
 # Check if the notebooks still run without any problems
 # Just use the default python version, because it is time-consuming

@@ -1,5 +1,5 @@
 {
-  "directory_path": "results",
+  "directory_path": "/cw/dtaijupiter/NoCsBack/dtai/louis/results_temporal_context",
   "verbose": false,
 
   "trace_time": true,
@@ -10,11 +10,12 @@
   "constantly_save_results": true,
   "results_file": "results.csv",
 
-  "save_anomaly_scores_plot": false,
-  "anomaly_scores_plots_directory": "anomaly_score_plots",
-  "anomaly_scores_plots_file_format": "svg",
-  "anomaly_scores_plots_show_anomaly_scores": "overlay",
-  "anomaly_scores_plots_show_ground_truth": null,
+  "save_anomaly_scores_plot": true,
+  "anomaly_scores_plots_show_anomaly_scores": "separate",
+  "anomaly_scores_plots_show_ground_truth": "compare",
+  "save_anomaly_scores": true,
 
-  "invalid_train_type_raise_error": true
+  "invalid_train_type_raise_error": true,
+  "create_fit_predict_error_log": true,
+  "reraise_fit_predict_errors": false
 }

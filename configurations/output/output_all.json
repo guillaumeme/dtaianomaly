@@ -21,5 +21,5 @@
 
   "invalid_train_type_raise_error": true,
   "create_fit_predict_error_log": true,
-  "reraise_fit_predict_errors": false
+  "reraise_fit_predict_errors": true
 }

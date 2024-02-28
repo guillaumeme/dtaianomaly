@@ -1,0 +1,13 @@
+{
+  "name": "CNN",
+  "anomaly_detector": "TSBUADAnomalyDetector",
+  "hyperparameters": {
+    "tsb_uad_model": "CNN",
+    "model_parameters": {
+      "predict_time_steps": 1,
+      "epochs": 100,
+      "patience": 5,
+      "verbose": 0
+    }
+  }
+}

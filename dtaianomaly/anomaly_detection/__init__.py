@@ -15,12 +15,6 @@ from .TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
 from .utility import Windowing
 from .utility import TrainType
 
-try:
-    from .pyod import PyODAnomalyDetector
-except ImportError:
-    pass  # In case not all dependencies were installed
-
-try:
-    from .matrix_profile import STOMP
-except ImportError:
-    pass
+from .pyod import PyODAnomalyDetector
+from .matrix_profile import STOMP
+from .tsbuad import TSBUADAnomalyDetector

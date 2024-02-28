@@ -1,0 +1,10 @@
+{
+  "name": "OCSVM",
+  "anomaly_detector": "TSBUADAnomalyDetector",
+  "hyperparameters": {
+    "tsb_uad_model": "OCSVM",
+    "model_parameters": {
+      "nu": 0.05
+    }
+  }
+}
