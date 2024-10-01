@@ -1,16 +1,20 @@
 [project]
 name = "dtaianomaly"
-version = "0.1.4"
+version = "0.2.0"
 description = "A simple-to-use Python package for time series anomaly detection!"
-requires-python = ">=3.7,<=3.8"
+requires-python = ">=3.8,<=3.12"
 authors = [
     {name = "Louis Carpentier", email = "louis.carpentier@kuleuven.be"}
 ]
 keywords = ["machine-learning", "time-series", "anomaly-detection", "data-mining"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.8"
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dynamic = ["dependencies"]
 
@@ -23,9 +27,9 @@ file = "LICENSE"
 
 [project.urls]
 homepage = "https://pypi.org/project/dtaianomaly/"
-repository = "https://gitlab.kuleuven.be/u0143709/dtaianomaly"
-changelog = "https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/CHANGELOG.md"
-documentation = "https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/index.html"
+repository = "https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly"
+changelog = "https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly/-/blob/main/CHANGELOG.md"
+documentation = "https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/"
 
 [build-system]
 requires = ["setuptools", "wheel", "build"]

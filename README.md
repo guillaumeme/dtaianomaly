@@ -3,103 +3,68 @@
 [![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/pipelines)
 [![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
 [![Latest Release](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/badges/release.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/releases)
-
-> **_IMPORTANT:_** `dtaianomaly` is still a work in progress. Therefore, many changes 
-> are still expected. Feel free to [contact us](#contact) if there are any suggestions!
+[![Downloads](https://static.pepy.tech/badge/dtaianomaly)](https://pepy.tech/project/dtaianomaly)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/dtaianomaly)](https://pypi.python.org/pypi/dtaianomaly/)
+[![PyPI license](https://img.shields.io/pypi/l/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
 
 A simple-to-use Python package for the development and analysis of time series anomaly 
 detection techniques. Here we describe the main usage of `dtaianomaly`, but be sure to
-check out the [documentation](https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/) 
+check out the [documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/index.html) 
 for more information. 
 
 ## Installation
 
-You can install `dtaianomaly` directly from GitLab:
+The preferred way to install `dtaianomaly` is via PyPi. See the [documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/installation.html) for more options.
 ```
-pip install git+https://gitlab.kuleuven.be/u0143709/dtaianomaly.git
+pip install dtaianomaly
 ```
-This will install the latest, _unreleased_ version. It is also possible to specify a *released* version 
-`X.Y.Z`through the tag:
-```
-pip install git+https://gitlab.kuleuven.be/u0143709/dtaianomaly.git@X.Y.Z
-```
-The [release page](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/releases) contains more information regarding the different versions.
 
 ## Features
+
 The three key features of `dtaianomaly` are as follows:
-1. **Large scale experiments.** To evaluate anomaly detection methods, it is crucial to
-   be able to perform large scale experiments. However, it is also crucial to ensure 
-   reproducibility of the obtained results. ´dtaianomaly´ provides a simple way to evaluate
-   an anomaly detector on a large set of time sets. This allows to both (1) quantitatively 
-   evaluate the method by measuring the performance, runtime and memory usage, and (2)
-   qualitatively evaluate the method by visually inspecting the detected anomalies. 
-   This is achieved by using configuration files, which ensure that identical settings
-   are used for the experiments. We refer to the [documentation](https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/experiments.html) for more details regarding
-   how to set up and run experiments.
-2. **Develop anomaly detectors.** The models in `dtaianomaly` are all centered around the
-   `TimeSeriesAnomalyDetector` class, which provides an interface to detecting anomalies in
-   time series. The main advantage of this abstract class is that anomaly detectors can be
-   handled in an abstract manner. This allows to develop wrapper approaches around existing 
-   methods, without needing information about the specific algorithm. On top of this, by 
-   only implementing the interface of `TimeSeriesAnomalyDetector`, it is possible to develop
-   new methods that can be used within the entire infrastructure of `dtaianomaly`. An example
-   of how to implement a custom anomaly detector is given in [this notebook](notebooks/custom_anomaly_detector.ipynb).
-3. **Detect anomalies through a simple API.** Once an anomaly detector is developed and
-   validated, it can be used to detect anomalies in time series. `dtaianomaly` provides 
-   a simple API (through `fit` and `predict` methods) to detect anomalies. The below code 
-   snippet illustrates how to detect anomalies in only a few lines of code. The complete 
-   example can be found in [this notebook](notebooks/README_demo.ipynb). The main advantage 
-   of ´dtaianomaly´ is that anomaly detectors can be used as a wrapper approach. Thus, you 
-   do not need to know anything about the ´TimeSeriesAnomalyDetector´ in order to
-   detect anomalies. 
+1. State-of-the-art time series anomaly detection via a simple API.
+   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html)
+2. Develop custom models for anomaly detection.
+   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/custom_models.html)
+3. Quantitative evaluation of time series anomaly detection.
+   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/quantitative_evaluation.html)
+
+## Example
+
+Below code shows a simple example of `dtaianomaly`, which is part of the 
+[anomaly detection notebook](notebooks/Anomaly-detection.ipynb). More examples 
+are provided in the [other notebooks](notebooks) and in the 
+[documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html).
 
 ```python
-from dtaianomaly.anomaly_detection import PyODAnomalyDetector, Windowing
+from dtaianomaly.data import demonstration_time_series
+from dtaianomaly.preprocessing import MovingAverage
+from dtaianomaly.anomaly_detection import MatrixProfileDetector
 
-trend_data = ... # Some time series as a numpy array of shape (n_samples, n_features)
+# Load the data
+X, y = demonstration_time_series()
 
-# Initialize an IForest that takes as features each window of 100 observations
-anomaly_detector = PyODAnomalyDetector('IForest', Windowing(window_size=100))
+# Preprocess the data using a moving average
+preprocessor = MovingAverage(window_size=10)
+X_, _ = preprocessor.fit_transform(X)
 
-# Fit the anomaly detector 
-anomaly_detector.fit(trend_data)
-# Compute the raw anomaly scores of an observation (in range [0, infinity])
-raw_anomaly_scores = anomaly_detector.decision_function(trend_data)
-# Compute the probability of an observation being an anomaly (in range [0, 1])
-anomaly_probabilities = anomaly_detector.predict_proba(trend_data)
+# Fit the matrix profile detector on the processed data
+detector = MatrixProfileDetector(window_size=100)
+detector.fit(X_)
+
+# Compute either the decision scores, specific to the detector, or the anomaly probabilities
+decision_scores = detector.decision_function(X_)
+anomaly_probabilities = detector.predict_proba(X_)
 ```
-![Anomaly scores](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/raw/main/notebooks/README_demo.svg?inline=false)
-
-## Examples
-Several examples of how `dtaianomaly` can be used are provided in the [notebooks](notebooks). Here
-we list some of the most important ones to get to know `dtaianomaly`:
-- [Quantitatively evaluate an anomaly detector](notebooks/execute_workflow.ipynb): Shows how to 
-  quantitatively evaluate an anomaly detector on a benchmark set of time series. 
-- [Custom anomaly detector](notebooks/custom_anomaly_detector.ipynb): Illustrates a simple example 
-  of a custom anomaly detector implemented in `dtaianomaly`. 
-- [PyOD anomaly detectors](notebooks/analyze_pyod_anomaly_detectors.ipynb): Compares different anomaly detection algorithms 
-  implemented in the [PyOD](https://pyod.readthedocs.io/en/latest/) library, showing how you can use an anomaly 
-  detector as a wrapper approach. 
-
-## Dependencies
-Time series are represented as [NumPy](https://numpy.org/)-arrays to detect anomalies, but can 
-also be represented as [Pandas](https://pandas.pydata.org/) DataFrames. We use [matplotlib](https://matplotlib.org/) for 
-visualization. `dtaianomaly` also depends on [scikit-learn](https://scikit-learn.org/stable/) and 
-[scipy](https://www.scipy.org/), but we plan on removing these dependencies in the near future.
-
-Several anomaly detectors require additional dependencies. For example, 
-[PyOD](https://pyod.readthedocs.io/en/latest/) must be installed to use 
-`PyODAnomalyDetector`, and [stumpy](https://stumpy.readthedocs.io/en/latest/) must
-be installed for a matrix profile based anomaly detector. The dependencies of
-each detector can be found in a `requirements.txt`-file in the same directory
-as the source code of the anomaly detector.  We do this to avoid having to install 
-all dependencies, even those that are not necessary for a particular user.
+![Anomaly scores](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/raw/main/notebooks/Demonstration-time-series-detected-anomalies.svg?inline=false)
 
 ## Contact
+
 Feel free to email to [louis.carpentier@kuleuven.be](mailto:louis.carpentier@kuleuven.be) if 
 there are any questions, remarks, ideas, ...
 
 ## License
+
     Copyright (c) 2023 KU Leuven, DTAI Research Group
     
     Permission is hereby granted, free of charge, to any person obtaining a copy

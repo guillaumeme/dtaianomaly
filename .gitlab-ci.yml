@@ -6,7 +6,7 @@
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  DEFAULT_PYTHON_VERSION: "3.8"
+  DEFAULT_PYTHON_VERSION: "3.10"
 
 # Pip's cache doesn't store the python packages
 # https://pip.pypa.io/en/stable/topics/caching/
@@ -21,7 +21,7 @@ cache:
 # There are two stages in this pipeline: unittest and workflow
 stages:
   - unit-test      # For simple unit tests
-  - workflow       # For larger flows of the package
+  - notebooks      # For running the notebooks
   - documentation  # For generating and checking the documentation
 
 ####################################################################################
@@ -37,7 +37,6 @@ stages:
   before_script:
     - python --version ; pip --version
     - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
-    - pip install pytest pytest-cov     # Packages for testing purposes
     - pip list
   script:
     # Test the requested package, print the code coverage, and generate a xml report of the tests
@@ -49,128 +48,72 @@ stages:
       junit: report.xml
     expire_in: 1 weeks
 
-## Execute unit tests for multiple Python versions
-#unit-test-3.6:
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.6"
-#
-#unit-test-3.7:
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.7"
-
+# Execute unit tests for multiple Python versions
 unit-test-3.8:
   extends: .unit-test
   variables:
     PYTHON_VERSION: "3.8"
 
-#unit-test-3.9:
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.9"
-#
-#unit-test-3.10:
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.10"
-#
-#unit-test-3.11:
-#  extends: .unit-test
-#  variables:
-#    PYTHON_VERSION: "3.11"
+unit-test-3.9:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.9"
 
-####################################################################################
-##################################### WORKFLOW #####################################
-####################################################################################
+unit-test-3.10:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.10"
 
-# A general template to run a workflow related job
-.workflow:
-  stage: workflow
+unit-test-3.11:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.11"
+
+unit-test-3.12:
+  extends: .unit-test
+  variables:
+    PYTHON_VERSION: "3.12"
+
+#####################################################################################
+##################################### NOTEBOOKS #####################################
+#####################################################################################
+
+# Check if the notebooks still run without any problems
+# Just use the default python version, because it is time-consuming
+.notebooks:
+  stage: notebooks
+  needs: []  # Start as soon as possible, because this takes some time
+  image: python:$DEFAULT_PYTHON_VERSION
+  variables:
+    NOTEBOOK: ""
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
     - python --version ; pip --version
     - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
     - pip install -r requirements.txt
-
-# To easily run the main script with different versions
-.workflow-main-script:
-  extends: .workflow
-  variables:
-    PYTHON_VERSION: ""
-  image: python:$PYTHON_VERSION
-  script:
-    - python main.py
-      --datasets_index_file data/datasets.csv
-      --configuration_dir configurations
-      --data data/Demo.json
-      --algorithm algorithm/iforest_64.json
-      --metric metric/auc_metrics.json
-      --output output/output_nothing.json
-
-## Use different versions of Python
-#main-script-3.6:
-#  extends: .workflow-main-script
-#  needs:
-#    - job: unit-test-3.6
-#      artifacts: false
-#  variables:
-#    PYTHON_VERSION: "3.6"
-#
-#main-script-3.7:
-#  extends: .workflow-main-script
-#  needs:
-#    - job: unit-test-3.7
-#      artifacts: false
-#  variables:
-#    PYTHON_VERSION: "3.7"
-
-main-script-3.8:
-  extends: .workflow-main-script
-  needs:
-    - job: unit-test-3.8
-      artifacts: false
-  variables:
-    PYTHON_VERSION: "3.8"
-
-#main-script-3.9:
-#  extends: .workflow-main-script
-#  needs:
-#    - job: unit-test-3.9
-#      artifacts: false
-#  variables:
-#    PYTHON_VERSION: "3.9"
-#
-#main-script-3.10:
-#  extends: .workflow-main-script
-#  needs:
-#    - job: unit-test-3.10
-#      artifacts: false
-#  variables:
-#    PYTHON_VERSION: "3.10"
-#
-#main-script-3.11:
-#  extends: .workflow-main-script
-#  needs:
-#    - job: unit-test-3.11
-#      artifacts: false
-#  variables:
-#    PYTHON_VERSION: "3.11"
-
-# Check if the notebooks still run without any problems
-# Just use the default python version, because it is time-consuming
-run-notebooks:
-  extends: .workflow
-  needs: []  # Start as soon as possible, because this takes some time
-  image: python:$DEFAULT_PYTHON_VERSION
-  script:
-    - pip install seaborn
     - pip install jupyter
-    - mv dtaianomaly notebooks
+    - pip list
+  script:
+    - mv dtaianomaly notebooks  # To make sure that 'dtaianomaly' is available
     - cd notebooks
-    - jupyter nbconvert --to notebook --execute *.ipynb
-  artifacts:
-    paths:
-      - notebooks/analyze_results.ipynb
+    - jupyter nbconvert --to notebook --execute $NOTEBOOK.ipynb
+
+anomaly-detection-notebook:
+  extends: .notebooks
+  variables:
+    NOTEBOOK: "Anomaly-detection"
+
+custom-models-notebook:
+  extends: .notebooks
+  variables:
+    NOTEBOOK: "Custom-models"
+
+quantitative-evaluation-notebook:
+  extends: .notebooks
+  variables:
+    NOTEBOOK: "Quantitative-evaluation"
 
 ####################################################################################
 ################################### DOCUMENTATION ##################################
@@ -185,6 +128,7 @@ run-notebooks:
     - python -m pip install sphinx toml sphinx_rtd_theme nbsphinx
     - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
     - cd docs
+    - mkdir _static
 
 # Check the code in the documentation
 doctest:
@@ -195,9 +139,9 @@ doctest:
 # Generate the documentation
 pages:
   extends: .documentation
-  needs:
-    - job: run-notebooks
-      artifacts: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - make html
   after_script:

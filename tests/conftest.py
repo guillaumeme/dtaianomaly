@@ -1,16 +1,17 @@
 
 import pytest
 import numpy as np
-from dtaianomaly.data_management.DataManager import DataManager
+
+from dtaianomaly.data import demonstration_time_series
 
 
 @pytest.fixture
-def data_manager() -> DataManager:
-    return DataManager('data/datasets.csv')
+def univariate_time_series() -> np.array:
+    x, _ = demonstration_time_series()
+    return x
 
 
 @pytest.fixture
-def demo_time_series(data_manager) -> np.ndarray:
-    data_manager.select({'collection_name': 'Demo', 'dataset_name': 'Demo1'})
-    demo_time_series_index = data_manager.get(0)
-    return data_manager.load_raw_data(demo_time_series_index)[0]
+def multivariate_time_series() -> np.array:
+    rng = np.random.default_rng()
+    return rng.standard_normal(size=(500, 3))

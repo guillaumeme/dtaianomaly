@@ -1,20 +1,27 @@
 
 """
-This module contains the all functionality to effectively detect anomalies. It can be imported as follows:
+This module contains functionality to detect anomalies. It can be imported 
+as follows:
 
-.. code-block:: python
+>>> from dtaianomaly import anomaly_detection
 
-   from dtaianomaly import anomaly_detection
-
-The most important class in this module is the :py:class:`~dtaianomaly.anomaly_detection.TimeSeriesAnomalyDetector`
-class, which offers a generic interface to use any anomaly detector in ``dtaianomaly``.
+We refer to the `documentation <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html>`_
+for more information regarding detecting anomalies using ``dtaianomaly``.
 """
 
-from .TimeSeriesAnomalyDetector import TimeSeriesAnomalyDetector
+from .BaseDetector import BaseDetector, load_detector
+from .windowing_utils import sliding_window, reverse_sliding_window
 
-from .utility import Windowing
-from .utility import TrainType
+from .IsolationForest import IsolationForest
+from .LocalOutlierFactor import LocalOutlierFactor
+from .MatrixProfileDetector import MatrixProfileDetector
 
-from .pyod import PyODAnomalyDetector
-from .matrix_profile import STOMP
-from .tsbuad import TSBUADAnomalyDetector
+__all__ = [
+    'BaseDetector',
+    'load_detector',
+    'sliding_window',
+    'reverse_sliding_window',
+    'MatrixProfileDetector',
+    'IsolationForest',
+    'LocalOutlierFactor'
+]

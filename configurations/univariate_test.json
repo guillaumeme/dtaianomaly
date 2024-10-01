@@ -1,5 +1,0 @@
-{
-  "data": "data/univariate.json",
-  "metric": "metric/many_metrics.json",
-  "output": "output/output_all.json"
-}

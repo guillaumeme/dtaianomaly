@@ -1,6 +1,0 @@
-{
-  "data": "data/Demo.json",
-  "algorithm": "algorithm/multiple_test.json",
-  "metric": "metric/many_metrics.json",
-  "output": "output/output_all.json"
-}

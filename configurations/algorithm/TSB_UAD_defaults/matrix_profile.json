@@ -1,7 +1,0 @@
-{
-  "name": "MatrixProfile",
-  "anomaly_detector": "TSBUADAnomalyDetector",
-  "hyperparameters": {
-    "tsb_uad_model": "MatrixProfile"
-  }
-}

@@ -1,7 +1,0 @@
-{
-  "collection" : "test_multiple",
-  "algorithm_configurations": [
-      "configurations/algorithm/iforest_16.json",
-      "configurations/algorithm/iforest_64.json"
-  ]
-}

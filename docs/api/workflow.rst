@@ -2,6 +2,9 @@ Workflow module
 ===============
 
 .. automodule:: dtaianomaly.workflow
-   :imported-members:
+
+.. autoclass:: dtaianomaly.workflow.Workflow
    :members:
-   :show-inheritance:
+
+.. autofunction:: dtaianomaly.workflow.workflow_from_config
+.. autofunction:: dtaianomaly.workflow.interpret_config

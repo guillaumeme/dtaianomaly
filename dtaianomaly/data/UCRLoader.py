@@ -1,0 +1,42 @@
+
+import numpy as np
+from pathlib import Path
+
+from dtaianomaly.data.data import LazyDataLoader, DataSet
+
+
+class UCRLoader(LazyDataLoader):
+    """
+    Lazy dataloader for the UCR suite of anomaly detection data sets.
+
+    This implementation expects the file names to contain the start and
+    stop time stamps of the single anomaly in the time series as:
+    '\*_start_stop.txt'.
+
+    Parameters
+    ----------
+    path: str
+        Path to a single UCR data set.
+    """
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
+
+    def load(self) -> DataSet:
+        # Load time series
+        X = np.loadtxt(self.path)
+
+        # Load anomaly targets (0 is background, 1 is anomaly)
+        # UCR datasets specify the anomaly in dataset name
+        name = self.path.split('_')
+
+        onset = int(name[-2])
+        offset = int(''.join(filter(str.isdigit, name[-1])))
+        # To ensure the file extensions gets ignored
+
+        y = np.zeros(shape=X.shape, dtype=np.int8)
+        y[onset:offset] = 1
+
+        return DataSet(x=X, y=y)
+
+    def __str__(self) -> str:
+        return Path(self.path).stem

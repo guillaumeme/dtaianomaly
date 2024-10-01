@@ -1,11 +1,26 @@
-
 """
-The evaluation documentation.
+This module contains functionality to evaluate performance of an
+anomaly detector. It can be imported as follows:
+
+>>> from dtaianomaly import evaluation
+
+Custom evaluation metrics can be implemented by extending :py:class:`~dtaianomaly.evaluation.Metric` or
+:py:class:`~dtaianomaly.evaluation.ProbaMetric`. The former expects predicted "decisions" (anomaly or not),
+the latter predicted "scores" (more or less anomalous). This distinction is important for later use in
+a :py:class:`~dtaianomaly.workflow.Worfklow`.
 """
+from .metrics import Metric, BinaryMetric, ProbaMetric, ThresholdMetric
+from .simple_binary_metrics import Precision, Recall, FBeta
+from .simple_proba_metrics import AreaUnderROC, AreaUnderPR
 
-from .affiliation_metrics import AffiliationPrecision, AffiliationRecall, AffiliationFBeta
-from .auc_metrics import RocAUC, PrAUC
-from .classification_metrics import Precision, Recall, Fbeta
-from .vus_metrics import RocVUS, PrVUS
-
-from .thresholding import FixedValueThresholding, ContaminationThresholding, TopNThresholding, TopNRangesThresholding
+__all__ = [
+    'Metric',
+    'BinaryMetric',
+    'ProbaMetric',
+    'ThresholdMetric',
+    'Precision',
+    'Recall',
+    'FBeta',
+    'AreaUnderPR',
+    'AreaUnderROC'
+]

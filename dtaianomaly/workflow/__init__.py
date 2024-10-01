@@ -1,32 +1,39 @@
 
 """
-A workflow is defined as a large experiment, in which a (large) number of algorithms are
-applied to detect anomalies in a (large) number of time series through configuration
-files. This allows for a structured evaluation of an algorithm and increases reproducibility
-of the results.
+This module contains the workflow functionality.
 
-The functionality regarding workflows is contained within this module. The main function of
-this module is the :py:meth:`~dtaianomaly.workflow.execute_algorithm`. It can be imported
-and used as follows:
+>>> from dtaianomaly import workflow
 
-.. code-block:: python
+Below we illustrate how a simple workflow can be initialized, which will
+apply Matrix Profile and Isolation Forest on a dataset from the UCR
+archive, and compute the area under the ROC and PR curves:
 
-   from dtaianomaly.workflow import execute_algorithm
-   execute_algorithm(...)  # Fill in the parameters as desired
+.. testsetup::
 
-Internally, the output is configured through an :py:class:`~dtaianomaly.workflow.OutputConfiguration`.
-To ensure that this object can easily be initialized from code to start a workflow, it is
-also available as follows:
+   import os
+   os.chdir('..')
 
-.. code-block:: python
 
-   from dtaianomaly.workflow import OutputConfiguration
+>>> from dtaianomaly.data import UCRLoader
+>>> from dtaianomaly.anomaly_detection import MatrixProfileDetector, IsolationForest
+>>> from dtaianomaly.evaluation import AreaUnderROC, AreaUnderPR
+>>> workflow = workflow.Workflow(
+...     dataloaders=[
+...         UCRLoader(path='data/UCR-time-series-anomaly-archive/001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt'),
+...     ],
+...     detectors=[MatrixProfileDetector(window_size=100), IsolationForest(15)],
+...     metrics=[AreaUnderROC(), AreaUnderPR()]
+... )
 
-We refer to the `documentation <https://u0143709.pages.gitlab.kuleuven.be/dtaianomaly/getting_started/large_scale_experiments.html>`_
-for more information regarding the configuration files for a workflow. You can also check out
-`this example <https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/blob/main/notebooks/execute_workflow.ipynb>`_
-of running a workflow in code.
+We refer to the `documentation <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/quantitative_evaluation.html>`_
+for more information regarding the configuration and use of a Workflow.
 """
 
-from .execute_algorithms import execute_algorithms
-from .handle_output_configuration import OutputConfiguration
+from .Workflow import Workflow
+from .workflow_from_config import workflow_from_config, interpret_config
+
+__all__ = [
+    'Workflow',
+    'workflow_from_config',
+    'interpret_config'
+]
