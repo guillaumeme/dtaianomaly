@@ -1,7 +1,0 @@
-{
-  "name": "SAND",
-  "anomaly_detector": "TSBUADAnomalyDetector",
-  "hyperparameters": {
-    "tsb_uad_model": "SAND"
-  }
-}

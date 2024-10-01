@@ -1,5 +1,0 @@
-{
-  "data": "data/contextual.json",
-  "metric": "metric/threshold_free.json",
-  "output": "output/pinac_run.json"
-}

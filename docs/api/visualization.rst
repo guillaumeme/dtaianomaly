@@ -2,6 +2,5 @@ Visualization module
 ====================
 
 .. automodule:: dtaianomaly.visualization
-   :imported-members:
-   :members:
-   :show-inheritance:
+
+.. autofunction:: dtaianomaly.visualization.plot_time_series_colored_by_score

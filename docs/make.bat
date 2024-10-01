@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=DTAIAnomaly
+set SPHINXPROJ=dtaianomaly
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (

@@ -2,7 +2,6 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-
 import toml
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -11,14 +10,12 @@ import pathlib
 import sys
 sys.path.insert(0, pathlib.Path(__file__).parents[1].resolve().as_posix())
 
-
-
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'DTAIAnomaly'
-copyright = '2023, Louis Carpentier'
-author = 'Louis Carpentier'
+project = 'dtaianomaly'
+copyright = '2023, DTAI'
+author = 'Louis Carpentier \\and Nick Seeuws'
 
 with open('../pyproject.toml', 'r') as f:
     config = toml.load(f)
@@ -39,7 +36,11 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'numpydoc'
 ]
+
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -64,4 +65,4 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'DTAIAnomalydoc'
+htmlhelp_basename = 'dtaianomalydoc'

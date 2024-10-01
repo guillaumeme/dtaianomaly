@@ -1,9 +1,0 @@
-{
-  "select": [
-    {
-      "length": [0, 5000],
-      "dimensions": [1.0, 4.0],
-      "datetime_index": true
-    }
-  ]
-}

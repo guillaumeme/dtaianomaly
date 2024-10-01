@@ -1,8 +1,0 @@
-{
-  "select": [
-    {
-      "input_type": "univariate",
-      "length": [0, 500000]
-    }
-  ]
-}

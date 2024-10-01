@@ -1,6 +1,55 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2024-10-01
+
+This release basically revamped the ``dtaianomaly``. In many ways, the package
+has been simplified, while also ensuring its robustness. In general, the core
+functionality remained similar, while the API might have slightly changed. 
+Below we mention the most notable changes.
+
+### Added
+- A ``LazyDataLoader`` has been added, which can be used to read datasets from 
+  disk. This offers a simpler interface compared to the old ``DataManager``.
+- A ``Pipeline`` has been added to easily combine time series anomaly detection
+  with preprocessing the time series
+- The Preprocessing module has been added, which includes a wide range of
+  methods to preprocess a time series before detecting anomalies. Specifically, 
+  the implemented preprocessors are ``ExponentialMovingAverage``, ``MinMaxScaler``,
+  ``MovingAverage``, ``SamplingRateUnderSampler``, ``NbSamplesUnderSampler``, and
+  ``Znormalizer``. In addition, there is also a ``ChainedPreprocessor`` which 
+  combines multiple preprocessors. 
+- A ``Workflow`` object, which takes a set of dataloader, anomaly detectors, 
+  preprocessors and evaluation metrics and evaluates in a grid-like manner
+  each anomaly detector in combination with each preprocessor on each dataset.
+  As before, a workflow can be instantiated from a configuration file, but now
+  it is also possible to start a workflow from Python itself, meaning that the
+  Python scripts can serve as configuration files. 
+- More tests have been added to ensure ``dtaianomaly`` functions well and to 
+  guarantee that changes do not alter the existing functionality. 
+
+### Changed
+- The base anomaly detector has been renamed from ``TimeSeriesAnomalyDetector``
+  to ``BaseDetector``. Additionally, the wrapper approaches to existing libraries
+  for anomaly detection have been removed, as these rely on the active maintenance
+  of said packages (specifically, ``PyODAnomalyDetector`` and ``TSBUADAnomalyDetecotor`` 
+  have been removed).
+- The evaluation module has been cleaned up to only contain well-established 
+  evaluation metrics. In the future, we plan on adding more performance metrics.
+- The thresholding methods have been moved from the evaluation module into their 
+  own module: thresholding.
+- The notebooks have been cleaned up to only show the core functionality to the 
+  users, making it easier to understand ``dtaianomaly``. 
+
+### Fixed
+- The visualization methods were relatively buggy. Most of the methods have been
+  removed from this module, because it is simple to plot time series and the anomaly 
+  scores using ``plt.plot(X)`` and ``plt.plot(y)``. Only one method remained to 
+  plot a time series and color it according to the anomaly scores, as this is not 
+  trivial to do with just ``matplotlib``.
+- The documentation has improved, including the API descriptions, but especially the
+  getting started pages. 
+
 ## [0.1.4] - 2024-02-28
 
 This release mostly increased the amount of functionality, but also offers some

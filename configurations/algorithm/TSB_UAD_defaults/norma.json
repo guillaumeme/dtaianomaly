@@ -1,8 +1,0 @@
-{
-  "name": "NormA",
-  "anomaly_detector": "TSBUADAnomalyDetector",
-  "hyperparameters": {
-    "tsb_uad_model": "NORMA",
-    "model_parameters": { }
-  }
-}
