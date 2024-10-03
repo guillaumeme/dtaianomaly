@@ -77,6 +77,3 @@ class ZNormalizer(Preprocessor):
                     X_[:, i] = X[:, i]
 
         return X_, y
-
-    def __str__(self) -> str:
-        return 'z_normalizer'

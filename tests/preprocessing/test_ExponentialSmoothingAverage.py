@@ -47,4 +47,4 @@ class TestExponentialSmoothingAverage:
         assert x_.shape == multivariate_time_series.shape
 
     def test_str(self):
-        assert str(ExponentialMovingAverage(0.5)) == 'exponential_moving_average_0.5'
+        assert str(ExponentialMovingAverage(0.5)) == 'ExponentialMovingAverage(alpha=0.5)'

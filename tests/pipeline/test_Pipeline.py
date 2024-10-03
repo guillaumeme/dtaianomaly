@@ -1,6 +1,6 @@
 import pytest
 
-from dtaianomaly.preprocessing import Identity, ZNormalizer
+from dtaianomaly.preprocessing import Identity, ZNormalizer, ChainedPreprocessor
 from dtaianomaly.anomaly_detection import IsolationForest
 
 from dtaianomaly.pipeline import Pipeline
@@ -31,6 +31,8 @@ class TestPipeline:
             Pipeline(ZNormalizer(), 'IsolationForest')
 
     def test_str(self):
-        assert str(Pipeline(ZNormalizer(), IsolationForest(15, 3))) == 'z_normalizer->IsolationForest_15_3'
+        assert str(Pipeline(ZNormalizer(), IsolationForest(15, 3))) == 'ZNormalizer()->IsolationForest(window_size=15,stride=3)'
+        assert (str(Pipeline(ChainedPreprocessor(Identity(), ZNormalizer()), IsolationForest(15, 3)))
+                == 'Identity()->ZNormalizer()->IsolationForest(window_size=15,stride=3)')
 
 

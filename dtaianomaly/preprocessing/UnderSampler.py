@@ -32,9 +32,6 @@ class SamplingRateUnderSampler(Preprocessor):
             raise ValueError(f"The sampling rate ('{self.sampling_rate}') is too large for a time series of shape {X.shape}!")
         return X[::self.sampling_rate], (None if y is None else y[::self.sampling_rate])
 
-    def __str__(self) -> str:
-        return f'sampling_rate_under_sampler_{self.sampling_rate}'
-
 
 class NbSamplesUnderSampler(Preprocessor):
     """
@@ -63,6 +60,3 @@ class NbSamplesUnderSampler(Preprocessor):
             return X, y
         indices = np.linspace(0, X.shape[0]-1, self.nb_samples, dtype=int, endpoint=True)
         return X[indices], (None if y is None else y[indices])
-
-    def __str__(self) -> str:
-        return f'nb_samples_under_sampler_{self.nb_samples}'

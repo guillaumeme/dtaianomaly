@@ -55,4 +55,4 @@ class TestMinMaxScaler:
             preprocessor.transform(univariate_time_series)
 
     def test_str(self):
-        assert str(MinMaxScaler()) == 'min_max_scaler'
+        assert str(MinMaxScaler()) == 'MinMaxScaler()'

@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from dtaianomaly.workflow import Workflow
-from dtaianomaly.data import UCRLoader, LazyDataLoader, DataSet
+from dtaianomaly.data import UCRLoader, LazyDataLoader, DataSet, demonstration_time_series
 from dtaianomaly.evaluation import Precision, Recall, AreaUnderROC
 from dtaianomaly.thresholding import TopN, FixedCutoff
 from dtaianomaly.preprocessing import Identity, ZNormalizer, Preprocessor
@@ -145,23 +145,21 @@ class TestWorkflowInitialization:
 
 class DummyDataLoader(LazyDataLoader):
 
-    def __init__(self, path: str, time_series):
+    def __init__(self, path: str):
         super().__init__(path)
-        self.time_series = time_series
 
     def load(self) -> DataSet:
-        return DataSet(self.time_series, np.random.choice([0, 1], self.time_series.shape[0], replace=True))
-
-    def __str__(self) -> str:
-        return "dummy_loader"
+        X, y = demonstration_time_series()
+        return DataSet(X, y)
 
 
 class TestWorkflowSuccess:
 
-    def test(self, tmp_path_factory, univariate_time_series):
+    def test(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -172,11 +170,11 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 9)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['identity'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['Identity()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' not in results.columns
         assert not (results == 'Error').any().any()
         assert not results.isna().any().any()
@@ -186,10 +184,11 @@ class TestWorkflowSuccess:
         assert results.columns[2] == 'Preprocessor'
         assert results.columns[3] == 'Runtime [s]'
 
-    def test_parallel(self, tmp_path_factory, univariate_time_series):
+    def test_parallel(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -200,11 +199,11 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 9)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['identity'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['Identity()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' not in results.columns
         assert not (results == 'Error').any().any()
         assert not results.isna().any().any()
@@ -214,10 +213,11 @@ class TestWorkflowSuccess:
         assert results.columns[2] == 'Preprocessor'
         assert results.columns[3] == 'Runtime [s]'
 
-    def test_trace_memory(self, tmp_path_factory, univariate_time_series):
+    def test_trace_memory(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -228,11 +228,11 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['identity'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['Identity()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' in results.columns
         assert not (results == 'Error').any().any()
         assert not results.isna().any().any()
@@ -244,9 +244,10 @@ class TestWorkflowSuccess:
         assert results.columns[4] == 'Peak Memory [MB]'
 
     def test_no_preprocessors(self, tmp_path_factory, univariate_time_series):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -255,12 +256,10 @@ class TestWorkflowSuccess:
             trace_memory=True
         )
         results = workflow.run()
-        for col in results.columns:
-            print(results[col])
         assert results.shape == (2, 9)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 1
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 1
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 1
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 1
         assert 'Peak Memory [MB]' in results.columns
         assert not (results == 'Error').any().any()
         assert not results.isna().any().any()
@@ -277,9 +276,6 @@ class DummyDataLoaderError(LazyDataLoader):
     def load(self) -> DataSet:
         raise Exception('Dummy exception')
 
-    def __str__(self) -> str:
-        return "dummy_loader_error"
-
 
 class PreprocessorError(Preprocessor):
 
@@ -288,9 +284,6 @@ class PreprocessorError(Preprocessor):
 
     def _transform(self, X, y=None):
         raise Exception('Dummy exception')
-
-    def __str__(self) -> str:
-        return "preprocessor_error"
 
 
 class DetectorError(BaseDetector):
@@ -301,17 +294,15 @@ class DetectorError(BaseDetector):
     def decision_function(self, X):
         raise Exception('Dummy exception')
 
-    def __str__(self) -> str:
-        return "detector_error"
-
 
 class TestWorkflowFail:
 
-    def test_failed_to_read_data(self, tmp_path_factory, univariate_time_series):
+    def test_failed_to_read_data(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
-                DummyDataLoaderError(path=str(tmp_path_factory.mktemp('some-path-1'))),
+                DummyDataLoader(path=path),
+                DummyDataLoaderError(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -322,21 +313,22 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (8, 10)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Dataset'].value_counts()['dummy_loader_error'] == 4
-        assert results['Preprocessor'].value_counts()['identity'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f'DummyDataLoaderError(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['Identity()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' in results.columns
         assert (results == 'Error').any().sum() == 9
         assert (results == 'Error').any(axis=1).sum() == 4
         assert not results.isna().any().any()
 
-    def test_failed_to_preprocess(self, tmp_path_factory, univariate_time_series):
+    def test_failed_to_preprocess(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -347,20 +339,21 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['preprocessor_error'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['LocalOutlierFactor_15_1'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['PreprocessorError()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' in results.columns
         assert (results == 'Error').any().sum() == 5
         assert (results == 'Error').any(axis=1).sum() == 2
         assert not results.isna().any().any()
 
-    def test_failed_to_fit_model(self, tmp_path_factory, univariate_time_series):
+    def test_failed_to_fit_model(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -371,20 +364,21 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['identity'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['detector_error'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['Identity()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['DetectorError()'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' in results.columns
         assert (results == 'Error').any().sum() == 5
         assert (results == 'Error').any(axis=1).sum() == 2
         assert not results.isna().any().any()
 
-    def test_failed_to_preprocess_and_to_fit_model(self, tmp_path_factory, univariate_time_series):
+    def test_failed_to_preprocess_and_to_fit_model(self, tmp_path_factory):
+        path = str(tmp_path_factory.mktemp('some-path-1'))
         workflow = Workflow(
             dataloaders=[
-                DummyDataLoader(path=str(tmp_path_factory.mktemp('some-path-1')), time_series=univariate_time_series),
+                DummyDataLoader(path=path),
             ],
             metrics=[Precision(), Recall(), AreaUnderROC()],
             thresholds=[TopN(10), FixedCutoff(0.5)],
@@ -395,11 +389,11 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()['dummy_loader'] == 4
-        assert results['Preprocessor'].value_counts()['preprocessor_error'] == 2
-        assert results['Preprocessor'].value_counts()['z_normalizer'] == 2
-        assert results['Detector'].value_counts()['detector_error'] == 2
-        assert results['Detector'].value_counts()['IsolationForest_15_1'] == 2
+        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Preprocessor'].value_counts()['PreprocessorError()'] == 2
+        assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
+        assert results['Detector'].value_counts()['DetectorError()'] == 2
+        assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 2
         assert 'Peak Memory [MB]' in results.columns
         assert (results == 'Error').any().sum() == 5
         assert (results == 'Error').any(axis=1).sum() == 3

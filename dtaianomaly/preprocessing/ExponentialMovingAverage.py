@@ -36,6 +36,3 @@ class ExponentialMovingAverage(Preprocessor):
     def _transform(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         X_ = np.frompyfunc(lambda a, b: self.alpha * a + (1 - self.alpha) * b, 2, 1).accumulate(X).astype(dtype=float)
         return X_, y
-
-    def __str__(self) -> str:
-        return f'exponential_moving_average_{self.alpha}'

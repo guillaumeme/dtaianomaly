@@ -8,9 +8,9 @@ class TestIsolationForest:
         detector = IsolationForest(15, n_estimators=42)
         assert detector.window_size == 15
         assert detector.stride == 1
-        assert detector.detector.n_estimators == 42
-        assert not detector.is_fitted
+        assert detector.kwargs['n_estimators'] == 42
 
     def test_str(self):
-        detector = IsolationForest(15, 3)
-        assert str(detector) == "IsolationForest_15_3"
+        assert str(IsolationForest(5)) == "IsolationForest(window_size=5)"
+        assert str(IsolationForest(15, 3)) == "IsolationForest(window_size=15,stride=3)"
+        assert str(IsolationForest(25, n_estimators=42)) == "IsolationForest(window_size=25,n_estimators=42)"

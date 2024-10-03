@@ -4,9 +4,10 @@ import numpy as np
 
 from dtaianomaly.thresholding import Thresholding
 from dtaianomaly import utils
+from dtaianomaly.PrettyPrintable import PrettyPrintable
 
 
-class Metric(abc.ABC):
+class Metric(PrettyPrintable):
 
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """
@@ -45,10 +46,6 @@ class Metric(abc.ABC):
     @abc.abstractmethod
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         """ Effectively compute the metric. """
-
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        """ Return a string representation of this metric. """
 
 
 class ProbaMetric(Metric, abc.ABC):
@@ -92,6 +89,4 @@ class ThresholdMetric(ProbaMetric):
         return self.metric._compute(y_true=y_true, y_pred=y_pred_binary)
 
     def __str__(self) -> str:
-        threshold = str(self.thresholder)
-        metric = str(self.metric)
-        return f'{threshold}_{metric}'
+        return f'{self.thresholder}->{self.metric}'

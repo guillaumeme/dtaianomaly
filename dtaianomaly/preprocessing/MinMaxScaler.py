@@ -62,6 +62,3 @@ class MinMaxScaler(Preprocessor):
 
         X_ = (X - self.min_) / (self.max_ - self.min_)
         return X_, y
-
-    def __str__(self) -> str:
-        return 'min_max_scaler'

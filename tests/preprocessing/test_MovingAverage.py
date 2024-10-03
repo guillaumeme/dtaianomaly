@@ -49,4 +49,4 @@ class TestMovingAverage:
         assert x_.shape == multivariate_time_series.shape
 
     def test_str(self):
-        assert str(MovingAverage(42)) == 'moving_average_42'
+        assert str(MovingAverage(42)) == 'MovingAverage(window_size=42)'

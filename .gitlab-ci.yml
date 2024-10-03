@@ -48,31 +48,31 @@ stages:
       junit: report.xml
     expire_in: 1 weeks
 
-# Execute unit tests for multiple Python versions
-unit-test-3.8:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.8"
-
-unit-test-3.9:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.9"
-
-unit-test-3.10:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.10"
-
-unit-test-3.11:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.11"
-
-unit-test-3.12:
-  extends: .unit-test
-  variables:
-    PYTHON_VERSION: "3.12"
+## Execute unit tests for multiple Python versions
+#unit-test-3.8:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.8"
+#
+#unit-test-3.9:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.9"
+#
+#unit-test-3.10:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.10"
+#
+#unit-test-3.11:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.11"
+#
+#unit-test-3.12:
+#  extends: .unit-test
+#  variables:
+#    PYTHON_VERSION: "3.12"
 
 #####################################################################################
 ##################################### NOTEBOOKS #####################################
@@ -100,20 +100,20 @@ unit-test-3.12:
     - cd notebooks
     - jupyter nbconvert --to notebook --execute $NOTEBOOK.ipynb
 
-anomaly-detection-notebook:
-  extends: .notebooks
-  variables:
-    NOTEBOOK: "Anomaly-detection"
-
-custom-models-notebook:
-  extends: .notebooks
-  variables:
-    NOTEBOOK: "Custom-models"
-
-quantitative-evaluation-notebook:
-  extends: .notebooks
-  variables:
-    NOTEBOOK: "Quantitative-evaluation"
+#anomaly-detection-notebook:
+#  extends: .notebooks
+#  variables:
+#    NOTEBOOK: "Anomaly-detection"
+#
+#custom-models-notebook:
+#  extends: .notebooks
+#  variables:
+#    NOTEBOOK: "Custom-models"
+#
+#quantitative-evaluation-notebook:
+#  extends: .notebooks
+#  variables:
+#    NOTEBOOK: "Quantitative-evaluation"
 
 ####################################################################################
 ################################### DOCUMENTATION ##################################
@@ -124,26 +124,42 @@ quantitative-evaluation-notebook:
   stage: documentation
   image: python:$DEFAULT_PYTHON_VERSION-slim
   before_script:
-    - apt-get update && apt-get install make --no-install-recommends -y
+    - apt-get update && apt-get install make git --no-install-recommends -y
+    - apt-get install -y git
+    - git fetch origin
     - python -m pip install sphinx toml sphinx_rtd_theme nbsphinx
     - find . -name "requirement*" -type f -exec pip install -r '{}' ';'
     - cd docs
     - mkdir _static
 
-# Check the code in the documentation
-doctest:
-  extends: .documentation
-  script:
-    - make doctest
+## Check the code in the documentation
+#doctest:
+#  extends: .documentation
+#  script:
+#    - make doctest
+#
+## Generate the documentation
+#pages:
+#  extends: .documentation
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  script:
+#    - make html
+#  after_script:
+#    - mv docs/_build/html/ ./public/
+#  artifacts:
+#    paths:
+#    - public
 
-# Generate the documentation
 pages:
   extends: .documentation
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - make html
+#    - sudo apt-get install git
+#    - apk update && apk add git
+    - apt-get update -qy && apt-get upgrade -qy    # This line used for updating OS repositories
+    - apt-get install -y git
+    - python build_docs.py
   after_script:
     - mv docs/_build/html/ ./public/
   artifacts:

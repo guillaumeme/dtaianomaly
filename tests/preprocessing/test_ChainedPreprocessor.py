@@ -29,4 +29,4 @@ class TestChainedPreprocessor:
 
     def test_str(self):
         preprocessor = ChainedPreprocessor(Identity(), MinMaxScaler(), ZNormalizer())
-        assert str(preprocessor) == 'identity->min_max_scaler->z_normalizer'
+        assert str(preprocessor) == 'Identity()->MinMaxScaler()->ZNormalizer()'

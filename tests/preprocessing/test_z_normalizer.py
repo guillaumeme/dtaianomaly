@@ -54,4 +54,4 @@ class TestZNormalizer:
             preprocessor.transform(univariate_time_series)
 
     def test_str(self):
-        assert str(ZNormalizer()) == 'z_normalizer'
+        assert str(ZNormalizer()) == 'ZNormalizer()'

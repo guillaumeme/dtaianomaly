@@ -1,9 +1,10 @@
 import abc
 import os
+import numpy as np
 from pathlib import Path
 from typing import NamedTuple, List, Type, Union
 
-import numpy as np
+from dtaianomaly.PrettyPrintable import PrettyPrintable
 
 
 class DataSet(NamedTuple):
@@ -22,7 +23,7 @@ class DataSet(NamedTuple):
     y: np.ndarray
 
 
-class LazyDataLoader(abc.ABC):
+class LazyDataLoader(PrettyPrintable):
     """
     A lazy dataloader for anomaly detection workflows
 
@@ -60,10 +61,6 @@ class LazyDataLoader(abc.ABC):
         data_set: DataSet
             The loaded dataset.
         """
-
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        """ Return a string representation of this data loader. """
 
 
 def from_directory(directory: Union[str, Path], dataloader: Type[LazyDataLoader]) -> List[LazyDataLoader]:

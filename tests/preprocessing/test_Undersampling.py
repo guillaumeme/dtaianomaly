@@ -38,7 +38,7 @@ class TestSamplingRateUnderSampler:
             SamplingRateUnderSampler(univariate_time_series.shape[0]).fit_transform(univariate_time_series)
 
     def test_str(self):
-        assert str(SamplingRateUnderSampler(42)) == 'sampling_rate_under_sampler_42'
+        assert str(SamplingRateUnderSampler(42)) == 'SamplingRateUnderSampler(sampling_rate=42)'
 
 
 class TestNbSamplesUnderSampler:
@@ -83,4 +83,4 @@ class TestNbSamplesUnderSampler:
         assert x_[1] == univariate_time_series[-1]
 
     def test_str(self):
-        assert str(NbSamplesUnderSampler(42)) == 'nb_samples_under_sampler_42'
+        assert str(NbSamplesUnderSampler(42)) == 'NbSamplesUnderSampler(nb_samples=42)'

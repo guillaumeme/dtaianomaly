@@ -70,3 +70,11 @@ class TestAnomalyDetectors:
     def test_is_valid_array_like_multivariate(self, detector, multivariate_time_series):
         X_ = detector.fit(multivariate_time_series).decision_function(multivariate_time_series)
         assert utils.is_valid_array_like(X_)
+
+    def test_fit_predict_on_different_time_series(self, detector, univariate_time_series):
+        # 66% train-test split
+        X_train = univariate_time_series[:univariate_time_series.shape[0] * 2 // 3]
+        X_test = univariate_time_series[univariate_time_series.shape[0] * 2 // 3:]
+        detector.fit(X_train)
+        decision_function = detector.predict_proba(X_test)
+        assert decision_function.shape[0] == X_test.shape[0]
