@@ -131,4 +131,4 @@ class TestIdentity:
         assert np.array_equal(y, y_)
 
     def test_str(self):
-        assert str(Identity()) == 'identity'
+        assert str(Identity()) == 'Identity()'

@@ -21,7 +21,7 @@ class TestPrecision:
         assert metric.compute(y_true, y_pred) == 4/5
 
     def test_str(self):
-        assert str(Precision()) == "precision"
+        assert str(Precision()) == "Precision()"
 
 
 class TestRecall:
@@ -32,7 +32,7 @@ class TestRecall:
         assert metric.compute(y_true, y_pred) == 4/6
 
     def test_str(self):
-        assert str(Recall()) == "recall"
+        assert str(Recall()) == "Recall()"
 
 
 class TestFBeta:
@@ -73,9 +73,9 @@ class TestFBeta:
         assert metric.compute(y_true, y_pred) == pytest.approx(10/13)
 
     def test_str(self):
-        assert str(FBeta()) == "f_1"
-        assert str(FBeta(2)) == "f_2"
-        assert str(FBeta(0.5)) == "f_0.5"
+        assert str(FBeta()) == "FBeta()"
+        assert str(FBeta(2)) == "FBeta(beta=2)"
+        assert str(FBeta(0.5)) == "FBeta(beta=0.5)"
 
 
 class TestAreaUnderROC:
@@ -91,7 +91,7 @@ class TestAreaUnderROC:
         assert metric.compute(y_true, y_pred) == pytest.approx(0.479, rel=1e-3)
 
     def test_str(self):
-        assert str(AreaUnderROC()) == "auc-roc"
+        assert str(AreaUnderROC()) == "AreaUnderROC()"
 
 
 class TestAreaUnderPR:
@@ -107,4 +107,4 @@ class TestAreaUnderPR:
         assert metric.compute(y_true, y_pred) == pytest.approx(0.546, rel=1e-3)
 
     def test_str(self):
-        assert str(AreaUnderPR()) == "auc-pr"
+        assert str(AreaUnderPR()) == "AreaUnderPR()"

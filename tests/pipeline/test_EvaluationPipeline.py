@@ -58,21 +58,21 @@ class TestEvaluationPipeline:
         y = np.random.choice([0, 1], size=univariate_time_series.shape[0], replace=True)
         results = pipeline.run(univariate_time_series, y)
         assert len(results) == 2
-        assert 'auc-roc' in results
-        assert 'auc-pr' in results
+        assert 'AreaUnderROC()' in results
+        assert 'AreaUnderPR()' in results
 
     def test_run_multivariate(self, multivariate_time_series):
         pipeline = EvaluationPipeline(ZNormalizer(), IsolationForest(15), [AreaUnderROC(), AreaUnderPR()])
         y = np.random.choice([0, 1], size=multivariate_time_series.shape[0], replace=True)
         results = pipeline.run(multivariate_time_series, y)
         assert len(results) == 2
-        assert 'auc-roc' in results
-        assert 'auc-pr' in results
+        assert 'AreaUnderROC()' in results
+        assert 'AreaUnderPR()' in results
 
     def test_shorter_y(self, univariate_time_series):
         pipeline = EvaluationPipeline(SamplingRateUnderSampler(5), IsolationForest(15), [AreaUnderROC(), AreaUnderPR()])
         y = np.random.choice([0, 1], size=univariate_time_series.shape[0], replace=True)
         results = pipeline.run(univariate_time_series, y)
         assert len(results) == 2
-        assert 'auc-roc' in results
-        assert 'auc-pr' in results
+        assert 'AreaUnderROC()' in results
+        assert 'AreaUnderPR()' in results

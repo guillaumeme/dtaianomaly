@@ -85,4 +85,4 @@ class Pipeline(BaseDetector):
         return self.detector.decision_function(X)
 
     def __str__(self) -> str:
-        return str(self.preprocessor) + '->' + str(self.detector)
+        return f'{self.preprocessor}->{self.detector}'

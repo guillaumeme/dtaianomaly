@@ -1,7 +1,5 @@
 
 import numpy as np
-from pathlib import Path
-
 from dtaianomaly.data.data import LazyDataLoader, DataSet
 
 
@@ -18,9 +16,6 @@ class UCRLoader(LazyDataLoader):
     path: str
         Path to a single UCR data set.
     """
-    def __init__(self, path: str) -> None:
-        super().__init__(path)
-
     def load(self) -> DataSet:
         # Load time series
         X = np.loadtxt(self.path)
@@ -37,6 +32,3 @@ class UCRLoader(LazyDataLoader):
         y[onset:offset] = 1
 
         return DataSet(x=X, y=y)
-
-    def __str__(self) -> str:
-        return Path(self.path).stem

@@ -68,5 +68,4 @@ class TestThresholding:
             ThresholdMetric(FixedCutoff(0.5), AreaUnderROC())
 
     def test_str(self):
-        threshold_metric = ThresholdMetric(FixedCutoff(0.5), Precision())
-        assert str(threshold_metric) == "FixedCutoff_0.5_precision"
+        assert str(ThresholdMetric(FixedCutoff(0.5), Precision())) == "FixedCutoff(cutoff=0.5)->Precision()"

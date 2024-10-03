@@ -333,13 +333,13 @@ class TestInterpretEntries:
         assert isinstance(read_object, object_type)
         for key, value in entry.items():
             if key == 'base_preprocessors':
-                pass  # Simply assume it is correct, because tes would become so difficult that errors can sneak in
+                pass  # Simply assume it is correct, because test would become so difficult that errors can sneak in
             elif hasattr(read_object, key):
                 assert getattr(read_object, key) == value
-            elif hasattr(read_object, 'detector'):
-                assert getattr(read_object.detector, key) == value
+            elif hasattr(read_object, 'kwargs'):
+                assert getattr(read_object, 'kwargs')[key] == value
             else:
-                pytest.fail(f"Object should either have '{key}' as attribute, or have 'detector' as attribute, which in turn has '{key}' as attribute!")
+                pytest.fail(f"Object should either have '{key}' as attribute, or have 'kwargs' as attribute, which in turn has '{key}' as attribute!")
 
     def test_additional_parameter(self, entry_function, object_type, entry):
         entry_copy = entry.copy()

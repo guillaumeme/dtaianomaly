@@ -29,10 +29,8 @@ class IsolationForest(BaseDetector):
 
     Attributes
     ----------
-    detector : SklearnIsolationForest
-        An Isolation Forest detector of Sklearn
-    is_fitted : bool
-        Whether this anomaly detector is fitted or not.
+    detector_ : SklearnIsolationForest
+        An Isolation Forest detector of Sklearn. Only available upon fitting
 
     Notes
     -----
@@ -59,15 +57,16 @@ class IsolationForest(BaseDetector):
     """
     window_size: int
     stride: int
-    detector: SklearnIsolationForest
+    kwargs: dict
+    detector_: SklearnIsolationForest
     is_fitted: bool
 
-    def __init__(self, window_size: int, stride: int = 1, **kwargs) -> None:
+    def __init__(self, window_size: int, stride: int = 1, **kwargs):
         super().__init__()
         self.window_size = window_size
         self.stride = stride
-        self.detector = SklearnIsolationForest(**kwargs)
-        self.is_fitted = False
+        self.kwargs = kwargs
+        SklearnIsolationForest(**kwargs)  # Try initialization to check the parameters)
 
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> 'IsolationForest':
         """
@@ -93,10 +92,11 @@ class IsolationForest(BaseDetector):
         if not utils.is_valid_array_like(X):
             raise ValueError("Input must be numerical array-like")
 
+        self.detector_ = SklearnIsolationForest(**self.kwargs)
+
         X = np.asarray(X)
         windows = sliding_window(X, self.window_size, self.stride)
-        self.detector.fit(windows)
-        self.is_fitted = True
+        self.detector_.fit(windows)
 
         return self
 
@@ -124,15 +124,12 @@ class IsolationForest(BaseDetector):
         """
         if not utils.is_valid_array_like(X):
             raise ValueError("Input must be numerical array-like")
-        if not self.is_fitted:
+        if not hasattr(self, 'detector_'):
             raise NotFittedError('Call the fit function before making predictions!')
 
         X = np.asarray(X)
         windows = sliding_window(X, self.window_size, self.stride)
-        per_window_anomaly_scores = -self.detector.score_samples(windows)
+        per_window_anomaly_scores = -self.detector_.score_samples(windows)
         anomaly_scores = reverse_sliding_window(per_window_anomaly_scores, self.window_size, self.stride, X.shape[0])
 
         return anomaly_scores
-
-    def __str__(self) -> str:
-        return f'IsolationForest_{self.window_size}_{self.stride}'

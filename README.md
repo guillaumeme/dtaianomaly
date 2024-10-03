@@ -1,4 +1,4 @@
-# Time Series Anomaly Detection
+# Dtaianomaly for Time Series Anomaly Detection
 
 [![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/pipelines)
 [![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)

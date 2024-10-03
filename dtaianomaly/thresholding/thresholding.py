@@ -3,9 +3,10 @@ import abc
 import numpy as np
 
 from dtaianomaly import utils
+from dtaianomaly.PrettyPrintable import PrettyPrintable
 
 
-class Thresholding(abc.ABC):
+class Thresholding(PrettyPrintable):
 
     @abc.abstractmethod
     def threshold(self, scores: np.ndarray) -> np.ndarray:
@@ -23,11 +24,6 @@ class Thresholding(abc.ABC):
             The discrete anomaly labels, in which a 0 indicates normal and a
             1 indicates anomalous.
         """
-
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        """ Return a string representation of this thresholding. """
-
 
 class FixedCutoff(Thresholding):
     """
@@ -74,9 +70,6 @@ class FixedCutoff(Thresholding):
 
         scores = np.asarray(scores)
         return np.asarray(self.cutoff <= scores, dtype=np.int8)
-
-    def __str__(self) -> str:
-        return f'FixedCutoff_{self.cutoff}'
 
 
 class ContaminationRate(Thresholding):
@@ -130,9 +123,6 @@ class ContaminationRate(Thresholding):
         cutoff = np.quantile(scores, 1. - self.contamination_rate)
         return np.asarray(cutoff <= scores, dtype=np.int8)
 
-    def __str__(self) -> str:
-        return f'ContaminationRate_{self.contamination_rate}'
-
 
 class TopN(Thresholding):
     """
@@ -184,6 +174,3 @@ class TopN(Thresholding):
         scores = np.asarray(scores)
         cutoff = np.partition(scores, -self.n)[-self.n]
         return np.asarray(cutoff <= scores, dtype=np.int8)
-
-    def __str__(self) -> str:
-        return f'TopN_{self.n}'

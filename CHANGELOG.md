@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Latest
+
+### Added
+
+### Changed
+- The ``__str__`` method of the different estimators are automatically done
+  and now equal the name of the class and between parantheses the parameters
+  that must be provided, i.e., the parameters that differntiate from the 
+  default parameters. 
+
+### Fixed
+
+
 ## [0.2.0] - 2024-10-01
 
 This release basically revamped the ``dtaianomaly``. In many ways, the package

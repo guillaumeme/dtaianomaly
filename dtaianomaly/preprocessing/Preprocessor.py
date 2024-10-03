@@ -4,6 +4,7 @@ import numpy as np
 from typing import Tuple, Optional
 
 from dtaianomaly import utils
+from dtaianomaly.PrettyPrintable import PrettyPrintable
 
 
 def check_preprocessing_inputs(X: np.ndarray, y: Optional[np.ndarray] = None) -> None:
@@ -32,7 +33,7 @@ def check_preprocessing_inputs(X: np.ndarray, y: Optional[np.ndarray] = None) ->
         raise ValueError('`X` and `y` have a different number of samples')
 
 
-class Preprocessor(abc.ABC):
+class Preprocessor(PrettyPrintable):
     """
     Base preprocessor class.
     """
@@ -113,10 +114,6 @@ class Preprocessor(abc.ABC):
         check_preprocessing_inputs(X, y)
         return self._fit(X, y)._transform(X, y)
 
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        """ Return a string representation of this metric. """
-
 
 class Identity(Preprocessor):
     """
@@ -127,6 +124,3 @@ class Identity(Preprocessor):
 
     def _transform(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         return X, y
-
-    def __str__(self) -> str:
-        return 'identity'

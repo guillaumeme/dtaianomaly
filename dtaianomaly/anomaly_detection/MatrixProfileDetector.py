@@ -141,10 +141,4 @@ class MatrixProfileDetector(BaseDetector):
             matrix_profiles, _ = stumpy.mstump(X.transpose(), m=self.window_size, discords=True, normalize=self.normalize, p=self.p)
             matrix_profile = np.sum(matrix_profiles, axis=0)
 
-        #
-        # result = np.zeros(shape=(len(X),), dtype=np.float32)
-        # result[:len(matrix_profile)] = matrix_profile
         return reverse_sliding_window(matrix_profile, self.window_size, 1, X.shape[0])
-
-    def __str__(self) -> str:
-        return 'MatrixProfile'

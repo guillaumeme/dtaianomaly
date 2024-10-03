@@ -46,6 +46,3 @@ class MovingAverage(Preprocessor):
         X_ = np.array([np.nanmean(window, axis=-1) for window in np.lib.stride_tricks.sliding_window_view(X_extended, self.window_size, axis=0)])
         # Return the results
         return X_, y
-
-    def __str__(self) -> str:
-        return f'moving_average_{self.window_size}'

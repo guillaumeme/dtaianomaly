@@ -9,9 +9,6 @@ class DummyLoader(LazyDataLoader):
     def load(self) -> DataSet:
         return DataSet(x=np.array([]), y=np.array([]))
 
-    def __str__(self) -> str:
-        return 'DummyLoader'
-
 
 class TestLazyDataLoader:
 
@@ -27,6 +24,9 @@ class TestLazyDataLoader:
     def test_valid_directory(self, tmp_path):
         loader = DummyLoader(tmp_path)
         assert loader.path == str(tmp_path)
+
+    def test_str(self, tmp_path):
+        assert str(DummyLoader(tmp_path)) == f'DummyLoader(path={tmp_path})'
 
 
 class TestFromDirectory:

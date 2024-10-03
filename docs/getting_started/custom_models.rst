@@ -24,7 +24,7 @@ Custom anomaly detector
 The core functionality of ``dtaianomaly`` - time series anomaly detection - is extended
 by implementing the :py:class:`~dtaianomaly.anomaly_detection.BaseDetector`. To achieve
 this, you need to implement the :py:func:`~dtaianomaly.anomaly_detection.BaseDetector.fit()`,
-:py:func:`~dtaianomaly.anomaly_detection.BaseDetector.decision_function()` and :py:func:`~dtaianomaly.anomaly_detection.BaseDetector.__str__()`
+and :py:func:`~dtaianomaly.anomaly_detection.BaseDetector.decision_function()`
 methods. Below, we implement an anomaly detector that detects anomalies when the distance
 between an observation and the mean value exceeds a specified number of standard deviations
 (also known as the `3-sigma rule <https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule>`_.
@@ -35,8 +35,6 @@ The methods have the following functionality:
 2. :py:func:`~dtaianomaly.anomaly_detection.BaseDetector.decision_function()`: compute the values
    that have distance larger than ``nb_sigmas`` times the learned standard deviation from the learned
    mean. These values are considered anomalies.
-3. :py:func:`~dtaianomaly.anomaly_detection.BaseDetector.__str__()`: return a string representation
-   of the anomaly detector.
 
 .. code-block:: python
 
@@ -59,9 +57,6 @@ The methods have the following functionality:
         def decision_function(self, X: np.ndarray) -> np.ndarray:
             """ Compute which values are too far from the mean. """
             return np.abs(X - self.mean_) > self.nb_sigmas * self.std_
-
-        def __str__(self) -> str:
-            return f"{self.nb_sigmas}_sigma_model"
 
 .. _custom-dataloader:
 
@@ -92,9 +87,6 @@ and easily analyze multiple detectors simultaneously.
             df = pd.read_clipboard(self.path)
             return DataSet(x=df['X'].values, y=df['y'].values)
 
-        def __str__(self)-> str:
-            return self.path
-
 .. _custom-preprocessor:
 
 Custom preprocessor
@@ -112,8 +104,6 @@ Specifically, we need to implement following methods:
    with the given time series by the learned mean value. This method returns both a transformed
    ``X`` and ``y``, because some preprocessors also change the labels ``y`` (for example, the
    :py:class:`~dtaianomaly.preprocessing.SamplingRateUnderSampler`).
-3. :py:func:`~dtaianomaly.preprocessing.Preprocessor.__str__`: return a string representation of
-   the preprocessor.
 
 Notice that we implement the :py:func:`~dtaianomaly.preprocessing.Preprocessor._fit` and
 :py:func:`~dtaianomaly.preprocessing.Preprocessor._transform` methods (with a starting underscore),
@@ -138,9 +128,6 @@ to these methods.
         def _transform(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
             X[np.isnan(X)] = self.fill_value_
             return X, y
-
-        def __str__(self) -> str:
-            return "imputer"
 
 .. _custom-thresholding:
 
@@ -169,9 +156,6 @@ deviations above the mean anomaly score are considered anomalous.
         def threshold(self, scores: np.ndarray) -> np.ndarray:
             threshold = scores.mean() + self.factor * scores.std()
             return scores > threshold
-
-        def __str__(self) -> str:
-            return f'dynamic_threshold_{self.factor}'
 
 .. _custom-evaluation:
 
@@ -209,6 +193,3 @@ method.
         def _compute(self, y_true: np.ndarray, y_pred: np.ndarray):
             """ Compute the accuracy. """
             return np.nanmean(y_true == y_pred)
-
-        def __str__(self) -> str:
-            return 'accuracy'

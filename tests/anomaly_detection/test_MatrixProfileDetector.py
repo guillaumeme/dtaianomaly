@@ -51,5 +51,7 @@ class TestMatrixProfileDetector:
         MatrixProfileDetector(5, k=2)  # Doesn't raise an error
 
     def test_str(self):
-        detector = MatrixProfileDetector(window_size=10, p=2.0, normalize=False, k=2)
-        assert str(detector) == 'MatrixProfile'  # Doesn't take the hyperparameters into account
+        assert str(MatrixProfileDetector(5)) == "MatrixProfileDetector(window_size=5)"
+        assert str(MatrixProfileDetector(15, normalize=False, p=1.5)) == "MatrixProfileDetector(window_size=15,normalize=False,p=1.5)"
+        assert str(MatrixProfileDetector(15, p=1.5, normalize=False)) == "MatrixProfileDetector(window_size=15,normalize=False,p=1.5)"
+        assert str(MatrixProfileDetector(25, k=2)) == "MatrixProfileDetector(window_size=25,k=2)"

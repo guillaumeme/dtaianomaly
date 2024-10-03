@@ -31,10 +31,8 @@ class LocalOutlierFactor(BaseDetector):
 
     Attributes
     ----------
-    detector : SklearnIsolationForest
-        An Isolation Forest detector of Sklearn
-    is_fitted : bool
-        Whether this anomaly detector is fitted or not.
+    detector_ : SklearnLocalOutlierFactor
+        A LOF-detector of Sklearn. Only available upon fitting
 
     Notes
     -----
@@ -62,15 +60,15 @@ class LocalOutlierFactor(BaseDetector):
     """
     window_size: int
     stride: int
-    detector: SklearnLocalOutlierFactor
-    is_fitted: bool
+    kwargs: dict
+    detector_: SklearnLocalOutlierFactor
 
     def __init__(self, window_size: int, stride: int = 1, **kwargs) -> None:
         super().__init__()
         self.window_size = window_size
         self.stride = stride
-        self.detector = SklearnLocalOutlierFactor(**kwargs)
-        self.is_fitted = False
+        self.kwargs = kwargs
+        SklearnLocalOutlierFactor(**kwargs)  # Try initialization to check the parameters)
 
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> 'LocalOutlierFactor':
         """
@@ -96,10 +94,13 @@ class LocalOutlierFactor(BaseDetector):
         if not utils.is_valid_array_like(X):
             raise ValueError("Input must be numerical array-like")
 
-        X = np.asarray(X)
-        windows = sliding_window(X, self.window_size, self.stride)
-        self.detector.fit(windows)
-        self.is_fitted = True
+        self.detector_ = SklearnLocalOutlierFactor(**self.kwargs)
+
+        # Fitting is only useful for novelty detection
+        if 'novelty' in self.kwargs and self.kwargs['novelty']:
+            X = np.asarray(X)
+            windows = sliding_window(X, self.window_size, self.stride)
+            self.detector_.fit(windows)
 
         return self
 
@@ -127,15 +128,17 @@ class LocalOutlierFactor(BaseDetector):
         """
         if not utils.is_valid_array_like(X):
             raise ValueError("Input must be numerical array-like")
-        if not self.is_fitted:
+        if not hasattr(self, 'detector_'):
             raise NotFittedError('Call the fit function before making predictions!')
 
         X = np.asarray(X)
         windows = sliding_window(X, self.window_size, self.stride)
-        per_window_anomaly_scores = -self.detector.negative_outlier_factor_
+        if 'novelty' in self.kwargs and self.kwargs['novelty']:
+            # If novelty detection, then no fitting on the given data is necessary
+            per_window_anomaly_scores = -self.detector_.decision_function(windows)
+        else:
+            # Otherwise, look within the given data to compute the local densities
+            per_window_anomaly_scores = -self.detector_.fit(windows).negative_outlier_factor_
         anomaly_scores = reverse_sliding_window(per_window_anomaly_scores, self.window_size, self.stride, X.shape[0])
 
         return anomaly_scores
-
-    def __str__(self) -> str:
-        return f'LocalOutlierFactor_{self.window_size}_{self.stride}'

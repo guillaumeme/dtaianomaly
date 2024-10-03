@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Optional, Union
 
 from dtaianomaly import utils
+from dtaianomaly.PrettyPrintable import PrettyPrintable
 
 
-class BaseDetector(abc.ABC):
+class BaseDetector(PrettyPrintable):
     """
     Abstract base class for time series anomaly detection.
 
@@ -90,9 +91,9 @@ class BaseDetector(abc.ABC):
         else:
             return (raw_scores - min_score) / (max_score - min_score)
 
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        """ Return a string representation of this anomaly detector. """
+    # @abc.abstractmethod
+    # def __str__(self) -> str:
+    #     """ Return a string representation of this anomaly detector. """
 
     def save(self, path: Union[str, Path]) -> None:
         """

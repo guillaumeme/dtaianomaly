@@ -22,7 +22,7 @@ class TestFixedCutoffThresholding:
             thresholder.threshold([0.0, '0.9', 1.0])
 
     def test_str(self):
-        assert str(FixedCutoff(0.9)) == 'FixedCutoff_0.9'
+        assert str(FixedCutoff(0.9)) == 'FixedCutoff(cutoff=0.9)'
 
 
 class TestContaminationRateThresholding:
@@ -61,7 +61,7 @@ class TestContaminationRateThresholding:
             thresholder.threshold([0.0, '0.9', 1.0])
 
     def test_str(self):
-        assert str(ContaminationRate(0.1)) == 'ContaminationRate_0.1'
+        assert str(ContaminationRate(0.1)) == 'ContaminationRate(contamination_rate=0.1)'
 
 
 class TestTopN:
@@ -95,5 +95,4 @@ class TestTopN:
             thresholder.threshold(np.array([0.0, 0.9, 1.0]))
 
     def test_str(self):
-        assert str(TopN(5)) == 'TopN_5'
-
+        assert str(TopN(5)) == 'TopN(n=5)'
