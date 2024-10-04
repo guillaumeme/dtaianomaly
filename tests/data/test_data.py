@@ -26,7 +26,7 @@ class TestLazyDataLoader:
         assert loader.path == str(tmp_path)
 
     def test_str(self, tmp_path):
-        assert str(DummyLoader(tmp_path)) == f'DummyLoader(path={tmp_path})'
+        assert str(DummyLoader(tmp_path)) == f"DummyLoader(path='{tmp_path}')"
 
 
 class TestFromDirectory:

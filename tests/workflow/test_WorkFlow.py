@@ -170,7 +170,7 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 9)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['Identity()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
@@ -199,7 +199,7 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 9)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['Identity()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
@@ -228,7 +228,7 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['Identity()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
@@ -257,7 +257,7 @@ class TestWorkflowSuccess:
         )
         results = workflow.run()
         assert results.shape == (2, 9)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 2
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 1
         assert results['Detector'].value_counts()['IsolationForest(window_size=15)'] == 1
         assert 'Peak Memory [MB]' in results.columns
@@ -313,8 +313,8 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (8, 10)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
-        assert results['Dataset'].value_counts()[f'DummyDataLoaderError(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoaderError(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['Identity()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
@@ -339,7 +339,7 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['PreprocessorError()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['LocalOutlierFactor(window_size=15)'] == 2
@@ -364,7 +364,7 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['Identity()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['DetectorError()'] == 2
@@ -389,7 +389,7 @@ class TestWorkflowFail:
         )
         results = workflow.run()
         assert results.shape == (4, 10)
-        assert results['Dataset'].value_counts()[f'DummyDataLoader(path={path})'] == 4
+        assert results['Dataset'].value_counts()[f"DummyDataLoader(path='{path}')"] == 4
         assert results['Preprocessor'].value_counts()['PreprocessorError()'] == 2
         assert results['Preprocessor'].value_counts()['ZNormalizer()'] == 2
         assert results['Detector'].value_counts()['DetectorError()'] == 2
