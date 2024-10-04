@@ -20,6 +20,8 @@ author = 'Louis Carpentier \\and Nick Seeuws'
 
 with open('../pyproject.toml', 'r') as f:
     config = toml.load(f)
+release = config['project']['version']
+version = config['project']['version']
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -63,27 +65,3 @@ html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'dtaianomalydoc'
-
-# -- Versioning control of documentation ------------------------------------------
-# https://www.codingwiththomas.com/blog/my-sphinx-best-practice-for-a-multiversion-documentation-in-different-languages
-
-
-# Load all the versions to build the documentation from
-with open('versions.toml', 'r') as versions_toml:
-    raw_versions = sorted(toml.load(versions_toml)['versions'], reverse=True)
-
-# Add link to the version
-current_version = os.environ.get("current_version", "latest")
-if current_version == 'latest':
-    versions = [('latest', '.')] + [(version, version.replace('.', '_')) for version in raw_versions]
-else:
-    versions = [('latest', '../')] + [
-        (version, ('../' + version.replace('.', '_')) if version != current_version else '.')
-        for version in raw_versions
-    ]
-
-html_context = {
-    'current_version': current_version,
-    'versions': versions
-}
-version = current_version
