@@ -47,7 +47,7 @@ class TestUCRLoader:
 
     @data_available
     def test_str(self, loader):
-        assert str(loader) == f'UCRLoader(path={UCR_DATA_PATH}/{UCR_DATA_SET})'
+        assert str(loader) == f"UCRLoader(path='{UCR_DATA_PATH}/{UCR_DATA_SET}')"
 
     @directory_available
     def test_from_directory(self):
