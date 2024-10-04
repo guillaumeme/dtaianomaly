@@ -17,4 +17,8 @@ def initialization_call_string(o: object) -> str:
     }
     if hasattr(o, 'kwargs'):
         parameters.update(o.kwargs)
-    return o.__class__.__name__ + '(' + ','.join([f'{parameter}={value}' for parameter, value in parameters.items()]) + ')'
+    return o.__class__.__name__ + '(' + ','.join([f'{parameter}={string_with_apostrophe(value)}' for parameter, value in parameters.items()]) + ')'
+
+
+def string_with_apostrophe(s):
+    return f"'{s}'" if isinstance(s, str) else s
