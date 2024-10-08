@@ -7,7 +7,7 @@ be detected in time series using ``dtaianomaly``.
 
 .. note::
     Some of the code has not been added to this webpage for clarity reasons. The full
-    code can be found in the `anomaly detection notebook <https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/raw/main/notebooks/Anomaly-detection.ipynb>`_.
+    code can be found in the `anomaly detection notebook <https://github.com/ML-KULeuven/dtaianomaly/blob/main/notebooks/Anomaly-detection.ipynb>`_.
 
 Load the data
 -------------
@@ -41,7 +41,7 @@ of the noise from the time series.
     from dtaianomaly.preprocessing import MovingAverage
     preprocessor = MovingAverage(window_size=10)
 
-In general, `any anomaly detector <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/api/anomaly_detection.html>`_
+In general, `any anomaly detector <https://dtaianomaly.readthedocs.io/en/stable/api/anomaly_detection.html>`_
 in ``dtaianomaly`` can be used to detect anomalies in this time series. Here, we use the
 :py:class:`~dtaianomaly.anomaly_detection.MatrixProfileDetector`
 

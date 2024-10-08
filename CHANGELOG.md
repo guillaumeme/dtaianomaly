@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## Latest
 
+In this release, all files were transferred from GitLab to GitHub. Therefore, 
+older links may no longer function as desired. 
+
 ### Added
 
 ### Changed

@@ -8,7 +8,7 @@ state-of-the-art methods. Additionally, ``dtaianomaly`` provides a benchmark fra
 quantitatively evaluate time series anomaly detection methods on a large repository of
 time series.
 
-The source is available on `GitLab <https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly>`_.
+The source is available on `GitHub <https://github.com/ML-KULeuven/dtaianomaly>`_.
 
 .. toctree::
    :maxdepth: 1

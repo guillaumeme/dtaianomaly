@@ -22,7 +22,7 @@ described on this page.
 
 .. note::
     You can also read custom data by implementing a custom :py:class:`~dtaianomaly.data.LazyDataLoader`,
-    as described in the `documentation <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/custom_models.html#custom-data-loader>`_.
+    as described in the `documentation <https://dtaianomaly.readthedocs.io/en/stable/index.html>`_.
 
 Synthetic data
 --------------

@@ -1,20 +1,19 @@
 # Dtaianomaly for Time Series Anomaly Detection
 
-[![pipeline status](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/pipeline.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/pipelines)
-[![coverage report](https://gitlab.kuleuven.be/u0143709/dtaianomaly/badges/main/coverage.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/commits/main)
-[![Latest Release](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/badges/release.svg)](https://gitlab.kuleuven.be/u0143709/dtaianomaly/-/releases)
+[![PyPi Version](https://img.shields.io/pypi/v/dtaianomaly.svg)](https://pypi.org/project/dtaianomaly/)
 [![Downloads](https://static.pepy.tech/badge/dtaianomaly)](https://pepy.tech/project/dtaianomaly)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/dtaianomaly)](https://pypi.python.org/pypi/dtaianomaly/)
 [![PyPI license](https://img.shields.io/pypi/l/dtaianomaly.svg)](https://pypi.python.org/pypi/dtaianomaly/)
 
 A simple-to-use Python package for the development and analysis of time series anomaly 
 detection techniques. Here we describe the main usage of `dtaianomaly`, but be sure to
-check out the [documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/index.html) 
+check out the [documentation](https://dtaianomaly.readthedocs.io/en/stable/index.html) 
 for more information. 
 
 ## Installation
 
-The preferred way to install `dtaianomaly` is via PyPi. See the [documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/installation.html) for more options.
+The preferred way to install `dtaianomaly` is via PyPi. See the [documentation](https://dtaianomaly.readthedocs.io/en/stable/index.html) 
+for more options.
 ```
 pip install dtaianomaly
 ```
@@ -23,18 +22,18 @@ pip install dtaianomaly
 
 The three key features of `dtaianomaly` are as follows:
 1. State-of-the-art time series anomaly detection via a simple API.
-   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html)
+   [Learn more!](https://dtaianomaly.readthedocs.io/en/stable/getting_started/anomaly_detection.html)
 2. Develop custom models for anomaly detection.
-   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/custom_models.html)
+   [Learn more!](https://dtaianomaly.readthedocs.io/en/stable/getting_started/custom_models.html)
 3. Quantitative evaluation of time series anomaly detection.
-   [Learn more!](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/quantitative_evaluation.html)
+   [Learn more!](https://dtaianomaly.readthedocs.io/en/stable/getting_started/quantitative_evaluation.html)
 
 ## Example
 
 Below code shows a simple example of `dtaianomaly`, which is part of the 
 [anomaly detection notebook](notebooks/Anomaly-detection.ipynb). More examples 
 are provided in the [other notebooks](notebooks) and in the 
-[documentation](https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html).
+[documentation](https://dtaianomaly.readthedocs.io/en/stable/index.html).
 
 ```python
 from dtaianomaly.data import demonstration_time_series

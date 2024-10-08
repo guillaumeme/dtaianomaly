@@ -12,7 +12,7 @@ There are two ways to run a :py:class:`~dtaianomaly.workflow.Workflow`: from :re
 or from a :ref:`configuration file <with-config>`.
 
 .. note::
-    You can also evaluate `custom components <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/custom_models.html>`_
+    You can also evaluate `custom components <https://dtaianomaly.readthedocs.io/en/stable/getting_started/custom_models.html>`_
     in ``dtaianomaly`` via a :py:class:`~dtaianomaly.workflow.Workflow` in :ref:`Python <with-code>`. However,
     this is not possible via a :ref:`configuration file <with-config>` without extending the functionality of
     the :py:func:`~dtaianomaly.workflow.workflow_from_config` function!
@@ -138,5 +138,5 @@ Below, we show a simplified version of the configuration in `Config.json`_.
    :language: json
    :tab-width: 4
 
-.. _Config.json: https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly/-/blob/main/notebooks/Config.json
+.. _Config.json: https://github.com/ML-KULeuven/dtaianomaly/blob/main/notebooks/Config.json
 
