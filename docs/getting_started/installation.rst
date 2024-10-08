@@ -18,23 +18,23 @@ To install version ``X.Y.Z``, use the following command:
     pip install dtaianomaly==X.Y.Z
 
 
-From GitLab
+From GitHub
 -----------
 
-It is also possible to install ``dtaianomaly`` directly from `GitLab`_:
+It is also possible to install ``dtaianomaly`` directly from `GitHub`_:
 
 .. code-block:: bash
 
-    pip install git+https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly
+    pip install git+https://github.com/ML-KULeuven/dtaianomaly
 
 Note that this will install the latest, *unreleased* version. Similarly as installation
 through PyPi, it is also possible to install version ``X.Y.Z`` as follows:
 
 .. code-block:: bash
 
-    pip install git+https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly@X.Y.Z
+    pip install git+https://github.com/ML-KULeuven/dtaianomaly@X.Y.Z
 
-See the `release page <https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly/-/releases>`_
+See the `release page <https://github.com/ML-KULeuven/dtaianomaly/releases>`_
 for more information regarding the different versions.
 
 
@@ -42,9 +42,9 @@ From source
 -----------
 
 Finally, it is also possible to install ``dtaianomaly`` from the source code. First
-download the source from `GitLab`_.
+download the source from `GitHub`_.
 It is also possible to download the source code for a specific release on
-`this webpage <https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly/-/releases>`_.
+`this webpage <https://github.com/ML-KULeuven/dtaianomaly/releases>`_.
 Unzip the files, and navigate to the root directory of the repository in the terminal.
 Then, ``dtaianomaly`` can be installed through the following command:
 
@@ -52,4 +52,4 @@ Then, ``dtaianomaly`` can be installed through the following command:
 
     pip install .
 
-.. _GitLab: https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly
+.. _GitHub: https://github.com/ML-KULeuven/dtaianomaly

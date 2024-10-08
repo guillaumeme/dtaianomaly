@@ -27,9 +27,9 @@ file = "LICENSE"
 
 [project.urls]
 homepage = "https://pypi.org/project/dtaianomaly/"
-repository = "https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly"
-changelog = "https://gitlab.kuleuven.be/m-group-campus-brugge/dtai_public/dtaianomaly/-/blob/main/CHANGELOG.md"
-documentation = "https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/"
+repository = "https://github.com/ML-KULeuven/dtaianomaly"
+changelog = "https://github.com/ML-KULeuven/dtaianomaly/blob/main/CHANGELOG.md"
+documentation = "https://dtaianomaly.readthedocs.io/en/stable/index.html"
 
 [build-system]
 requires = ["setuptools", "wheel", "build"]

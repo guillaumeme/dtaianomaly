@@ -5,7 +5,7 @@ as follows:
 
 >>> from dtaianomaly import anomaly_detection
 
-We refer to the `documentation <https://m-group-campus-brugge.pages.gitlab.kuleuven.be/dtai_public/dtaianomaly/getting_started/anomaly_detection.html>`_
+We refer to the `documentation <https://dtaianomaly.readthedocs.io/en/stable/getting_started/anomaly_detection.html>`_
 for more information regarding detecting anomalies using ``dtaianomaly``.
 """
 
