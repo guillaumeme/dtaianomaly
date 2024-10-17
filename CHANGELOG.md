@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file.
   entire traceback of the error. Additionally, the error file contains the code
   to reproduce the specific error. In fact, the error file can be run as any 
   python script. 
+- Added baseline anomaly detectors: ``AlwaysNormal``, ``AlwaysAnomaly``, and 
+  ``RandomDetector``
+- Added option ``novelty`` to ``MatrixProfileDetector``, which will compute the
+  matrix profile in regard to the train data, if ``novelty=True``. By default, 
+  the matrix profile is computed based on a self-join of the test data. 
 
 ### Changed
 
