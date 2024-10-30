@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+  
+## [0.2.2] - 2024-10-30
+
+### Added
+
 - When executing a workflow, and an error occurs. The errors will be written to 
   an error file. This file contains in which phase the error occurred and the 
   entire traceback of the error. Additionally, the error file contains the code
