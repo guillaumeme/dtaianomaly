@@ -1,7 +1,9 @@
 
 import pytest
 import numpy as np
-from dtaianomaly.anomaly_detection.windowing_utils import sliding_window, reverse_sliding_window
+from dtaianomaly import utils
+from dtaianomaly.data import demonstration_time_series
+from dtaianomaly.anomaly_detection.windowing_utils import sliding_window, reverse_sliding_window, check_is_valid_window_size, compute_window_size
 
 
 class TestSlidingWindow:
@@ -221,3 +223,94 @@ class TestReverseSlidingWindow:
         assert reverse_windows[12] == 4  # [4]
         assert reverse_windows[13] == 4  # [4]
         assert reverse_windows[14] == 4  # [4]
+
+
+class TestCheckIsValidWindowSize:
+
+    def test_valid_integer(self):
+        for i in range(1, 100):
+            check_is_valid_window_size(i)
+
+    @pytest.mark.parametrize('window_size', ['fft', 'acf'])
+    def test_valid_string(self, window_size):
+        check_is_valid_window_size(window_size)
+
+    def test_invalid_integer(self):
+        for i in [-10, -1, 0]:
+            with pytest.raises(ValueError):
+                check_is_valid_window_size(i)
+
+    def test_invalid_string(self):
+        with pytest.raises(ValueError):
+            check_is_valid_window_size('something_invalid')
+
+    def test_invalid_float(self):
+        with pytest.raises(ValueError):
+            check_is_valid_window_size(1.0)
+
+    def test_invalid_bool(self):
+        with pytest.raises(ValueError):
+            check_is_valid_window_size(True)
+        with pytest.raises(ValueError):
+            check_is_valid_window_size(False)
+
+
+class TestComputeWindowSize:
+
+    def test_integer(self):
+        for i in range(1, 100):
+            assert i == compute_window_size(np.array([1, 2, 3]), i)
+
+    @pytest.mark.parametrize('window_size', [1, 'fft', 'acf', 'mwf', 'suss'])
+    def test_invalid_x(self, window_size):
+        check_is_valid_window_size(window_size)
+        assert not utils.is_valid_array_like([1, 2, 3, 4, '5'])
+        with pytest.raises(ValueError):
+            compute_window_size([1, 2, 3, 4, '5'], window_size)
+
+    def test_multivariate_integer(self, multivariate_time_series):
+        assert 16 == compute_window_size(multivariate_time_series, 16)
+
+    def test_multivariate_non_integer(self, multivariate_time_series):
+        with pytest.raises(ValueError):
+            compute_window_size(multivariate_time_series, 'fft')
+
+    @pytest.mark.parametrize('window_size', ['fft', 'acf', 'mwf', 'suss'])
+    def test_demonstration_time_series(self, window_size):
+        X, _ = demonstration_time_series()
+        assert compute_window_size(X, window_size, threshold=0.95) == pytest.approx(1400 / (25 / 2), abs=10)
+
+    @pytest.mark.parametrize('window_size', ['fft', 'acf', 'mwf', 'suss'])
+    def test_no_window_size(self, window_size):
+        flat = np.ones(shape=1000)
+        assert compute_window_size(flat, window_size) == -1
+
+    @pytest.mark.parametrize('nb_periods', [5, 10])
+    def test_fft_simple(self, nb_periods):
+        X = np.sin(np.linspace(0, nb_periods * 2 * np.pi, 5000))
+        window_size = compute_window_size(X, window_size='fft')
+        assert window_size == 5000/nb_periods
+
+    @pytest.mark.parametrize('period_size', [25, 42])
+    @pytest.mark.parametrize('nb_periods', [5, 10])
+    def test_acf_simple(self, period_size, nb_periods):
+        rng = np.random.default_rng(42)
+        period = rng.uniform(size=period_size)
+        X = np.tile(period, nb_periods)
+
+        # Check if X is correctly formatted
+        assert X.shape == (period_size * nb_periods,)
+        assert np.array_equal(X[:period_size], period)
+
+        window_size = compute_window_size(X, window_size='acf')
+        assert window_size == period_size
+
+    def test_mwf_three_periods(self):
+        X = np.sin(np.linspace(0, 1.5 * 2 * np.pi, 500))
+
+        window_size = compute_window_size(X, window_size='mwf', upper_bound=500)
+        assert window_size == pytest.approx(500 // 3, abs=5)
+
+    def test_suss_exact_threshold(self):
+        X, _ = demonstration_time_series()
+        assert compute_window_size(X, 'suss', threshold=0.9437091537824681) == 104
