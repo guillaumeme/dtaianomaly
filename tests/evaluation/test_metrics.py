@@ -1,11 +1,11 @@
 
 import pytest
 import numpy as np
-from dtaianomaly.evaluation import Precision, Recall, FBeta, AreaUnderPR, AreaUnderROC, ThresholdMetric
+from dtaianomaly.evaluation import *
 from dtaianomaly.thresholding import FixedCutoff
 
-binary_metrics = [Precision(), Recall(), FBeta()]
-proba_metrics = [AreaUnderROC(), AreaUnderPR(), ThresholdMetric(FixedCutoff(0.5), Precision())]
+binary_metrics = [Precision(), Recall(), FBeta(), PointAdjustedPrecision(), PointAdjustedRecall(), PointAdjustedFBeta()]
+proba_metrics = [AreaUnderROC(), AreaUnderPR(), ThresholdMetric(FixedCutoff(0.5), Precision()), BestThresholdMetric(Precision())]
 
 
 @pytest.mark.parametrize('metric', binary_metrics + proba_metrics)
