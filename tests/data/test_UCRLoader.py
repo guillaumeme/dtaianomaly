@@ -35,11 +35,11 @@ class TestUCRLoader:
 
     @data_available
     def test_contains_anomaly(self, loaded):
-        assert np.sum(loaded.y == 1) > 0
+        assert np.sum(loaded.y_test == 1) > 0
 
     @data_available
     def test_samples_match(self, loaded):
-        assert loaded.x.shape[0] == loaded.y.shape[0]
+        assert loaded.X_test.shape[0] == loaded.y_test.shape[0]
 
     def test_faulty_path(self):
         with pytest.raises(FileNotFoundError):

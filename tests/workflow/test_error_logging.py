@@ -4,9 +4,10 @@ import sys
 import py_compile
 import subprocess
 import pathlib
+import numpy as np
 
 from dtaianomaly.data import LazyDataLoader, DataSet, demonstration_time_series
-from dtaianomaly.anomaly_detection import BaseDetector, IsolationForest
+from dtaianomaly.anomaly_detection import BaseDetector, IsolationForest, Supervision
 from dtaianomaly.preprocessing import Preprocessor, Identity, ChainedPreprocessor
 from dtaianomaly.pipeline import Pipeline
 from dtaianomaly.evaluation import AreaUnderROC
@@ -22,6 +23,16 @@ class DemonstrationDataLoader(LazyDataLoader):
     def _load(self) -> DataSet:
         X, y = demonstration_time_series()
         return DataSet(X, y)
+
+
+class DemonstrationDataLoaderWithTrainData(LazyDataLoader):
+
+    def __init__(self):
+        super().__init__('.')
+
+    def _load(self) -> DataSet:
+        X, y = demonstration_time_series()
+        return DataSet(X, y, X_train=np.zeros(shape=1000))
 
 
 class ErrorDataLoader(LazyDataLoader):
@@ -40,6 +51,9 @@ class ErrorPreprocessor(Preprocessor):
 
 
 class ErrorAnomalyDetector(BaseDetector):
+
+    def __init__(self):
+        super().__init__(Supervision.UNSUPERVISED)
 
     def fit(self, X, y=None):
         return self
@@ -126,12 +140,31 @@ class TestErrorLogging:
         assert error_file_contains_error(error_file, error)
         assert error_file_results_in_error(error_file, error)
 
+    def test_error_train_on_fit_data(self, tmp_path_factory):
+        workflow = Workflow(
+            dataloaders=DemonstrationDataLoaderWithTrainData(),
+            metrics=AreaUnderROC(),
+            preprocessors=Identity(),
+            detectors=ErrorAnomalyDetector(),
+            error_log_path=str(tmp_path_factory.mktemp('error-log'))
+        )
+        results = workflow.run()
+
+        assert results.shape == (1, 6)
+        assert 'Error file' in results.columns
+
+        error_file = results.loc[0, 'Error file']
+        error = Exception('An error occurred when detecting anomalies!')
+        assert error_file_has_correct_syntax(error_file)
+        assert error_file_contains_error(error_file, error)
+        assert error_file_results_in_error(error_file, error)
+
     def test_log_no_exception(self, tmp_path_factory):
         error = Exception('Dummy')
         error_file = log_error(
             error_log_path=str(tmp_path_factory.mktemp('error-log')),
             exception=Exception('Dummy'),
-            data_loader=DemonstrationDataLoader(),
+            data_loader=DemonstrationDataLoaderWithTrainData(),
             pipeline=Pipeline(
                 preprocessor=Identity(),
                 detector=IsolationForest(15)
@@ -165,6 +198,7 @@ def error_file_results_in_error(error_file, error):
 
 def error_file_runs_successfully(error_file):
     output = _run_error_file(error_file)
+    print(output)
     return output.returncode == 0
 
 
@@ -177,6 +211,8 @@ def _run_error_file(error_file):
     # Add this file as import
     with open(error_file, 'r+') as file:
         content = file.read()
+        print()
+        print(content)
         file.seek(0, 0)
         file.write(f'from {pathlib.Path(__file__).stem} import *\n' + content)
 
