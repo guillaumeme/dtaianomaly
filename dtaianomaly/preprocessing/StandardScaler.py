@@ -6,9 +6,9 @@ from sklearn.exceptions import NotFittedError
 from dtaianomaly.preprocessing.Preprocessor import Preprocessor
 
 
-class ZNormalizer(Preprocessor):
+class StandardScaler(Preprocessor):
     """
-    Rescale to zero mean, unit variance.
+    Standard scale the data: rescale to zero mean, unit variance.
 
     Rescale to zero mean and unit variance. A mean value and standard
     deviation is computed on a training set, after which these values
@@ -37,7 +37,7 @@ class ZNormalizer(Preprocessor):
     Raises
     ------
     NotFittedError
-        If the `transform` method is called before fitting this MinMaxScaler.
+        If the `transform` method is called before fitting this StandardScaler.
     """
     min_std: float
     mean_: np.array
@@ -46,7 +46,7 @@ class ZNormalizer(Preprocessor):
     def __init__(self, min_std: float = 1e-9):
         self.min_std = min_std
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> 'ZNormalizer':
+    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> 'StandardScaler':
         if len(X.shape) == 1 or X.shape[1] == 1:
             # univariate case
             self.mean_ = np.array([np.nanmean(X)])
@@ -62,7 +62,7 @@ class ZNormalizer(Preprocessor):
         if not (hasattr(self, 'mean_') and hasattr(self, 'std_')):
             raise NotFittedError(f'Call `fit` before using transform on {str(self)}')
         if not ((len(X.shape) == 1 and self.mean_.shape[0] == 1) or X.shape[1] == self.mean_.shape[0]):
-            raise AttributeError(f'Trying to z-normalize a time series with {X.shape[0]} attributes while it was fitted on {self.min_.shape[0]} attributes!')
+            raise AttributeError(f'Trying to standard scale a time series with {X.shape[0]} attributes while it was fitted on {self.mean_.shape[0]} attributes!')
 
         # If the std of all attributes is 0, then no transformation happens
         if np.all((self.std_ < self.min_std)):

@@ -345,10 +345,10 @@ def preprocessing_entry(entry):
             raise TypeError(f'Too many parameters given for entry: {entry}')
         return preprocessing.MinMaxScaler()
 
-    elif processing_type == 'ZNormalizer':
+    elif processing_type == 'StandardScaler':
         if len(entry_without_type) > 0:
             raise TypeError(f'Too many parameters given for entry: {entry}')
-        return preprocessing.ZNormalizer()
+        return preprocessing.StandardScaler()
 
     elif processing_type == 'MovingAverage':
         return preprocessing.MovingAverage(**entry_without_type)
@@ -367,6 +367,9 @@ def preprocessing_entry(entry):
 
     elif processing_type == 'PiecewiseAggregateApproximation':
         return preprocessing.PiecewiseAggregateApproximation(**entry_without_type)
+
+    elif processing_type == 'RobustScaler':
+        return preprocessing.RobustScaler(**entry_without_type)
 
     elif processing_type == 'ChainedPreprocessor':
         if len(entry_without_type) != 1:
