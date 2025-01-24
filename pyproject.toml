@@ -60,6 +60,9 @@ all = [  # All the optional dependencies
     "pytest-cov",
     "notebook",
     "jupyterlab",
+    "pre-commit",
+    "black",
+    "isort"
 ]
 tests = [  # For testing
     "pytest",
@@ -74,4 +77,9 @@ docs = [  # For generating the docs
 notebooks = [  # For using notebooks
     "notebook",
     "jupyterlab",
+]
+lint = [
+    "pre-commit",
+    "black",
+    "isort"
 ]

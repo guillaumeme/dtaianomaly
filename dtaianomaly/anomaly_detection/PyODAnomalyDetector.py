@@ -1,12 +1,18 @@
-
 import abc
-import numpy as np
 from typing import Optional, Union
-from sklearn.exceptions import NotFittedError
+
+import numpy as np
 from pyod.models.base import BaseDetector as PyODBaseDetector
-from dtaianomaly.anomaly_detection.BaseDetector import BaseDetector, Supervision
-from dtaianomaly.anomaly_detection.windowing_utils import sliding_window, reverse_sliding_window, check_is_valid_window_size, compute_window_size
+from sklearn.exceptions import NotFittedError
+
 from dtaianomaly import utils
+from dtaianomaly.anomaly_detection.BaseDetector import BaseDetector, Supervision
+from dtaianomaly.anomaly_detection.windowing_utils import (
+    check_is_valid_window_size,
+    compute_window_size,
+    reverse_sliding_window,
+    sliding_window,
+)
 
 
 class PyODAnomalyDetector(BaseDetector, abc.ABC):
@@ -42,6 +48,7 @@ class PyODAnomalyDetector(BaseDetector, abc.ABC):
        for Scalable Outlier Detection. Journal of machine learning research (JMLR), 20(96),
        pp.1-7.
     """
+
     window_size: Union[int, str]
     stride: int
     kwargs: dict
@@ -91,7 +98,9 @@ class PyODAnomalyDetector(BaseDetector, abc.ABC):
             The supervision of this PyOD anomaly detector.
         """
 
-    def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None, **kwargs) -> 'BaseDetector':
+    def fit(
+        self, X: np.ndarray, y: Optional[np.ndarray] = None, **kwargs
+    ) -> "BaseDetector":
         """
         Fit this PyOD anomaly detector on the given data.
 
@@ -147,11 +156,15 @@ class PyODAnomalyDetector(BaseDetector, abc.ABC):
         """
         if not utils.is_valid_array_like(X):
             raise ValueError("Input must be numerical array-like")
-        if not hasattr(self, 'pyod_detector_') or not hasattr(self, 'window_size_'):
-            raise NotFittedError('Call the fit function before making predictions!')
+        if not hasattr(self, "pyod_detector_") or not hasattr(self, "window_size_"):
+            raise NotFittedError("Call the fit function before making predictions!")
 
         X = np.asarray(X)
-        per_window_decision_scores = self.pyod_detector_.decision_function(sliding_window(X, self.window_size_, self.stride))
-        decision_scores = reverse_sliding_window(per_window_decision_scores, self.window_size_, self.stride, X.shape[0])
+        per_window_decision_scores = self.pyod_detector_.decision_function(
+            sliding_window(X, self.window_size_, self.stride)
+        )
+        decision_scores = reverse_sliding_window(
+            per_window_decision_scores, self.window_size_, self.stride, X.shape[0]
+        )
 
         return decision_scores
