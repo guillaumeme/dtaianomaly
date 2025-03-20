@@ -9,11 +9,11 @@ import os
 import sys
 import pathlib
 
-from dtaianomaly.demonstrator.Demonstrator import main
+from dtaianomaly.demonstrator.demonstrator import main
 
 def run_demonstrator():
     """Run the Streamlit-based demonstrator application."""
-    script_path = pathlib.Path(__file__).parent / "Demonstrator.py"
+    script_path = pathlib.Path(__file__).parent / "demonstrator.py"
     
     try:
         from streamlit.web import cli as stcli

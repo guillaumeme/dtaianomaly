@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -13,6 +15,10 @@ from scipy import stats
 import seaborn as sns
 import plotly.express as px
 import io  # Added for BytesIO
+
+# Add these imports to allow for direct execution
+from streamlit.web import cli as stcli
+from streamlit import runtime
 
 from dtaianomaly import data, anomaly_detection, preprocessing, evaluation, thresholding
 from dtaianomaly.pipeline import EvaluationPipeline
@@ -31,7 +37,7 @@ if not os.path.exists(LOG_DIR):
 
 # Create logger
 logger = logging.getLogger('streamlit_app')
-if not logger.handlers:  # Only add handlers if they don't exist (to avoid duplicates)
+if not logger.handlers:  
     logger.setLevel(logging.DEBUG)
     
     # File handler
@@ -84,10 +90,10 @@ if 'export_data' not in st.session_state:
 if 'threshold_hyperparams' not in st.session_state:
     st.session_state.threshold_hyperparams = {}
 
-# --- Helper functies ---
+# --- Helper functions ---
 
 def get_available_options(module, base_class, include_functions=False):
-    """Haalt dynamisch beschikbare opties op uit een dtaianomaly module."""
+    """Dynamically retrieves available options from a dtaianomaly module."""
     options = []
     for name, obj in inspect.getmembers(module):
         if (inspect.isclass(obj) and issubclass(obj, base_class) and obj is not base_class and
@@ -101,45 +107,45 @@ def get_available_options(module, base_class, include_functions=False):
 
 
 def load_dataset(dataset_name: str) -> tuple[np.ndarray, np.ndarray]:
-    """Laadt een dataset uit dtaianomaly.data of dtaianomaly.data.synthetic."""
+    """Loads a dataset from dtaianomaly.data or dtaianomaly.data.synthetic."""
     if hasattr(data, dataset_name):
         dataset_function = getattr(data, dataset_name)
     else:
         dataset_function = getattr(data.synthetic, dataset_name)
     x, y = dataset_function()
     if not is_valid_array_like(x) or not is_valid_array_like(y) or not np.all(np.isin(y, [0, 1])):
-        raise ValueError("Ongeldige dataset: moet array-achtig zijn met binaire labels (0 of 1).")
+        raise ValueError("Invalid dataset: must be array-like with binary labels (0 or 1).")
     return x, y
 
 
 def load_component(module, component_name: str, **kwargs):
-    """Laadt dynamisch een component van dtaianomaly op basis van naam en parameters."""
-    if component_name is None or component_name == "Geen":
+    """Dynamically loads a component from dtaianomaly based on name and parameters."""
+    if component_name is None or component_name == "None":
         return None
     try:
         component_class = getattr(module, component_name)
         try:
             return component_class(**kwargs)
         except TypeError as e:
-            st.error(f"Fout bij initialiseren van {component_name}: Verkeerde parameters: {e}")
+            st.error(f"Error initializing {component_name}: Wrong parameters: {e}")
             # Show the expected parameters
             sig = inspect.signature(component_class.__init__)
             param_str = ", ".join([f"{p}" for p in sig.parameters if p != 'self'])
-            st.info(f"Verwachte parameters voor {component_name}: {param_str}")
+            st.info(f"Expected parameters for {component_name}: {param_str}")
             return None
         except Exception as e:
-            st.error(f"Fout bij initialiseren van {component_name}: {e}")
+            st.error(f"Error initializing {component_name}: {e}")
             return None
     except AttributeError:
-        st.error(f"Component {component_name} niet gevonden in de module.")
+        st.error(f"Component {component_name} not found in the module.")
         return None
     except Exception as e:
-        st.error(f"Onverwachte fout bij laden van {component_name}: {e}")
+        st.error(f"Unexpected error loading {component_name}: {e}")
         return None
 
 
 def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any]:
-    """Genereert invoervelden voor detector hyperparameters met een unieke prefix."""
+    """Generates input fields for detector hyperparameters with a unique prefix."""
     try:
         detector_class = getattr(anomaly_detection, detector_name)
         signature = inspect.signature(detector_class.__init__)
@@ -169,13 +175,13 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
             # Special handling for window_size parameter
             if param_name == "window_size":
                 window_size_option = st.selectbox(
-                    f"{param_name} optie", ["Auto (fft)", "Handmatig"], 
+                    f"{param_name} option", ["Auto (fft)", "Manual"], 
                     key=f"{prefix}_window_size_option", 
                     index=0
                 )
-                if window_size_option == "Handmatig":
+                if window_size_option == "Manual":
                     hyperparams['window_size'] = int(st.number_input(
-                        f"Handmatige {param_name}", 
+                        f"Manual {param_name}", 
                         min_value=1, 
                         value=20 if default_value is None else int(default_value),
                         key=f"{prefix}_window_size_manual"
@@ -251,7 +257,7 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                         hyperparams[param_name] = None
                 else:
                     # For complex types or containers (list, dict, etc.), use string input
-                    st.warning(f"Parameter {param_name} heeft een complex type. Voer in als string.")
+                    st.warning(f"Parameter {param_name} has a complex type. Enter as string.")
                     hyperparams[param_name] = st.text_input(
                         f"{param_name} (complex type)", 
                         value=str(default_value),
@@ -260,12 +266,12 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
         
         return hyperparams
     except Exception as e:
-        st.error(f"Fout bij genereren hyperparameters voor {detector_name}: {e}")
+        st.error(f"Error generating hyperparameters for {detector_name}: {e}")
         return {}
 
 
 def get_default_hyperparams(component_class):
-    """Haalt de standaard hyperparameters op voor een gegeven klasse."""
+    """Gets the default hyperparameters for a given class."""
     signature = inspect.signature(component_class.__init__)
     hyperparams = {}
     for param_name, param_obj in signature.parameters.items():
@@ -285,166 +291,165 @@ def get_default_hyperparams(component_class):
     return hyperparams
 
 
-# --- Functie om geüploade data te valideren ---
+# --- Function to validate uploaded data ---
 def validate_uploaded_data(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, str]:
     """
-    Valideert de geüploade dataset en retourneert x, y als numpy arrays.
-    Retourneert ook een foutmelding als de data ongeldig is.
+    Validates the uploaded dataset and returns x, y as numpy arrays.
+    Also returns an error message if the data is invalid.
     """
     required_columns = ['Time Step', 'Value', 'Label']
     if not all(col in df.columns for col in required_columns):
-        return None, None, "De dataset moet de kolommen 'Time Step', 'Value' en 'Label' bevatten."
+        return None, None, "The dataset must contain the columns 'Time Step', 'Value', and 'Label'."
 
     if not pd.api.types.is_numeric_dtype(df['Time Step']):
-        return None, None, "De 'Time Step' kolom moet numeriek zijn."
+        return None, None, "The 'Time Step' column must be numeric."
 
     if not pd.api.types.is_numeric_dtype(df['Value']):
-        return None, None, "De 'Value' kolom moet numeriek zijn."
+        return None, None, "The 'Value' column must be numeric."
 
     if not pd.api.types.is_numeric_dtype(df['Label']):
-        return None, None, "De 'Label' kolom moet numeriek zijn."
+        return None, None, "The 'Label' column must be numeric."
 
     if not set(df['Label']).issubset({0, 1}):
-        return None, None, "De 'Label' kolom moet binaire waarden (0 of 1) bevatten."
+        return None, None, "The 'Label' column must contain binary values (0 or 1)."
 
     x = df[['Time Step', 'Value']].to_numpy()
     y = df['Label'].to_numpy()
 
     if not is_valid_array_like(x) or not is_valid_array_like(y):
-        return None, None, "De dataset is ongeldig: moet array-achtig zijn."
+        return None, None, "The dataset is invalid: must be array-like."
 
     return x, y, ""
 
 
 def configure_sidebar():
-    """Configureert de Streamlit sidebar met data, evaluatiemetrics en visualisatie-opties."""
-    with st.sidebar:
-        st.header("Configuratie")
+    """Configures the Streamlit sidebar with data, evaluation metrics, and visualization options."""
+    st.sidebar.header("Configuration")
 
-        # Optie om eigen data te uploaden of ingebouwde dataset te kiezen
-        st.subheader("1. Dataset")
-        upload_option = st.radio(
-            "Kies een dataset bron:",
-            ["Gebruik ingebouwde dataset", "Upload eigen dataset"],
-            key="upload_option"
+    # Option to upload custom data or choose built-in dataset
+    st.sidebar.subheader("1. Dataset")
+    upload_option = st.sidebar.radio(
+        "Choose a dataset source:",
+        ["Use built-in dataset", "Upload custom dataset"],
+        key="upload_option"
+    )
+
+    if upload_option == "Upload custom dataset":
+        uploaded_file = st.sidebar.file_uploader(
+            "Drag your CSV or Excel file here or click to upload",
+            type=["csv", "xlsx", "xls"],
+            key="file_uploader"
         )
-
-        if upload_option == "Upload eigen dataset":
-            uploaded_file = st.file_uploader(
-                "Sleep je CSV of Excel bestand hierheen of klik om te uploaden",
-                type=["csv", "xlsx", "xls"],
-                key="file_uploader"
-            )
-            if uploaded_file is not None:
-                try:
-                    if uploaded_file.name.endswith('.csv'):
-                        df = pd.read_csv(uploaded_file)
-                    else:
-                        df = pd.read_excel(uploaded_file)
-                    x, y, error = validate_uploaded_data(df)
-                    if error:
-                        st.error(error)
-                        st.session_state.uploaded_data_valid = False
-                    else:
-                        st.session_state.uploaded_data = (x, y)
-                        st.session_state.uploaded_data_valid = True
-                        st.success("Geüploade dataset is geldig en klaar voor gebruik.")
-                except Exception as e:
-                    st.error(f"Fout bij het laden van de geüploade dataset: {e}")
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                else:
+                    df = pd.read_excel(uploaded_file)
+                x, y, error = validate_uploaded_data(df)
+                if error:
+                    st.error(error)
                     st.session_state.uploaded_data_valid = False
-            else:
+                else:
+                    st.session_state.uploaded_data = (x, y)
+                    st.session_state.uploaded_data_valid = True
+                    st.success("Uploaded dataset is valid and ready to use.")
+            except Exception as e:
+                st.error(f"Error loading the uploaded dataset: {e}")
                 st.session_state.uploaded_data_valid = False
         else:
-            dataset_options = get_available_options(data, data.LazyDataLoader, True) + get_available_options(
-                data.synthetic, object, True)
-            default_dataset_index = dataset_options.index(
-                'demonstration_time_series') if 'demonstration_time_series' in dataset_options else 0
-            st.session_state.selected_dataset_name = st.selectbox(
-                "Selecteer Dataset",
-                dataset_options,
-                key="dataset_select",
-                index=default_dataset_index,
-                help="Kies een dataset om te analyseren."
-            )
             st.session_state.uploaded_data_valid = False
-        
-        # Preprocessing instelling (verborgen voor gebruikers, standaard op MinMaxScaler)
-        st.session_state.selected_preprocess_name = "MinMaxScaler"
-        st.session_state.preprocess_hyperparams = {}
-        
-        # Evaluatiemetrics Selectie
-        st.subheader("2. Evaluatiemetrics")
-        metric_options = get_available_options(evaluation, evaluation.Metric)
-        st.session_state.selected_metrics = st.multiselect(
-            "Selecteer Metrics", 
-            metric_options,
-            default=["AreaUnderROC", "Precision"],
-            key="metrics_select"
+    else:
+        dataset_options = get_available_options(data, data.LazyDataLoader, True) + get_available_options(
+            data.synthetic, object, True)
+        default_dataset_index = dataset_options.index(
+            'demonstration_time_series') if 'demonstration_time_series' in dataset_options else 0
+        st.session_state.selected_dataset_name = st.sidebar.selectbox(
+            "Select Dataset",
+            dataset_options,
+            key="dataset_select",
+            index=default_dataset_index,
+            help="Choose a dataset to analyze."
         )
+        st.session_state.uploaded_data_valid = False
+    
+    # Preprocessing setting (hidden from users, default to MinMaxScaler)
+    st.session_state.selected_preprocess_name = "MinMaxScaler"
+    st.session_state.preprocess_hyperparams = {}
+    
+    # Evaluation Metrics Selection
+    st.sidebar.subheader("2. Evaluation Metrics")
+    metric_options = get_available_options(evaluation, evaluation.Metric)
+    st.session_state.selected_metrics = st.sidebar.multiselect(
+        "Select Metrics", 
+        metric_options,
+        default=["AreaUnderROC", "Precision"],
+        key="metrics_select"
+    )
+    
+    # Thresholding Selection
+    st.sidebar.subheader("3. Thresholding")
+    threshold_options = get_available_options(thresholding, thresholding.Thresholding)
+    if not threshold_options:
+        st.error("No thresholding classes found. Check the installation.")
+        st.stop()
         
-        # Thresholding Selectie
-        st.subheader("3. Thresholding")
-        threshold_options = get_available_options(thresholding, thresholding.Thresholding)
-        if not threshold_options:
-            st.error("Geen thresholding-klassen gevonden. Controleer de installatie.")
-            st.stop()
-            
-        valid_default_thresholds = [opt for opt in ["FixedThreshold"] if opt in threshold_options] or [threshold_options[0]]
-        st.session_state.selected_thresholds = st.multiselect(
-            "Selecteer Thresholds", 
-            threshold_options,
-            default=valid_default_thresholds,
-            key="thresholds_select"
-        )
-        
-        # Threshold Hyperparameters
-        for threshold_name in st.session_state.selected_thresholds:
-            threshold_class = getattr(thresholding, threshold_name)
-            st.session_state.threshold_hyperparams[threshold_name] = get_default_hyperparams(threshold_class)
-            with st.expander(f"{threshold_name} Instellingen"):
-                for param_name in st.session_state.threshold_hyperparams[threshold_name]:
-                    default_value = st.session_state.threshold_hyperparams[threshold_name][param_name]
-                    if isinstance(default_value, float):
-                        st.session_state.threshold_hyperparams[threshold_name][param_name] = st.number_input(
-                            f"{param_name}", value=default_value, step=0.1, format="%.2f",
-                            key=f"threshold_{threshold_name}_{param_name}"
-                        )
-                    elif isinstance(default_value, int):
-                        st.session_state.threshold_hyperparams[threshold_name][param_name] = st.number_input(
-                            f"{param_name}", value=default_value, step=1,
-                            key=f"threshold_{threshold_name}_{param_name}"
-                        )
-                    elif isinstance(default_value, bool):
-                        st.session_state.threshold_hyperparams[threshold_name][param_name] = st.checkbox(
-                            f"{param_name}", value=default_value,
-                            key=f"threshold_{threshold_name}_{param_name}"
-                        )
-                    elif isinstance(default_value, str):
-                        st.session_state.threshold_hyperparams[threshold_name][param_name] = st.text_input(
-                            f"{param_name}", value=default_value,
-                            key=f"threshold_{threshold_name}_{param_name}"
-                        )
-        
-        # Visualisatie-opties
-        st.subheader("4. Visualisatie-opties")
-        visualization_options = ["Anomaliescores", "Afgebakende Anomalieën", "Tijdreeks Gekleurd door Score",
-                                 "Tijdreeks met Anomalieën", "Zoomweergave"]
-        st.session_state.selected_visualizations = st.multiselect(
-            "Selecteer Visualisaties",
-            visualization_options,
-            default=["Tijdreeks met Anomalieën"],
-            key="visualizations_select"
-        )
+    valid_default_thresholds = [opt for opt in ["FixedThreshold"] if opt in threshold_options] or [threshold_options[0]]
+    st.session_state.selected_thresholds = st.sidebar.multiselect(
+        "Select Thresholds", 
+        threshold_options,
+        default=valid_default_thresholds,
+        key="thresholds_select"
+    )
+    
+    # Threshold Hyperparameters
+    for threshold_name in st.session_state.selected_thresholds:
+        threshold_class = getattr(thresholding, threshold_name)
+        st.session_state.threshold_hyperparams[threshold_name] = get_default_hyperparams(threshold_class)
+        with st.sidebar.expander(f"{threshold_name} Settings"):
+            for param_name in st.session_state.threshold_hyperparams[threshold_name]:
+                default_value = st.session_state.threshold_hyperparams[threshold_name][param_name]
+                if isinstance(default_value, float):
+                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
+                        f"{param_name}", value=default_value, step=0.1, format="%.2f",
+                        key=f"threshold_{threshold_name}_{param_name}"
+                    )
+                elif isinstance(default_value, int):
+                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
+                        f"{param_name}", value=default_value, step=1,
+                        key=f"threshold_{threshold_name}_{param_name}"
+                    )
+                elif isinstance(default_value, bool):
+                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.checkbox(
+                        f"{param_name}", value=default_value,
+                        key=f"threshold_{threshold_name}_{param_name}"
+                    )
+                elif isinstance(default_value, str):
+                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.text_input(
+                        f"{param_name}", value=default_value,
+                        key=f"threshold_{threshold_name}_{param_name}"
+                    )
+    
+    # Visualization options
+    st.sidebar.subheader("4. Visualization Options")
+    visualization_options = ["Anomaly Scores", "Demarcated Anomalies", "Time Series Colored by Score",
+                             "Time Series with Anomalies", "Zoom View"]
+    st.session_state.selected_visualizations = st.sidebar.multiselect(
+        "Select Visualizations",
+        visualization_options,
+        default=["Time Series with Anomalies"],
+        key="visualizations_select"
+    )
 
-        # Zoom-instellingen indien gewenst
-        if "Zoomweergave" in st.session_state.selected_visualizations:
-            st.session_state.zoom_start = st.number_input("Zoom Start Index", min_value=0, value=0,
-                                                         key="zoom_start")
-            st.session_state.zoom_end = st.number_input("Zoom End Index", min_value=1, value=100,
-                                                       key="zoom_end")
+    # Zoom settings if desired
+    if "Zoom View" in st.session_state.selected_visualizations:
+        st.session_state.zoom_start = st.sidebar.number_input("Zoom Start Index", min_value=0, value=0,
+                                                             key="zoom_start")
+        st.session_state.zoom_end = st.sidebar.number_input("Zoom End Index", min_value=1, value=100,
+                                                           key="zoom_end")
 
 def add_detector_tab():
-    """Voegt een nieuwe detector tab toe aan de session state."""
+    """Adds a new detector tab to the session state."""
     new_tab = {
         'id': st.session_state.next_tab_id,
         'mode': 'Beginner',
@@ -455,17 +460,17 @@ def add_detector_tab():
     st.session_state.current_detector_tab = len(st.session_state.detector_tabs) - 1
     
 def remove_detector_tab(tab_id):
-    """Verwijdert een detector tab uit de session state."""
+    """Removes a detector tab from the session state."""
     for i, tab in enumerate(st.session_state.detector_tabs):
         if tab['id'] == tab_id:
             st.session_state.detector_tabs.pop(i)
-            # Als de huidige tab is verwijderd, ga naar de eerste tab
+            # If the current tab was removed, go to the first tab
             if st.session_state.current_detector_tab >= len(st.session_state.detector_tabs):
                 st.session_state.current_detector_tab = 0
             break
 
 def configure_detector_tab(tab_index):
-    """Configureert de detector instellingen voor een specifieke tab."""
+    """Configures the detector settings for a specific tab."""
     tab = st.session_state.detector_tabs[tab_index]
     
     # Beginner/Expert toggle
@@ -474,21 +479,21 @@ def configure_detector_tab(tab_index):
         st.subheader(f"Detector {tab_index + 1}")
     with col2:
         mode = st.selectbox(
-            "Modus",
+            "Mode",
             ["Beginner", "Expert"],
             index=0 if tab['mode'] == 'Beginner' else 1,
             key=f"mode_select_{tab['id']}"
         )
         tab['mode'] = mode
     
-    # Detector Selectie
+    # Detector Selection
     detector_options = get_available_options(anomaly_detection, anomaly_detection.BaseDetector)
     default_index = detector_options.index('IsolationForest') if 'IsolationForest' in detector_options else 0
     if tab_index == 1 and 'LOF' in detector_options:
         default_index = detector_options.index('LOF')
     
     selected_detector = st.selectbox(
-        "Selecteer Detector",
+        "Select Detector",
         detector_options,
         index=default_index,
         key=f"detector_select_{tab['id']}"
@@ -503,23 +508,23 @@ def configure_detector_tab(tab_index):
     except (AttributeError, TypeError):
         requires_window_size = False
     
-    # Hyperparameters instellen
+    # Set hyperparameters
     detector_key = f"detector_{tab_index + 1}"
     
     if tab['mode'] == 'Beginner':
-        # Eenvoudige hyperparameters voor beginners
+        # Simple hyperparameters for beginners
         st.session_state.detector_hyperparams[detector_key] = {"window_size": "fft"}
         if requires_window_size:
-            st.info(f"Detector {selected_detector} gebruikt standaard window_size: 'fft'")
-        st.write("Standaard instellingen worden gebruikt voor deze detector.")
+            st.info(f"Detector {selected_detector} using default window_size: 'fft'")
+        st.write("Default settings are used for this detector.")
     else:
-        # Geavanceerde hyperparameters voor experts
-        with st.expander("Geavanceerde Instellingen"):
+        # Advanced hyperparameters for experts
+        with st.sidebar.expander("Advanced Settings"):
             hyperparams = generate_hyperparam_inputs(selected_detector, prefix=f"expert_{detector_key}")
             
             # Ensure window_size is included if needed
             if requires_window_size and 'window_size' not in hyperparams:
-                st.warning(f"Detector {selected_detector} vereist window_size maar deze is niet opgegeven. Gebruikt 'fft' als standaard.")
+                st.warning(f"Detector {selected_detector} requires window_size but it wasn't specified. Using 'fft' as default.")
                 hyperparams['window_size'] = 'fft'
                 
             st.session_state.detector_hyperparams[detector_key] = hyperparams
@@ -527,7 +532,7 @@ def configure_detector_tab(tab_index):
     return tab['detector']
 
 def run_detector(tab_index):
-    """Voert de detectiepipeline uit voor een specifieke detector tab."""
+    """Executes the detection pipeline for a specific detector tab."""
     logger.info(f"Starting detector execution for tab {tab_index}")
     tab = st.session_state.detector_tabs[tab_index]
     detector_key = f"detector_{tab_index + 1}"
@@ -535,10 +540,10 @@ def run_detector(tab_index):
     
     if not selected_detector:
         logger.warning("No detector selected")
-        st.error("Selecteer eerst een detector.")
+        st.error("Please select a detector first.")
         return
     
-    # Voer pipeline uit voor deze detector
+    # Run pipeline for this detector
     detector_config = {
         "name": selected_detector,
         "key": detector_key,
@@ -546,16 +551,16 @@ def run_detector(tab_index):
     }
     logger.debug(f"Detector configuration: {detector_config}")
     
-    # Datasets en preprocessing
+    # Datasets and preprocessing
     try:
         if st.session_state.uploaded_data_valid:
             logger.debug("Using uploaded data")
             x, y = st.session_state.uploaded_data
-            st.write("Geüploade dataset succesvol geladen.")
+            st.write("Successfully loaded uploaded dataset.")
         else:
             logger.debug(f"Loading dataset: {st.session_state.selected_dataset_name}")
             x, y = load_dataset(st.session_state.selected_dataset_name)
-            st.write("Ingebouwde dataset succesvol geladen.")
+            st.write("Successfully loaded built-in dataset.")
         
         # Log info about input data
         logger.debug(f"Input data type: {type(x)}, Shape: {x.shape if hasattr(x, 'shape') else 'unknown'}")
@@ -567,7 +572,7 @@ def run_detector(tab_index):
         st.session_state.export_data['original_y'] = y
         
         # Process data using original code's approach
-        if st.session_state.selected_preprocess_name != "Geen":
+        if st.session_state.selected_preprocess_name != "None":
             logger.debug(f"Applying preprocessor: {st.session_state.selected_preprocess_name}")
             preprocessor = load_component(preprocessing, st.session_state.selected_preprocess_name,
                                        **st.session_state.preprocess_hyperparams)
@@ -598,24 +603,24 @@ def run_detector(tab_index):
                 processed_x = np.array(processed_x, dtype=np.float64)
             except ValueError as e:
                 # If we get an inhomogeneous shape error, log information about the data
-                st.warning(f"Data heeft ongelijke dimensies: {e}")
+                st.warning(f"Data has uneven dimensions: {e}")
                 
                 # Log info about the structure
                 if hasattr(processed_x, '__len__'):
-                    st.info(f"Data heeft {len(processed_x)} samples")
+                    st.info(f"Data has {len(processed_x)} samples")
                     
                 # Try to pad the data to make it homogeneous
                 if isinstance(processed_x, list):
                     # Find the maximum length
                     if all(isinstance(item, (list, tuple)) for item in processed_x):
                         max_len = max(len(item) for item in processed_x)
-                        st.info(f"Padding data naar uniforme lengte van {max_len}")
+                        st.info(f"Padding data to uniform length of {max_len}")
                         # Pad with zeros
                         processed_x = [list(item) + [0.0] * (max_len - len(item)) for item in processed_x]
                         processed_x = np.array(processed_x, dtype=np.float64)
                     else:
                         # If it's not a list of lists, try to reshape as needed
-                        st.info("Proberen om data om te zetten naar 2D array")
+                        st.info("Trying to convert data to 2D array")
                         processed_x = np.array(processed_x, dtype=np.object)
                         
                         # For univariate data, reshape to a column vector (n_samples, 1)
@@ -624,7 +629,7 @@ def run_detector(tab_index):
         
         # If processed_x is still a tuple after conversion attempts, extract the first element
         if isinstance(processed_x, tuple):
-            st.info("processed_x is nog steeds een tuple, eerste element gebruiken")
+            st.info("processed_x is still a tuple, using first element")
             processed_x = processed_x[0]
             if isinstance(processed_x, tuple):  # Handle nested tuples if necessary
                 processed_x = processed_x[0]
@@ -644,7 +649,7 @@ def run_detector(tab_index):
             try:
                 processed_x = processed_x.astype(np.float64)
             except (ValueError, TypeError):
-                st.warning("Kon data niet converteren naar float64. Probeer object array.")
+                st.warning("Could not convert data to float64. Trying object array.")
                 processed_x = processed_x.astype(object)
         
         # Handle nans or infinities if present
@@ -655,18 +660,18 @@ def run_detector(tab_index):
         
         # Check if data is empty
         if hasattr(processed_x, 'size') and processed_x.size == 0:
-            st.error("De dataset is leeg na preprocessing.")
+            st.error("The dataset is empty after preprocessing.")
             return False
         
         # Check for constant values across samples
         if isinstance(processed_x, np.ndarray) and processed_x.size > 0:
             if np.all(processed_x == processed_x[0]):
-                st.error("De dataset heeft geen variantie na preprocessing.")
+                st.error("The dataset has no variance after preprocessing.")
                 return False
             
         # Log info about the processed data
         logger.debug(f"Processed data type: {type(processed_x)}, Shape: {processed_x.shape if hasattr(processed_x, 'shape') else 'unknown'}")
-        st.info(f"Verwerkte data type: {type(processed_x)}, Shape: {processed_x.shape if hasattr(processed_x, 'shape') else 'unknown'}")
+        st.info(f"Processed data type: {type(processed_x)}, Shape: {processed_x.shape if hasattr(processed_x, 'shape') else 'unknown'}")
         
         # Log a sample of the processed data
         if isinstance(processed_x, np.ndarray) and processed_x.size > 0:
@@ -996,7 +1001,7 @@ def run_detector(tab_index):
             except Exception as e:
                 logger.error(f"Error applying {threshold_name}: {e}")
                 logger.exception(f"Thresholding error traceback:")
-                st.error(f"Fout bij toepassen van {threshold_name}: {e}")
+                st.error(f"Error applying {threshold_name}: {e}")
                 continue
                 
         # Store results
@@ -1023,17 +1028,17 @@ def run_detector(tab_index):
     except Exception as e:
         logger.error(f"Error executing detector: {e}")
         logger.exception("Detector execution traceback:")
-        st.error(f"Fout tijdens uitvoeren van detector: {e}")
+        st.error(f"Error executing detector: {e}")
         st.error(traceback.format_exc())
         return False
 
 def display_detector_results(tab_index):
-    """Toont de resultaten van de detectie voor een specifieke tab."""
+    """Displays the detection results for a specific tab."""
     tab = st.session_state.detector_tabs[tab_index]
     detector_key = f"detector_{tab_index + 1}"
     
     if detector_key not in st.session_state.results:
-        st.warning("Deze detector is nog niet uitgevoerd.")
+        st.warning("This detector has not been executed yet.")
         return
     
     results = st.session_state.results[detector_key]
@@ -1044,7 +1049,7 @@ def display_detector_results(tab_index):
             x, y = st.session_state.uploaded_data
         else:
             if 'selected_dataset_name' not in st.session_state or not st.session_state.selected_dataset_name:
-                st.error("Geen dataset geselecteerd.")
+                st.error("No dataset selected.")
                 return
             x, y = load_dataset(st.session_state.selected_dataset_name)
         
@@ -1052,12 +1057,12 @@ def display_detector_results(tab_index):
         anomaly_scores = results['anomaly_scores']
         
         # Individual Detector Information
-        st.subheader(f"Detector Informatie: {detector_name}")
-        st.write(f"Fit-tijd: {results['fit_time']:.4f} seconden")
-        st.write(f"Predict-tijd: {results['predict_time']:.4f} seconden")
+        st.subheader(f"Detector Information: {detector_name}")
+        st.write(f"Fit time: {results['fit_time']:.4f} seconds")
+        st.write(f"Predict time: {results['predict_time']:.4f} seconds")
         
         # Create a metrics section for this detector
-        st.subheader("Prestatiemetrics")
+        st.subheader("Performance Metrics")
         
         # Create metrics dataframe for display for just this detector
         metric_rows = []
@@ -1077,7 +1082,7 @@ def display_detector_results(tab_index):
                             metric_rows.append({
                             'Threshold': threshold_name,
                             'Metric': metric_name,
-                            'Waarde': value
+                            'Value': value
                         })
                 
                 # If no metrics are in the results for the current threshold, calculate on the fly
@@ -1106,7 +1111,7 @@ def display_detector_results(tab_index):
                                 metric_rows.append({
                                     'Threshold': threshold_name,
                                     'Metric': metric_name,
-                                    'Waarde': score
+                                    'Value': score
                                 })
                             except Exception as e:
                                 logger.error(f"Error calculating metric {metric_name}: {e}")
@@ -1119,7 +1124,7 @@ def display_detector_results(tab_index):
             st.dataframe(metrics_df)
             
             # Show metrics using Streamlit's metric component for better visualization
-            st.subheader("Metric Overzicht")
+            st.subheader("Metrics Overview")
             
             # Create rows of metrics for visual display
             metrics_list = list(set([row['Metric'] for row in metric_rows]))
@@ -1136,7 +1141,7 @@ def display_detector_results(tab_index):
                                     if row['Metric'] == metric_name and row['Threshold'] == threshold_name]
                     
                     if matching_rows:
-                        score = matching_rows[0]['Waarde']
+                        score = matching_rows[0]['Value']
                         # Format score as percentage if it's a float
                         display_value = f"{score:.2%}" if isinstance(score, float) else score
                         cols[i % len(cols)].metric(
@@ -1144,12 +1149,12 @@ def display_detector_results(tab_index):
                             value=display_value
                         )
         else:
-            st.warning("Geen metrics berekend voor deze detector.")
+            st.warning("No metrics calculated for this detector.")
         
         # Individual Visualizations section
-        st.subheader("Visualisaties")
+        st.subheader("Visualizations")
         if 'selected_visualizations' not in st.session_state or not st.session_state.selected_visualizations:
-            st.info("Geen visualisaties geselecteerd.")
+            st.info("No visualizations selected.")
         else:
             # Use tabs for different visualization types
             viz_tabs = st.tabs(st.session_state.selected_visualizations)
@@ -1157,16 +1162,16 @@ def display_detector_results(tab_index):
             for i, viz in enumerate(st.session_state.selected_visualizations):
                 with viz_tabs[i]:
                     # For visualizations that don't need thresholded predictions
-                    if viz in ["Anomaliescores", "Tijdreeks Gekleurd door Score", "Afgebakende Anomalieën"]:
+                    if viz in ["Anomaly Scores", "Time Series Colored by Score", "Demarcated Anomalies"]:
                         try:
                             fig = generate_visualization(viz, x, y, anomaly_scores)
                             if fig:
                                 st.pyplot(fig)
                                 plt.close(fig)
                             else:
-                                st.warning(f"Kon visualisatie {viz} niet genereren.")
+                                st.warning(f"Could not generate visualization {viz}.")
                         except Exception as viz_error:
-                            st.error(f"Fout bij genereren van {viz}: {viz_error}")
+                            st.error(f"Error generating {viz}: {viz_error}")
                             st.error(traceback.format_exc())
                     else:
                         # For visualizations that need thresholded predictions
@@ -1184,31 +1189,31 @@ def display_detector_results(tab_index):
                                 st.pyplot(fig)
                                 plt.close(fig)
                             else:
-                                st.warning(f"Kon visualisatie {viz} niet genereren.")
+                                st.warning(f"Could not generate visualization {viz}.")
                         except Exception as viz_error:
-                            st.error(f"Fout bij genereren van {viz}: {viz_error}")
+                            st.error(f"Error generating {viz}: {viz_error}")
                             st.error(traceback.format_exc())
         
-        # Export opties
-        st.subheader("Exporteren")
+        # Export options
+        st.subheader("Export")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Exporteer naar Excel", key=f"export_excel_{tab_index}"):
+            if st.button("Export to Excel", key=f"export_excel_{tab_index}"):
                 try:
                     excel_file = export_to_excel()
                     st.download_button(
-                        label="Download Excel bestand",
+                        label="Download Excel file",
                         data=excel_file,
                         file_name=f"anomaly_detection_results_{detector_name}.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         key=f"download_excel_{tab_index}"
                     )
                 except Exception as export_error:
-                    st.error(f"Fout bij exporteren naar Excel: {export_error}")
+                    st.error(f"Error exporting to Excel: {export_error}")
                     st.error(traceback.format_exc())
         
         with col2:
-            if st.button("Exporteer naar CSV", key=f"export_csv_{tab_index}"):
+            if st.button("Export to CSV", key=f"export_csv_{tab_index}"):
                 try:
                     csv_buffer = io.StringIO()
                     # Export anomaly scores
@@ -1220,22 +1225,22 @@ def display_detector_results(tab_index):
                     csv_data = csv_buffer.getvalue()
                     
                     st.download_button(
-                        label="Download CSV bestand",
+                        label="Download CSV file",
                         data=csv_data,
                         file_name=f"anomaly_detection_results_{detector_name}.csv",
                         mime="text/csv",
                         key=f"download_csv_{tab_index}"
                     )
                 except Exception as export_error:
-                    st.error(f"Fout bij exporteren naar CSV: {export_error}")
+                    st.error(f"Error exporting to CSV: {export_error}")
                     st.error(traceback.format_exc())
         
     except Exception as e:
-        st.error(f"Fout bij weergeven resultaten: {e}")
+        st.error(f"Error displaying results: {e}")
         st.error(traceback.format_exc())
 
 def run_pipeline():
-    """Voert de anomaliedetectiepipeline uit voor alle actieve detectors."""
+    """Executes the anomaly detection pipeline for all active detectors."""
     success = False
     for i, _ in enumerate(st.session_state.detector_tabs):
         if run_detector(i):
@@ -1245,17 +1250,17 @@ def run_pipeline():
 
 def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_scores: np.ndarray,
                            thresholded_predictions: np.ndarray = None, time_steps: np.ndarray = None) -> plt.Figure:
-    """Genereert de gevraagde visualisatie."""
+    """Generates the requested visualization."""
     # Check inputs and provide defaults if needed
     if time_steps is None:
         time_steps = format_time_steps(None, x.shape[0])
         
     # Some visualizations don't need thresholded predictions
-    if viz == "Anomaliescores":
+    if viz == "Anomaly Scores":
         return plot_anomaly_scores(x, y, y_pred=anomaly_scores, time_steps=time_steps, figsize=(10, 6))
-    elif viz == "Tijdreeks Gekleurd door Score":
+    elif viz == "Time Series Colored by Score":
         return plot_time_series_colored_by_score(x, anomaly_scores, time_steps=time_steps, figsize=(10, 6))
-    elif viz == "Afgebakende Anomalieën":
+    elif viz == "Demarcated Anomalies":
         return plot_demarcated_anomalies(x, y, time_steps=time_steps, figsize=(10, 6))
         
     # Visualizations that require thresholded predictions
@@ -1263,9 +1268,9 @@ def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_score
         # If no thresholded predictions available, create a simple one with a 0.5 threshold
         thresholded_predictions = (anomaly_scores >= 0.5).astype(int)
     
-    if viz == "Tijdreeks met Anomalieën":
+    if viz == "Time Series with Anomalies":
         return plot_time_series_anomalies(x, y, y_pred=thresholded_predictions, time_steps=time_steps, figsize=(10, 6))
-    elif viz == "Zoomweergave":
+    elif viz == "Zoom View":
         # Default zoom range if not specified
         zoom_start = 0
         zoom_end = min(100, x.shape[0])
@@ -1275,7 +1280,7 @@ def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_score
             zoom_end = st.session_state.zoom_end
             
         if zoom_end <= zoom_start or zoom_end > x.shape[0]:
-            st.error("Ongeldig zoombereik.")
+            st.error("Invalid zoom range.")
             return None
             
         return plot_with_zoom(x, y, start_zoom=zoom_start, end_zoom=zoom_end,
@@ -1286,7 +1291,7 @@ def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_score
 
 
 def export_to_excel():
-    """Genereert een Excel bestand met de verzamelde data."""
+    """Generates an Excel file with the collected data."""
     export_data = st.session_state.export_data
     time_steps = export_data['time_steps']
     original_x = export_data['original_x']
@@ -1356,293 +1361,296 @@ def export_to_excel():
     return output
 
 
-# --- Hoofdapp uitvoering ---
+# --- Main application execution ---
 def main():
-    """Hoofdfunctie om de Streamlit app te draaien."""
-    # App titel en beschrijving
+    """Main function to run the Streamlit app."""
+    # App title and description
     st.title("dtaianomaly Demonstrator")
     st.markdown(
         """
-        Een no-code demonstrator voor de **dtaianomaly** bibliotheek, waarmee je interactief anomaliedetectietechnieken 
-        voor tijdreeksdata kunt verkennen. Deze tool ondersteunt zowel kwalitatieve evaluatie (visualisaties) als 
-        kwantitatieve evaluatie (benchmarking en prestatieconclusies) met vergelijking van meerdere detectoren.
+        A no-code demonstrator for the **dtaianomaly** library, allowing you to interactively explore 
+        anomaly detection techniques for time series data. This tool supports both qualitative evaluation 
+        (visualizations) and quantitative evaluation (benchmarking and performance conclusions) with 
+        comparison of multiple detectors.
         """
     )
     
-    # Verborgen ervaring niveau selectie - alleen de sessie state variabele instellen
-    # We verbergen de UI-element maar behouden de functionaliteit
+    # Hidden experience level selection - only setting the session state variable
+    # We hide the UI-element maar behouden de functionaliteit
     if 'experience_level' not in st.session_state:
         st.session_state.experience_level = "Beginner"
+
+    # Configure the sidebar with datasets, metrics, thresholds, and visualizations
+    configure_sidebar()
     
-    # Main layout with sidebar and main content
-    sidebar_col, main_col = st.columns([1, 3])
+    # Main content area
+    # Create detector tabs section
+    st.subheader("Anomaly Detectors")
     
-    # Left sidebar (fixed configuration)
-    with sidebar_col:
-        # Configure the sidebar with datasets, metrics, thresholds, and visualizations
-        configure_sidebar()
+    # Add/Remove detector tabs
+    tab_col1, tab_col2 = st.columns([9, 1])
+    with tab_col2:
+        if st.button("➕", help="Add detector"):
+            add_detector_tab()
+            st.rerun()
     
-    # Main content area 
-    with main_col:
-        # Create detector tabs section
-        st.subheader("Anomaliedetectoren")
+    # Only proceed if there are detector tabs
+    if not st.session_state.detector_tabs:
+        st.warning("No detectors available. Add a detector using the + button.")
+        return
         
-        # Add/Remove detector tabs
-        tab_col1, tab_col2 = st.columns([9, 1])
-        with tab_col2:
-            if st.button("➕", help="Voeg detector toe"):
-                add_detector_tab()
-                st.rerun()
-        
-        # Only proceed if there are detector tabs
-        if not st.session_state.detector_tabs:
-            st.warning("Geen detectoren beschikbaar. Voeg een detector toe met de + knop.")
-            return
+    # Create tabs for detectors
+    tab_names = [f"Detector {i+1}" for i in range(len(st.session_state.detector_tabs))]
+    tabs = st.tabs(tab_names)
+    
+    # Initialize detector_results to store which detectors have been run
+    if 'detector_results' not in st.session_state:
+        st.session_state.detector_results = set()
+    
+    # Process each detector tab
+    for i, tab in enumerate(tabs):
+        with tab:
+            # Show remove button except for first tab
+            if i > 0:
+                if st.button("❌", key=f"remove_tab_{i}", help="Remove this detector"):
+                    remove_detector_tab(st.session_state.detector_tabs[i]['id'])
+                    if f"detector_{i+1}" in st.session_state.detector_results:
+                        st.session_state.detector_results.remove(f"detector_{i+1}")
+                    st.rerun()
             
-        # Create tabs for detectors
-        tab_names = [f"Detector {i+1}" for i in range(len(st.session_state.detector_tabs))]
-        tabs = st.tabs(tab_names)
-        
-        # Initialize detector_results to store which detectors have been run
-        if 'detector_results' not in st.session_state:
-            st.session_state.detector_results = set()
-        
-        # Process each detector tab
-        for i, tab in enumerate(tabs):
-            with tab:
-                # Show remove button except for first tab
-                if i > 0:
-                    if st.button("❌", key=f"remove_tab_{i}", help="Verwijder deze detector"):
-                        remove_detector_tab(st.session_state.detector_tabs[i]['id'])
-                        if f"detector_{i+1}" in st.session_state.detector_results:
-                            st.session_state.detector_results.remove(f"detector_{i+1}")
-                        st.rerun()
-                
-                # Configure detector - each tab has its own independent detector
-                detector_config_container = st.container()
-                with detector_config_container:
-                    selected_detector = configure_detector_tab(i)
-                
-                # Run button for individual detector
-                detector_run_container = st.container()
-                with detector_run_container:
-                    if st.button("Uitvoeren", key=f"run_detector_{i}"):
-                        if st.session_state.uploaded_data_valid or 'selected_dataset_name' in st.session_state:
-                            with st.spinner(f"Detector {i+1} uitvoeren..."):
-                                if run_detector(i):
-                                    st.success(f"Detector {i+1} succesvol uitgevoerd!")
-                                    st.session_state.detector_results.add(f"detector_{i+1}")
-                                    st.rerun()
-                        else:
-                            st.error("Selecteer een geldige dataset of upload een correct bestand voordat je de detector uitvoert.")
-                
-                # Display detector results if available
-                detector_result_container = st.container()
-                with detector_result_container:
-                    detector_key = f"detector_{i+1}"
-                    if detector_key in st.session_state.results:
-                        display_detector_results(i)
-                    else:
-                        st.info(f"Detector {i+1} is nog niet uitgevoerd. Klik op 'Uitvoeren' om de detector te starten.")
-        
-        # Global run button
-        global_run_container = st.container()
-        with global_run_container:
-            if st.button("Alle Detectoren Uitvoeren", key="run_all_detectors"):
-                if st.session_state.uploaded_data_valid or 'selected_dataset_name' in st.session_state:
-                    with st.spinner("Alle detectoren uitvoeren..."):
-                        success = run_pipeline()
-                        if success:
-                            # Add all detectors to the results set
-                            for i in range(len(st.session_state.detector_tabs)):
+            # Configure detector - each tab has its own independent detector
+            detector_config_container = st.container()
+            with detector_config_container:
+                selected_detector = configure_detector_tab(i)
+            
+            # Run button for individual detector
+            detector_run_container = st.container()
+            with detector_run_container:
+                if st.button("Run", key=f"run_detector_{i}"):
+                    if st.session_state.uploaded_data_valid or 'selected_dataset_name' in st.session_state:
+                        with st.spinner(f"Running Detector {i+1}..."):
+                            if run_detector(i):
+                                st.success(f"Detector {i+1} executed successfully!")
                                 st.session_state.detector_results.add(f"detector_{i+1}")
-                            st.success("Alle detectoren succesvol uitgevoerd!")
-                            st.rerun()
+                                st.rerun()
+                    else:
+                        st.error("Please select a valid dataset or upload a correct file before running the detector.")
+            
+            # Display detector results if available
+            detector_result_container = st.container()
+            with detector_result_container:
+                detector_key = f"detector_{i+1}"
+                if detector_key in st.session_state.results:
+                    display_detector_results(i)
                 else:
-                    st.error("Selecteer een geldige dataset of upload een correct bestand voordat je de pipeline uitvoert.")
-        
-        # GLOBAL COMPARISON SECTION - Outside of the tabs, always visible when there are multiple detectors
-        if len([k for k in st.session_state.results.keys() if k.startswith('detector_')]) >= 2:
-            st.markdown("---")  # Divider
-            comparison_container = st.container()
-            with comparison_container:
-                st.header("Vergelijkend Overzicht Detectoren")
+                    st.info(f"Detector {i+1} has not been run yet. Click 'Run' to start the detector.")
+    
+    # Global run button
+    global_run_container = st.container()
+    with global_run_container:
+        if st.button("Run All Detectors", key="run_all_detectors"):
+            if st.session_state.uploaded_data_valid or 'selected_dataset_name' in st.session_state:
+                with st.spinner("Running all detectors..."):
+                    success = run_pipeline()
+                    if success:
+                        # Add all detectors to the results set
+                        for i in range(len(st.session_state.detector_tabs)):
+                            st.session_state.detector_results.add(f"detector_{i+1}")
+                        st.success("All detectors executed successfully!")
+                        st.rerun()
+            else:
+                st.error("Please select a valid dataset or upload a correct file before running the pipeline.")
+    
+    # GLOBAL COMPARISON SECTION - Outside of the tabs, always visible when there are multiple detectors
+    if len([k for k in st.session_state.results.keys() if k.startswith('detector_')]) >= 2:
+        st.markdown("---")  # Divider
+        comparison_container = st.container()
+        with comparison_container:
+            st.header("Comparative Overview of Detectors")
+            
+            # Create comparison tabs
+            compare_tabs = st.tabs(["Metrics Comparison", "Time Comparison", "Performance Analysis"])
+            
+            # Metrics Comparison tab
+            with compare_tabs[0]:
+                st.write("**Quantitative Evaluation: Metrics Comparison**")
                 
-                # Create comparison tabs
-                compare_tabs = st.tabs(["Metrics Vergelijking", "Tijdsvergelijking", "Prestatie-analyse"])
+                # Collect metrics data from all detectors
+                metric_names = set()
+                detector_metrics = {}
                 
-                # Metrics Vergelijking tab
-                with compare_tabs[0]:
-                    st.write("**Kwantitatieve Evaluatie: Metrics Vergelijking**")
+                for detector_key, detector_result in st.session_state.results.items():
+                    if not detector_key.startswith('detector_'):
+                        continue
+                        
+                    detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
+                    detector_metrics[detector_label] = {
+                        'fit_time': detector_result['fit_time'],
+                        'predict_time': detector_result['predict_time']
+                    }
                     
-                    # Collect metrics data from all detectors
-                    metric_names = set()
-                    detector_metrics = {}
+                    # Collect metrics from each threshold
+                    if 'metrics' in detector_result and detector_result['metrics']:
+                        for threshold_name, metrics in detector_result['metrics'].items():
+                            for metric_name, value in metrics.items():
+                                if value is not None:
+                                    metric_names.add(metric_name)
+                                    detector_metrics[detector_label][metric_name] = value
+                
+                # Create DataFrame for display
+                if metric_names:
+                    metric_list = list(metric_names) + ['fit_time', 'predict_time']
+                    data = {'Metric': metric_list}
+                    
+                    for detector_label, metrics in detector_metrics.items():
+                        data[detector_label] = [
+                            metrics.get(m, float('nan')) for m in metric_list
+                        ]
+                    
+                    df = pd.DataFrame(data)
+                    st.dataframe(df)
+                    
+                    # Create bar chart for metrics comparison
+                    st.write("**Visual Comparison of Metrics**")
+                    metrics_df = df[df['Metric'].isin(list(metric_names))]
+                    
+                    try:
+                        melted_df = metrics_df.melt(id_vars='Metric', var_name='Detector', value_name='Score')
+                        fig = px.bar(
+                            melted_df,
+                            x='Metric',
+                            y='Score',
+                            color='Detector',
+                            barmode='group',
+                            title='Comparison of Detector Performance',
+                            labels={'Metric': 'Evaluation Metrics', 'Score': 'Score'}
+                        )
+                        fig.update_layout(
+                            xaxis_title='Evaluation Metrics',
+                            yaxis_title='Score',
+                            legend_title='Anomaly Detectors',
+                            font=dict(size=12),
+                            title_font=dict(size=14),
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception as chart_error:
+                        st.error(f"Error generating comparison chart: {chart_error}")
+                else:
+                    st.warning("No metrics available for comparison.")
+            
+            # Time Comparison tab
+            with compare_tabs[1]:
+                st.write("**Comparison of Processing Times**")
+                
+                try:
+                    # Create comparison bar chart for timing
+                    time_data = {'Detector': [], 'Type': [], 'Time (s)': []}
                     
                     for detector_key, detector_result in st.session_state.results.items():
                         if not detector_key.startswith('detector_'):
                             continue
                             
                         detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                        detector_metrics[detector_label] = {
-                            'fit_time': detector_result['fit_time'],
-                            'predict_time': detector_result['predict_time']
-                        }
                         
-                        # Collect metrics from each threshold
+                        time_data['Detector'].append(detector_label)
+                        time_data['Type'].append('Training Time')
+                        time_data['Time (s)'].append(detector_result['fit_time'])
+                        
+                        time_data['Detector'].append(detector_label)
+                        time_data['Type'].append('Prediction Time')
+                        time_data['Time (s)'].append(detector_result['predict_time'])
+                    
+                    time_df = pd.DataFrame(time_data)
+                    time_fig = px.bar(
+                        time_df,
+                        x='Detector',
+                        y='Time (s)',
+                        color='Type',
+                        barmode='group',
+                        title='Comparison of Processing Times',
+                        labels={'Detector': 'Anomaly Detectors', 'Time (s)': 'Time (seconds)', 'Type': 'Time Type'}
+                    )
+                    time_fig.update_layout(
+                        xaxis_title='Anomaly Detectors',
+                        yaxis_title='Time (seconds)',
+                        legend_title='Time Type',
+                        font=dict(size=12),
+                        title_font=dict(size=14),
+                    )
+                    st.plotly_chart(time_fig, use_container_width=True)
+                except Exception as time_error:
+                    st.error(f"Error generating time comparison: {time_error}")
+            
+            # Performance Analysis tab
+            with compare_tabs[2]:
+                st.write("**Quantitative Analysis and Conclusions**")
+                
+                try:
+                    # Calculate avg scores and find best detector
+                    avg_scores = {}
+                    for detector_key, detector_result in st.session_state.results.items():
+                        if not detector_key.startswith('detector_'):
+                            continue
+                            
+                        detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
+                        
+                        # Collect all metric values
+                        all_values = []
                         if 'metrics' in detector_result and detector_result['metrics']:
-                            for threshold_name, metrics in detector_result['metrics'].items():
-                                for metric_name, value in metrics.items():
-                                    if value is not None:
-                                        metric_names.add(metric_name)
-                                        detector_metrics[detector_label][metric_name] = value
+                            for threshold_metrics in detector_result['metrics'].values():
+                                all_values.extend([v for v in threshold_metrics.values() if v is not None])
+                        
+                        if all_values:
+                            avg_scores[detector_label] = np.mean(all_values)
                     
-                    # Create DataFrame for display
-                    if metric_names:
-                        metric_list = list(metric_names) + ['fit_time', 'predict_time']
-                        data = {'Metric': metric_list}
-                        
-                        for detector_label, metrics in detector_metrics.items():
-                            data[detector_label] = [
-                                metrics.get(m, float('nan')) for m in metric_list
-                            ]
-                        
-                        df = pd.DataFrame(data)
-                        st.dataframe(df)
-                        
-                        # Create bar chart for metrics comparison
-                        st.write("**Visuele Vergelijking van Metrics**")
-                        metrics_df = df[df['Metric'].isin(list(metric_names))]
-                        
-                        try:
-                            melted_df = metrics_df.melt(id_vars='Metric', var_name='Detector', value_name='Score')
-                            fig = px.bar(
-                                melted_df,
-                                x='Metric',
-                                y='Score',
-                                color='Detector',
-                                barmode='group',
-                                title='Vergelijking van Detector Prestaties',
-                                labels={'Metric': 'Evaluatiemetrics', 'Score': 'Score'}
-                            )
-                            fig.update_layout(
-                                xaxis_title='Evaluatiemetrics',
-                                yaxis_title='Score',
-                                legend_title='Anomaliedetectoren',
-                                font=dict(size=12),
-                                title_font=dict(size=14),
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-                        except Exception as chart_error:
-                            st.error(f"Fout bij genereren van vergelijkingsgrafiek: {chart_error}")
+                    if avg_scores:
+                        best_detector = max(avg_scores, key=avg_scores.get)
+                        st.markdown(f"**Highest Performance**: {best_detector} with average metric score of {avg_scores[best_detector]:.3f}")
+                    
+                    # Time comparisons
+                    fit_times = {}
+                    predict_times = {}
+                    
+                    for detector_key, detector_result in st.session_state.results.items():
+                        if not detector_key.startswith('detector_'):
+                            continue
+                            
+                        detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
+                        fit_times[detector_label] = detector_result['fit_time']
+                        predict_times[detector_label] = detector_result['predict_time']
+                    
+                    if fit_times:
+                        fastest_detector = min(fit_times, key=fit_times.get)
+                        st.markdown(f"**Lowest Fit Time**: {fastest_detector} with fit time of {fit_times[fastest_detector]:.2f} seconds")
+                    
+                    if predict_times:
+                        fastest_predict_detector = min(predict_times, key=predict_times.get)
+                        st.markdown(f"**Lowest Predict Time**: {fastest_predict_detector} with predict time of {predict_times[fastest_predict_detector]:.2f} seconds")
+                    
+                    # Data properties
+                    if st.session_state.uploaded_data_valid:
+                        x, y = st.session_state.uploaded_data
+                    elif 'selected_dataset_name' in st.session_state:
+                        x, y = load_dataset(st.session_state.selected_dataset_name)
                     else:
-                        st.warning("Geen metrics beschikbaar voor vergelijking.")
-                
-                # Tijdsvergelijking tab
-                with compare_tabs[1]:
-                    st.write("**Vergelijking van Verwerkingstijden**")
-                    
-                    try:
-                        # Create comparison bar chart for timing
-                        time_data = {'Detector': [], 'Type': [], 'Tijd (s)': []}
+                        x, y = None, None
                         
-                        for detector_key, detector_result in st.session_state.results.items():
-                            if not detector_key.startswith('detector_'):
-                                continue
-                                
-                            detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                            
-                            time_data['Detector'].append(detector_label)
-                            time_data['Type'].append('Trainingstijd')
-                            time_data['Tijd (s)'].append(detector_result['fit_time'])
-                            
-                            time_data['Detector'].append(detector_label)
-                            time_data['Type'].append('Voorspellingstijd')
-                            time_data['Tijd (s)'].append(detector_result['predict_time'])
+                    if x is not None:
+                        st.markdown("**Impact of Data Properties**:")
+                        dim, is_uni = get_dimension(x), is_univariate(x)
+                        st.write(f"- Dimensionality: {dim}, Univariate: {is_uni}")
                         
-                        time_df = pd.DataFrame(time_data)
-                        time_fig = px.bar(
-                            time_df,
-                            x='Detector',
-                            y='Tijd (s)',
-                            color='Type',
-                            barmode='group',
-                            title='Vergelijking van Verwerkingstijden',
-                            labels={'Detector': 'Anomaliedetectoren', 'Tijd (s)': 'Tijd (seconden)', 'Type': 'Tijdstype'}
-                        )
-                        time_fig.update_layout(
-                            xaxis_title='Anomaliedetectoren',
-                            yaxis_title='Tijd (seconden)',
-                            legend_title='Tijdstype',
-                            font=dict(size=12),
-                            title_font=dict(size=14),
-                        )
-                        st.plotly_chart(time_fig, use_container_width=True)
-                    except Exception as time_error:
-                        st.error(f"Fout bij genereren van tijdsvergelijking: {time_error}")
-                
-                # Prestatie-analyse tab
-                with compare_tabs[2]:
-                    st.write("**Kwantitatieve Analyse en Conclusies**")
-                    
-                    try:
-                        # Calculate avg scores and find best detector
-                        avg_scores = {}
-                        for detector_key, detector_result in st.session_state.results.items():
-                            if not detector_key.startswith('detector_'):
-                                continue
-                                
-                            detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                            
-                            # Collect all metric values
-                            all_values = []
-                            if 'metrics' in detector_result and detector_result['metrics']:
-                                for threshold_metrics in detector_result['metrics'].values():
-                                    all_values.extend([v for v in threshold_metrics.values() if v is not None])
-                            
-                            if all_values:
-                                avg_scores[detector_label] = np.mean(all_values)
-                        
-                        if avg_scores:
-                            best_detector = max(avg_scores, key=avg_scores.get)
-                            st.markdown(f"**Hoogste Prestaties**: {best_detector} met gemiddelde metric-score van {avg_scores[best_detector]:.3f}")
-                        
-                        # Time comparisons
-                        fit_times = {}
-                        predict_times = {}
-                        
-                        for detector_key, detector_result in st.session_state.results.items():
-                            if not detector_key.startswith('detector_'):
-                                continue
-                                
-                            detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                            fit_times[detector_label] = detector_result['fit_time']
-                            predict_times[detector_label] = detector_result['predict_time']
-                        
-                        if fit_times:
-                            fastest_detector = min(fit_times, key=fit_times.get)
-                            st.markdown(f"**Minste Fit-tijd**: {fastest_detector} met fit-tijd van {fit_times[fastest_detector]:.2f} seconden")
-                        
-                        if predict_times:
-                            fastest_predict_detector = min(predict_times, key=predict_times.get)
-                            st.markdown(f"**Minste Predict-tijd**: {fastest_predict_detector} met predict-tijd van {predict_times[fastest_predict_detector]:.2f} seconden")
-                        
-                        # Data properties
-                        if st.session_state.uploaded_data_valid:
-                            x, y = st.session_state.uploaded_data
-                        elif 'selected_dataset_name' in st.session_state:
-                            x, y = load_dataset(st.session_state.selected_dataset_name)
-                        else:
-                            x, y = None, None
-                            
-                        if x is not None:
-                            st.markdown("**Impact van Data-eigenschappen**:")
-                            dim, is_uni = get_dimension(x), is_univariate(x)
-                            st.write(f"- Dimensionaliteit: {dim}, Univariate: {is_uni}")
-                        
-                    except Exception as analysis_error:
-                        st.error(f"Fout bij genereren van prestatie-analyse: {analysis_error}")
+                except Exception as analysis_error:
+                    st.error(f"Error generating performance analysis: {analysis_error}")
 
 
 if __name__ == "__main__":
-    main()
+    # Check if the Streamlit runtime already exists
+    if runtime.exists():
+        main()
+    else:
+        # If it doesn't exist, run the Streamlit CLI with this file as argument
+        script_path = os.path.abspath(__file__)
+        sys.argv = ["streamlit", "run", script_path]
+        sys.exit(stcli.main())
+ 
