@@ -4,7 +4,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import inspect
-import matplotlib.pyplot as plt
 import traceback
 import time
 import logging
@@ -12,8 +11,9 @@ import os
 import sys
 from typing import List, Dict, Any, Union
 from scipy import stats
-import seaborn as sns
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import io  # Added for BytesIO
 
 # Add these imports to allow for direct execution
@@ -23,10 +23,6 @@ from streamlit import runtime
 from dtaianomaly import data, anomaly_detection, preprocessing, evaluation, thresholding
 from dtaianomaly.pipeline import EvaluationPipeline
 from dtaianomaly.workflow.utils import convert_to_proba_metrics
-from dtaianomaly.visualization import (
-    plot_anomaly_scores, plot_demarcated_anomalies, plot_time_series_colored_by_score,
-    plot_time_series_anomalies, plot_with_zoom, format_time_steps
-)
 from dtaianomaly.utils import is_valid_array_like, is_univariate, get_dimension
 from dtaianomaly.evaluation import AreaUnderROC, Precision
 
@@ -74,6 +70,12 @@ if 'results' not in st.session_state:
     st.session_state.results = {}
 if 'detector_hyperparams' not in st.session_state:
     st.session_state.detector_hyperparams = {}
+if 'detector_preprocessors' not in st.session_state:
+    st.session_state.detector_preprocessors = {}
+if 'preprocessor_hyperparams' not in st.session_state:
+    st.session_state.preprocessor_hyperparams = {}
+if 'custom_visualizations' not in st.session_state:
+    st.session_state.custom_visualizations = {}
 if 'export_data' not in st.session_state:
     st.session_state.export_data = {
         'time_steps': None,
@@ -373,9 +375,7 @@ def configure_sidebar():
         )
         st.session_state.uploaded_data_valid = False
     
-    # Preprocessing setting (hidden from users, default to MinMaxScaler)
-    st.session_state.selected_preprocess_name = "MinMaxScaler"
-    st.session_state.preprocess_hyperparams = {}
+    # Removed global preprocessor setting - will be configured per detector
     
     # Evaluation Metrics Selection
     st.sidebar.subheader("2. Evaluation Metrics")
@@ -472,6 +472,7 @@ def remove_detector_tab(tab_id):
 def configure_detector_tab(tab_index):
     """Configures the detector settings for a specific tab."""
     tab = st.session_state.detector_tabs[tab_index]
+    detector_key = f"detector_{tab_index + 1}"
     
     # Beginner/Expert toggle
     col1, col2 = st.columns([8, 2])
@@ -508,8 +509,100 @@ def configure_detector_tab(tab_index):
     except (AttributeError, TypeError):
         requires_window_size = False
     
-    # Set hyperparameters
-    detector_key = f"detector_{tab_index + 1}"
+    # Preprocessing Pipeline Section
+    st.subheader("Preprocessing Pipeline")
+    
+    # Initialize preprocessor list for this detector if not exists
+    if detector_key not in st.session_state.detector_preprocessors:
+        st.session_state.detector_preprocessors[detector_key] = []
+        
+    # Initialize preprocessor hyperparams for this detector if not exists
+    if detector_key not in st.session_state.preprocessor_hyperparams:
+        st.session_state.preprocessor_hyperparams[detector_key] = {}
+    
+    # Get available preprocessors
+    preprocessor_options = ["None"] + get_available_options(preprocessing, preprocessing.Preprocessor)
+    
+    # Display current preprocessors in the pipeline
+    if not st.session_state.detector_preprocessors[detector_key]:
+        st.info("No preprocessing steps configured. Add preprocessors below.")
+        
+    pipeline_updated = False
+    
+    # Show existing preprocessors
+    for idx, preproc_name in enumerate(st.session_state.detector_preprocessors[detector_key]):
+        with st.container():
+            cols = st.columns([1, 6, 1])
+            with cols[0]:
+                st.write(f"{idx+1}.")
+            with cols[1]:
+                st.write(f"**{preproc_name}**")
+            with cols[2]:
+                if st.button("Remove", key=f"remove_preproc_{detector_key}_{idx}"):
+                    st.session_state.detector_preprocessors[detector_key].pop(idx)
+                    # Also remove hyperparams for this preprocessor
+                    preproc_param_key = f"{detector_key}_preproc_{idx}"
+                    if preproc_param_key in st.session_state.preprocessor_hyperparams[detector_key]:
+                        del st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key]
+                    pipeline_updated = True
+                    st.rerun()
+            
+            # Display hyperparameters for this preprocessor
+            preproc_param_key = f"{detector_key}_preproc_{idx}"
+            if tab['mode'] == 'Expert':
+                with st.expander(f"{preproc_name} Settings", expanded=False):
+                    # Initialize hyperparams if not exists
+                    if preproc_param_key not in st.session_state.preprocessor_hyperparams[detector_key]:
+                        preproc_class = getattr(preprocessing, preproc_name)
+                        st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key] = get_default_hyperparams(preproc_class)
+                        
+                    # Display hyperparameters
+                    hyperparams = st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key]
+                    for param_name, default_value in hyperparams.items():
+                        if isinstance(default_value, float):
+                            hyperparams[param_name] = st.number_input(
+                                f"{param_name}", value=default_value, step=0.1, format="%.2f",
+                                key=f"{preproc_param_key}_{param_name}"
+                            )
+                        elif isinstance(default_value, int):
+                            hyperparams[param_name] = st.number_input(
+                                f"{param_name}", value=default_value, step=1,
+                                key=f"{preproc_param_key}_{param_name}"
+                            )
+                        elif isinstance(default_value, bool):
+                            hyperparams[param_name] = st.checkbox(
+                                f"{param_name}", value=default_value,
+                                key=f"{preproc_param_key}_{param_name}"
+                            )
+                        elif isinstance(default_value, str):
+                            hyperparams[param_name] = st.text_input(
+                                f"{param_name}", value=default_value,
+                                key=f"{preproc_param_key}_{param_name}"
+                            )
+    
+    # Add new preprocessor
+    with st.container():
+        cols = st.columns([3, 1])
+        with cols[0]:
+            new_preprocessor = st.selectbox(
+                "Add Preprocessor", 
+                preprocessor_options,
+                key=f"add_preproc_{detector_key}"
+            )
+        with cols[1]:
+            if st.button("Add", key=f"add_preproc_btn_{detector_key}"):
+                if new_preprocessor != "None":
+                    st.session_state.detector_preprocessors[detector_key].append(new_preprocessor)
+                    # Initialize hyperparams for this new preprocessor
+                    new_idx = len(st.session_state.detector_preprocessors[detector_key]) - 1
+                    preproc_param_key = f"{detector_key}_preproc_{new_idx}"
+                    preproc_class = getattr(preprocessing, new_preprocessor)
+                    st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key] = get_default_hyperparams(preproc_class)
+                    pipeline_updated = True
+                    st.rerun()
+    
+    # Detector Hyperparameters
+    st.subheader("Detector Configuration")
     
     if tab['mode'] == 'Beginner':
         # Simple hyperparameters for beginners
@@ -518,8 +611,8 @@ def configure_detector_tab(tab_index):
             st.info(f"Detector {selected_detector} using default window_size: 'fft'")
         st.write("Default settings are used for this detector.")
     else:
-        # Advanced hyperparameters for experts
-        with st.sidebar.expander("Advanced Settings"):
+        # Advanced hyperparameters for experts - moved from sidebar to main section
+        with st.expander("Advanced Settings"):
             hyperparams = generate_hyperparam_inputs(selected_detector, prefix=f"expert_{detector_key}")
             
             # Ensure window_size is included if needed
@@ -529,6 +622,9 @@ def configure_detector_tab(tab_index):
                 
             st.session_state.detector_hyperparams[detector_key] = hyperparams
     
+    if pipeline_updated:
+        st.experimental_rerun()
+        
     return tab['detector']
 
 def run_detector(tab_index):
@@ -571,30 +667,43 @@ def run_detector(tab_index):
         st.session_state.export_data['original_x'] = x
         st.session_state.export_data['original_y'] = y
         
-        # Process data using original code's approach
-        if st.session_state.selected_preprocess_name != "None":
-            logger.debug(f"Applying preprocessor: {st.session_state.selected_preprocess_name}")
-            preprocessor = load_component(preprocessing, st.session_state.selected_preprocess_name,
-                                       **st.session_state.preprocess_hyperparams)
-            if preprocessor:
-                # Handle both single output and tuple output from preprocessor
-                preprocess_result = preprocessor.fit_transform(x)
-                if isinstance(preprocess_result, tuple):
-                    logger.debug("Preprocessor returned a tuple, extracting first element")
-                    st.info("Preprocessor returned a tuple, extracting first element as processed_x")
-                    processed_x, processed_y = preprocess_result
+        # Process data using detector-specific preprocessing pipeline
+        processed_x, processed_y = x, y
+        
+        # Apply preprocessing pipeline for this detector
+        if detector_key in st.session_state.detector_preprocessors and st.session_state.detector_preprocessors[detector_key]:
+            preprocessor_pipeline = st.session_state.detector_preprocessors[detector_key]
+            st.write(f"Applying {len(preprocessor_pipeline)} preprocessing steps:")
+            
+            # Process data using the pipeline
+            for idx, preprocessor_name in enumerate(preprocessor_pipeline):
+                logger.debug(f"Applying preprocessor {idx+1}/{len(preprocessor_pipeline)}: {preprocessor_name}")
+                st.write(f"Step {idx+1}: {preprocessor_name}")
+                
+                # Get preprocessor hyperparams
+                preproc_param_key = f"{detector_key}_preproc_{idx}"
+                preproc_hyperparams = st.session_state.preprocessor_hyperparams.get(detector_key, {}).get(preproc_param_key, {})
+                
+                # Load and apply preprocessor
+                preprocessor = load_component(preprocessing, preprocessor_name, **preproc_hyperparams)
+                if preprocessor:
+                    # Handle both single output and tuple output from preprocessor
+                    preprocess_result = preprocessor.fit_transform(processed_x)
+                    if isinstance(preprocess_result, tuple):
+                        logger.debug(f"Preprocessor {preprocessor_name} returned a tuple, extracting first element")
+                        processed_x, processed_y = preprocess_result
+                    else:
+                        logger.debug(f"Preprocessor {preprocessor_name} returned a single object")
+                        processed_x = preprocess_result
                 else:
-                    logger.debug("Preprocessor returned a single object")
-                    processed_x = preprocess_result
-                    processed_y = y
-                st.session_state.export_data['processed_x'] = processed_x
-                st.session_state.export_data['processed_y'] = processed_y
-            else:
-                logger.debug("No preprocessor initialized, using original data")
-                processed_x, processed_y = x, y
+                    logger.warning(f"Failed to initialize preprocessor {preprocessor_name}")
+                    st.warning(f"Failed to initialize preprocessor {preprocessor_name}, skipping this step")
         else:
-            logger.debug("No preprocessing selected, using original data")
-            processed_x, processed_y = x, y
+            logger.debug("No preprocessing pipeline defined for this detector, using original data")
+            st.write("No preprocessing steps defined. Using original data.")
+            
+        st.session_state.export_data['processed_x'] = processed_x
+        st.session_state.export_data['processed_y'] = processed_y
             
         # Convert to numpy array with proper handling for inhomogeneous shapes
         if not isinstance(processed_x, np.ndarray):
@@ -1004,9 +1113,10 @@ def run_detector(tab_index):
                 st.error(f"Error applying {threshold_name}: {e}")
                 continue
                 
-        # Store results
+        # Store results - now including the detector object
         st.session_state.results[detector_key] = {
             'detector_name': detector_config['name'],
+            'detector': detector,  # Store the detector object for visualizations
             'anomaly_scores': anomaly_scores,
             'thresholded_predictions': thresholded_predictions,
             'metrics': all_metrics,
@@ -1055,6 +1165,9 @@ def display_detector_results(tab_index):
         
         time_steps = format_time_steps(None, x.shape[0])
         anomaly_scores = results['anomaly_scores']
+        
+        # Get processed_x from export_data if available
+        processed_x = st.session_state.export_data.get('processed_x', x)
         
         # Individual Detector Information
         st.subheader(f"Detector Information: {detector_name}")
@@ -1151,8 +1264,8 @@ def display_detector_results(tab_index):
         else:
             st.warning("No metrics calculated for this detector.")
         
-        # Individual Visualizations section
-        st.subheader("Visualizations")
+        # Standard Visualizations section
+        st.subheader("Standard Visualizations")
         if 'selected_visualizations' not in st.session_state or not st.session_state.selected_visualizations:
             st.info("No visualizations selected.")
         else:
@@ -1164,10 +1277,10 @@ def display_detector_results(tab_index):
                     # For visualizations that don't need thresholded predictions
                     if viz in ["Anomaly Scores", "Time Series Colored by Score", "Demarcated Anomalies"]:
                         try:
-                            fig = generate_visualization(viz, x, y, anomaly_scores)
+                            # Use Plotly for interactive visualizations
+                            fig = generate_plotly_visualization(viz, x, y, anomaly_scores)
                             if fig:
-                                st.pyplot(fig)
-                                plt.close(fig)
+                                st.plotly_chart(fig, use_container_width=True)
                             else:
                                 st.warning(f"Could not generate visualization {viz}.")
                         except Exception as viz_error:
@@ -1184,15 +1297,49 @@ def display_detector_results(tab_index):
                             y_pred = results['thresholded_predictions'][threshold_name]
                         
                         try:
-                            fig = generate_visualization(viz, x, y, anomaly_scores, y_pred, time_steps)
+                            # Use Plotly for interactive visualizations
+                            fig = generate_plotly_visualization(viz, x, y, anomaly_scores, y_pred, time_steps)
                             if fig:
-                                st.pyplot(fig)
-                                plt.close(fig)
+                                st.plotly_chart(fig, use_container_width=True)
                             else:
                                 st.warning(f"Could not generate visualization {viz}.")
                         except Exception as viz_error:
                             st.error(f"Error generating {viz}: {viz_error}")
                             st.error(traceback.format_exc())
+        
+        # Get detector from results data if available
+        detector = results.get('detector', None)
+        
+        # Add Detector-specific visualizations section
+        detector_figures = {}
+        if detector:
+            detector_figures = generate_detector_specific_visualization(
+                detector_name, detector, x, processed_x, time_steps
+            )
+        
+        # Add custom visualizations
+        custom_figures = get_custom_visualizations(
+            detector_name, detector, x, processed_x, time_steps
+        )
+        
+        # Combine detector-specific and custom visualizations
+        all_special_figures = {**detector_figures, **custom_figures}
+        
+        # Display detector-specific and custom visualizations if available
+        if all_special_figures:
+            st.subheader(f"{detector_name} Specific Visualizations")
+            
+            # Create tabs for each visualization
+            special_viz_names = list(all_special_figures.keys())
+            special_viz_tabs = st.tabs(special_viz_names)
+            
+            for i, viz_name in enumerate(special_viz_names):
+                with special_viz_tabs[i]:
+                    fig = all_special_figures[viz_name]
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning(f"Could not generate {viz_name}.")
         
         # Export options
         st.subheader("Export")
@@ -1248,30 +1395,220 @@ def run_pipeline():
     
     return success
 
-def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_scores: np.ndarray,
-                           thresholded_predictions: np.ndarray = None, time_steps: np.ndarray = None) -> plt.Figure:
-    """Generates the requested visualization."""
-    # Check inputs and provide defaults if needed
+def generate_plotly_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_scores: np.ndarray,
+                              thresholded_predictions: np.ndarray = None, time_steps: np.ndarray = None):
+    """Generates interactive Plotly visualizations for anomaly detection."""
     if time_steps is None:
         time_steps = format_time_steps(None, x.shape[0])
         
-    # Some visualizations don't need thresholded predictions
-    if viz == "Anomaly Scores":
-        return plot_anomaly_scores(x, y, y_pred=anomaly_scores, time_steps=time_steps, figsize=(10, 6))
-    elif viz == "Time Series Colored by Score":
-        return plot_time_series_colored_by_score(x, anomaly_scores, time_steps=time_steps, figsize=(10, 6))
-    elif viz == "Demarcated Anomalies":
-        return plot_demarcated_anomalies(x, y, time_steps=time_steps, figsize=(10, 6))
-        
-    # Visualizations that require thresholded predictions
-    if thresholded_predictions is None:
-        # If no thresholded predictions available, create a simple one with a 0.5 threshold
-        thresholded_predictions = (anomaly_scores >= 0.5).astype(int)
+    # Convert x to the right format for plotting
+    if is_univariate(x):
+        plot_x = x.flatten()
+    else:
+        # For multivariate data, use the first dimension
+        plot_x = x[:, 0].flatten()
     
-    if viz == "Time Series with Anomalies":
-        return plot_time_series_anomalies(x, y, y_pred=thresholded_predictions, time_steps=time_steps, figsize=(10, 6))
+    # Basic figure settings
+    fig = None
+    
+    if viz == "Anomaly Scores":
+        # Create a plot with two subplots (stacked vertically)
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                            vertical_spacing=0.1,
+                            subplot_titles=("Time Series", "Anomaly Scores"))
+        
+        # Add the original time series
+        fig.add_trace(
+            go.Scatter(x=time_steps, y=plot_x, mode='lines', name='Time Series'),
+            row=1, col=1
+        )
+        
+        # Mark ground truth anomalies on the time series
+        anomaly_indices = np.where(y == 1)[0]
+        if len(anomaly_indices) > 0:
+            fig.add_trace(
+                go.Scatter(
+                    x=time_steps[anomaly_indices], 
+                    y=plot_x[anomaly_indices],
+                    mode='markers',
+                    marker=dict(color='red', size=8, symbol='x'),
+                    name='True Anomalies'
+                ),
+                row=1, col=1
+            )
+        
+        # Add anomaly scores
+        fig.add_trace(
+            go.Scatter(x=time_steps, y=anomaly_scores, mode='lines', 
+                      name='Anomaly Score', line=dict(color='orange')),
+            row=2, col=1
+        )
+        
+        # Update layout
+        fig.update_layout(
+            height=600, 
+            width=900,
+            title_text="Time Series and Anomaly Scores",
+            hovermode="x unified"
+        )
+        
+    elif viz == "Time Series Colored by Score":
+        # Create a figure for time series colored by anomaly score
+        fig = go.Figure()
+        
+        # Add scatter plot with color scale based on anomaly scores
+        fig.add_trace(
+            go.Scatter(
+                x=time_steps,
+                y=plot_x,
+                mode='lines+markers',
+                marker=dict(
+                    size=6,
+                    color=anomaly_scores,
+                    colorscale='Viridis',
+                    colorbar=dict(title="Anomaly Score"),
+                    showscale=True
+                ),
+                name='Time Series'
+            )
+        )
+        
+        # Update layout
+        fig.update_layout(
+            title="Time Series Colored by Anomaly Score",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            hovermode="closest",
+            height=500,
+            width=900
+        )
+        
+    elif viz == "Demarcated Anomalies":
+        # Create a figure with shapes for anomaly regions
+        fig = go.Figure()
+        
+        # Add the time series
+        fig.add_trace(
+            go.Scatter(
+                x=time_steps,
+                y=plot_x,
+                mode='lines',
+                name='Time Series'
+            )
+        )
+        
+        # Add shapes for anomaly regions
+        if np.any(y == 1):
+            # Find continuous blocks of anomalies
+            anomaly_blocks = []
+            current_block = []
+            for i, val in enumerate(y):
+                if val == 1:
+                    current_block.append(i)
+                elif current_block:
+                    anomaly_blocks.append(current_block)
+                    current_block = []
+            if current_block:
+                anomaly_blocks.append(current_block)
+            
+            # Add each anomaly region as a rectangular shape
+            for block in anomaly_blocks:
+                start_idx = block[0]
+                end_idx = block[-1]
+                
+                # Get data range for this block
+                y_min = np.min(plot_x) - 0.1 * (np.max(plot_x) - np.min(plot_x))
+                y_max = np.max(plot_x) + 0.1 * (np.max(plot_x) - np.min(plot_x))
+                
+                fig.add_shape(
+                    type="rect",
+                    x0=time_steps[start_idx],
+                    x1=time_steps[end_idx],
+                    y0=y_min,
+                    y1=y_max,
+                    fillcolor="red",
+                    opacity=0.2,
+                    layer="below",
+                    line_width=0,
+                )
+                
+                # Add a label for the anomaly region
+                fig.add_annotation(
+                    x=time_steps[(start_idx + end_idx) // 2],
+                    y=y_max,
+                    text="Anomaly",
+                    showarrow=False,
+                    font=dict(color="red")
+                )
+        
+        # Update layout
+        fig.update_layout(
+            title="Time Series with Demarcated Anomaly Regions",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            height=500,
+            width=900
+        )
+        
+    elif viz == "Time Series with Anomalies":
+        # Create a plot comparing detected vs true anomalies
+        fig = make_subplots(rows=1, cols=1)
+        
+        # Add the original time series
+        fig.add_trace(
+            go.Scatter(
+                x=time_steps,
+                y=plot_x,
+                mode='lines',
+                name='Time Series'
+            )
+        )
+        
+        # Add true anomalies
+        true_anomaly_indices = np.where(y == 1)[0]
+        if len(true_anomaly_indices) > 0:
+            fig.add_trace(
+                go.Scatter(
+                    x=time_steps[true_anomaly_indices],
+                    y=plot_x[true_anomaly_indices],
+                    mode='markers',
+                    marker=dict(color='red', size=10, symbol='x'),
+                    name='True Anomalies'
+                )
+            )
+        
+        # Add predicted anomalies if available
+        if thresholded_predictions is not None:
+            pred_anomaly_indices = np.where(thresholded_predictions == 1)[0]
+            if len(pred_anomaly_indices) > 0:
+                fig.add_trace(
+                    go.Scatter(
+                        x=time_steps[pred_anomaly_indices],
+                        y=plot_x[pred_anomaly_indices],
+                        mode='markers',
+                        marker=dict(color='blue', size=8, symbol='circle'),
+                        name='Detected Anomalies'
+                    )
+                )
+        
+        # Update layout
+        fig.update_layout(
+            title="Time Series with True and Detected Anomalies",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            height=500,
+            width=900,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
+        )
+        
     elif viz == "Zoom View":
-        # Default zoom range if not specified
+        # Get zoom range
         zoom_start = 0
         zoom_end = min(100, x.shape[0])
         
@@ -1282,13 +1619,59 @@ def generate_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomaly_score
         if zoom_end <= zoom_start or zoom_end > x.shape[0]:
             st.error("Invalid zoom range.")
             return None
-            
-        return plot_with_zoom(x, y, start_zoom=zoom_start, end_zoom=zoom_end,
-                          time_steps=time_steps, y_pred=thresholded_predictions,
-                          method_to_plot=plot_time_series_anomalies, figsize=(10, 6))
+        
+        # Create figure with zoomed time series
+        fig = go.Figure()
+        
+        # Add the zoomed time series
+        fig.add_trace(
+            go.Scatter(
+                x=time_steps[zoom_start:zoom_end],
+                y=plot_x[zoom_start:zoom_end],
+                mode='lines',
+                name='Time Series'
+            )
+        )
+        
+        # Add true anomalies in the zoom range
+        true_zoom_anomalies = np.where(y[zoom_start:zoom_end] == 1)[0]
+        if len(true_zoom_anomalies) > 0:
+            true_zoom_indices = true_zoom_anomalies + zoom_start
+            fig.add_trace(
+                go.Scatter(
+                    x=time_steps[true_zoom_indices],
+                    y=plot_x[true_zoom_indices],
+                    mode='markers',
+                    marker=dict(color='red', size=10, symbol='x'),
+                    name='True Anomalies'
+                )
+            )
+        
+        # Add predicted anomalies in the zoom range if available
+        if thresholded_predictions is not None:
+            pred_zoom_anomalies = np.where(thresholded_predictions[zoom_start:zoom_end] == 1)[0]
+            if len(pred_zoom_anomalies) > 0:
+                pred_zoom_indices = pred_zoom_anomalies + zoom_start
+                fig.add_trace(
+                    go.Scatter(
+                        x=time_steps[pred_zoom_indices],
+                        y=plot_x[pred_zoom_indices],
+                        mode='markers',
+                        marker=dict(color='blue', size=8, symbol='circle'),
+                        name='Detected Anomalies'
+                    )
+                )
+        
+        # Update layout
+        fig.update_layout(
+            title=f"Zoomed View (Time Steps {zoom_start} to {zoom_end})",
+            xaxis_title="Time",
+            yaxis_title="Value",
+            height=500,
+            width=900
+        )
     
-    return None
-
+    return fig
 
 def export_to_excel():
     """Generates an Excel file with the collected data."""
@@ -1360,6 +1743,538 @@ def export_to_excel():
     output.seek(0)
     return output
 
+# Add a utility function to replace format_time_steps if it's not available
+def format_time_steps(t=None, length=None):
+    """Format time steps for plotting.
+    
+    This is a utility function to create time steps for plotting,
+    without depending on the original dtaianomaly visualization module.
+    
+    Args:
+        t: Time steps to format. If None, create a range from 0 to length-1.
+        length: Length of time series. Only used if t is None.
+        
+    Returns:
+        Formatted time steps.
+    """
+    if t is None:
+        if length is None:
+            raise ValueError("Either t or length must be provided.")
+        return np.arange(length)
+    return t
+
+# Add a function to generate detector-specific visualizations
+def generate_detector_specific_visualization(detector_name, detector, x, processed_x, time_steps):
+    """
+    Generate detector-specific visualizations based on the detector type.
+    
+    Args:
+        detector_name (str): Name of the detector
+        detector (object): The fitted detector object
+        x (np.ndarray): Original input data
+        processed_x (np.ndarray): Processed input data used for model fitting
+        time_steps (np.ndarray): Time steps for plotting
+        
+    Returns:
+        dict: A dictionary of Plotly figures, keyed by visualization name
+    """
+    if not detector or not hasattr(detector, '__class__'):
+        return {}
+    
+    figures = {}
+    
+    # Format x for plotting
+    if is_univariate(x):
+        plot_x = x.flatten()
+    else:
+        # For multivariate data, use the first dimension
+        plot_x = x[:, 0].flatten() if x.shape[1] > 0 else x
+    
+    # Format processed_x for plotting
+    if is_univariate(processed_x):
+        plot_processed_x = processed_x.flatten()
+    else:
+        # For multivariate data, use the first dimension
+        plot_processed_x = processed_x[:, 0].flatten() if processed_x.shape[1] > 0 else processed_x
+    
+    try:
+        # KMeans-specific visualization
+        if "KMeans" in detector_name:
+            # Check if the detector has necessary attributes for visualization
+            has_labels = hasattr(detector, 'labels_') or hasattr(detector, '_labels')
+            has_centers = hasattr(detector, 'cluster_centers_') or hasattr(detector, '_cluster_centers')
+            
+            # Get labels from detector
+            labels = None
+            if hasattr(detector, 'labels_'):
+                labels = detector.labels_
+            elif hasattr(detector, '_labels'):
+                labels = detector._labels
+            
+            # Create a simple scatter plot of the time series colored by cluster
+            if has_labels and labels is not None:
+                # Create figure for cluster visualization
+                fig = go.Figure()
+                
+                # Add time series line for reference
+                fig.add_trace(
+                    go.Scatter(
+                        x=time_steps,
+                        y=plot_processed_x,
+                        mode='lines',
+                        name='Time Series',
+                        line=dict(color='lightgrey', width=1)
+                    )
+                )
+                
+                # Color points by cluster
+                for cluster_id in np.unique(labels):
+                    cluster_indices = np.where(labels == cluster_id)[0]
+                    if len(cluster_indices) > 0:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=time_steps[cluster_indices],
+                                y=plot_processed_x[cluster_indices],
+                                mode='markers',
+                                name=f'Cluster {cluster_id}',
+                                marker=dict(size=8)
+                            )
+                        )
+                
+                # Update layout
+                fig.update_layout(
+                    title="K-Means Cluster Assignments",
+                    xaxis_title="Time",
+                    yaxis_title="Value",
+                    hovermode="closest",
+                    height=500,
+                    width=900
+                )
+                
+                figures["Cluster Assignments"] = fig
+            
+            # Try to create a distance-to-centroid plot if distance information is available
+            # Look for various attribute names that might contain distance information
+            distance_attrs = [
+                '_distance_to_closest_centroid', 
+                'distances_', 
+                '_distances',
+                'decision_scores_'
+            ]
+            
+            distances = None
+            for attr in distance_attrs:
+                if hasattr(detector, attr):
+                    distances = getattr(detector, attr)
+                    if distances is not None and len(distances) == len(time_steps):
+                        break
+            
+            # If distances are available, create distance plot
+            if distances is not None:
+                fig_dist = go.Figure()
+                
+                # Add distance trace
+                fig_dist.add_trace(
+                    go.Scatter(
+                        x=time_steps,
+                        y=distances,
+                        mode='lines',
+                        name='Distance to Nearest Centroid',
+                        line=dict(color='orange')
+                    )
+                )
+                
+                # Add threshold line if a threshold attribute exists
+                threshold_attrs = ['threshold_', '_threshold']
+                for attr in threshold_attrs:
+                    if hasattr(detector, attr):
+                        threshold = getattr(detector, attr)
+                        if threshold is not None:
+                            fig_dist.add_hline(
+                                y=threshold,
+                                line=dict(color='red', dash='dash'),
+                                annotation_text="Threshold"
+                            )
+                
+                # Update layout
+                fig_dist.update_layout(
+                    title="Distance to Nearest Centroid",
+                    xaxis_title="Time",
+                    yaxis_title="Distance",
+                    hovermode="closest",
+                    height=500,
+                    width=900
+                )
+                
+                figures["Centroid Distances"] = fig_dist
+            
+            # If we have centers and at least 2D data, create a scatter plot of centers and points
+            centers = None
+            if has_centers:
+                if hasattr(detector, 'cluster_centers_'):
+                    centers = detector.cluster_centers_
+                elif hasattr(detector, '_cluster_centers'):
+                    centers = detector._cluster_centers
+            
+            if centers is not None and not is_univariate(processed_x) and processed_x.shape[1] >= 2:
+                fig_centers = go.Figure()
+                
+                # Add data points
+                fig_centers.add_trace(
+                    go.Scatter(
+                        x=processed_x[:, 0],
+                        y=processed_x[:, 1],
+                        mode='markers',
+                        name='Data Points',
+                        marker=dict(
+                            size=8,
+                            color=labels if labels is not None else 'blue',
+                            colorscale='Viridis' if labels is not None else None,
+                            showscale=labels is not None
+                        )
+                    )
+                )
+                
+                # Add cluster centers
+                fig_centers.add_trace(
+                    go.Scatter(
+                        x=centers[:, 0],
+                        y=centers[:, 1],
+                        mode='markers',
+                        name='Cluster Centers',
+                        marker=dict(
+                            size=12,
+                            color='red',
+                            symbol='star'
+                        )
+                    )
+                )
+                
+                fig_centers.update_layout(
+                    title="Cluster Centers and Data Points",
+                    xaxis_title="Dimension 1",
+                    yaxis_title="Dimension 2",
+                    hovermode="closest",
+                    height=600,
+                    width=900
+                )
+                
+                figures["Cluster Centers"] = fig_centers
+        
+        # IsolationForest-specific visualization
+        elif "IsolationForest" in detector_name:
+            # Try to get decision scores
+            scores = None
+            score_attrs = ['decision_scores_', 'decision_function_', 'score_samples_', 'anomaly_scores_']
+            
+            for attr in score_attrs:
+                if hasattr(detector, attr):
+                    scores_attr = getattr(detector, attr)
+                    if callable(scores_attr):
+                        try:
+                            scores = scores_attr(processed_x)
+                            break
+                        except:
+                            continue
+                    elif isinstance(scores_attr, np.ndarray):
+                        scores = scores_attr
+                        break
+            
+            # If no scores found directly, try to compute them
+            if scores is None:
+                try:
+                    if hasattr(detector, 'decision_function') and callable(getattr(detector, 'decision_function')):
+                        scores = detector.decision_function(processed_x)
+                    elif hasattr(detector, 'predict_proba') and callable(getattr(detector, 'predict_proba')):
+                        scores = detector.predict_proba(processed_x)
+                    elif hasattr(detector, 'score_samples') and callable(getattr(detector, 'score_samples')):
+                        scores = detector.score_samples(processed_x)
+                except:
+                    pass
+            
+            # If we have scores, create a histogram
+            if scores is not None:
+                fig = go.Figure()
+                
+                # Add histogram of scores
+                fig.add_trace(
+                    go.Histogram(
+                        x=scores,
+                        name="Score Distribution",
+                        opacity=0.7,
+                        marker_color='blue',
+                        nbinsx=30
+                    )
+                )
+                
+                # Add threshold line if available
+                threshold_attrs = ['threshold_', '_threshold']
+                for attr in threshold_attrs:
+                    if hasattr(detector, attr):
+                        threshold = getattr(detector, attr)
+                        if threshold is not None:
+                            fig.add_vline(
+                                x=threshold,
+                                line_dash="dash",
+                                line_color="red",
+                                annotation_text="Threshold",
+                                annotation_position="top right"
+                            )
+                
+                fig.update_layout(
+                    title="Isolation Forest Score Distribution",
+                    xaxis_title="Anomaly Score",
+                    yaxis_title="Count",
+                    hovermode="closest",
+                    height=500,
+                    width=900
+                )
+                
+                figures["Score Distribution"] = fig
+                
+                # Create a time series with anomaly scores
+                fig_scores = go.Figure()
+                
+                # Add time series
+                fig_scores.add_trace(
+                    go.Scatter(
+                        x=time_steps,
+                        y=plot_x,
+                        mode='lines',
+                        name='Time Series',
+                        line=dict(color='lightgrey')
+                    )
+                )
+                
+                # Add anomaly scores as scatter points with color gradient
+                fig_scores.add_trace(
+                    go.Scatter(
+                        x=time_steps,
+                        y=plot_x,
+                        mode='markers',
+                        name='Anomaly Score',
+                        marker=dict(
+                            size=8,
+                            color=scores,
+                            colorscale='Viridis',
+                            colorbar=dict(title="Anomaly Score"),
+                            showscale=True
+                        ),
+                        text=[f"Time: {t}, Score: {s:.3f}" for t, s in zip(time_steps, scores)]
+                    )
+                )
+                
+                fig_scores.update_layout(
+                    title="Time Series with Anomaly Scores",
+                    xaxis_title="Time",
+                    yaxis_title="Value",
+                    hovermode="closest", 
+                    height=500,
+                    width=900
+                )
+                
+                figures["Time Series with Scores"] = fig_scores
+        
+        # MatrixProfile-specific visualization
+        elif "MatrixProfile" in detector_name:
+            # Look for matrix profile values
+            matrix_profile = None
+            profile_attrs = ['matrix_profile_', '_matrix_profile', 'profile_']
+            
+            for attr in profile_attrs:
+                if hasattr(detector, attr):
+                    profile = getattr(detector, attr)
+                    if profile is not None and isinstance(profile, np.ndarray):
+                        matrix_profile = profile
+                        break
+            
+            # Create visualization for matrix profile
+            if matrix_profile is not None:
+                fig = go.Figure()
+                
+                # Add matrix profile values
+                fig.add_trace(
+                    go.Scatter(
+                        x=time_steps[:len(matrix_profile)],
+                        y=matrix_profile,
+                        mode='lines',
+                        name='Matrix Profile',
+                        line=dict(color='blue')
+                    )
+                )
+                
+                # Add threshold if available
+                threshold_attrs = ['threshold_', '_threshold']
+                for attr in threshold_attrs:
+                    if hasattr(detector, attr):
+                        threshold = getattr(detector, attr)
+                        if threshold is not None:
+                            fig.add_hline(
+                                y=threshold,
+                                line=dict(color='red', dash='dash'),
+                                annotation_text="Threshold"
+                            )
+                
+                fig.update_layout(
+                    title="Matrix Profile",
+                    xaxis_title="Time",
+                    yaxis_title="Distance",
+                    hovermode="closest",
+                    height=500,
+                    width=900
+                )
+                
+                figures["Matrix Profile"] = fig
+                
+                # Create a second visualization showing the original time series with matrix profile overlay
+                fig_overlay = go.Figure()
+                
+                # Create a subplot with two y-axes
+                fig_overlay = make_subplots(specs=[[{"secondary_y": True}]])
+                
+                # Add original time series on primary y-axis
+                fig_overlay.add_trace(
+                    go.Scatter(
+                        x=time_steps,
+                        y=plot_x,
+                        mode='lines',
+                        name='Time Series',
+                        line=dict(color='blue')
+                    ),
+                    secondary_y=False
+                )
+                
+                # Add matrix profile on secondary y-axis
+                fig_overlay.add_trace(
+                    go.Scatter(
+                        x=time_steps[:len(matrix_profile)],
+                        y=matrix_profile,
+                        mode='lines',
+                        name='Matrix Profile',
+                        line=dict(color='red')
+                    ),
+                    secondary_y=True
+                )
+                
+                # Update layout
+                fig_overlay.update_layout(
+                    title="Time Series and Matrix Profile",
+                    hovermode="x unified",
+                    height=500,
+                    width=900
+                )
+                
+                # Update axis labels
+                fig_overlay.update_xaxes(title_text="Time")
+                fig_overlay.update_yaxes(title_text="Value", secondary_y=False)
+                fig_overlay.update_yaxes(title_text="Matrix Profile", secondary_y=True)
+                
+                figures["Time Series with Matrix Profile"] = fig_overlay
+        
+        # Generic 3D visualization for multivariate data (if 3+ dimensions)
+        if not is_univariate(processed_x) and processed_x.shape[1] >= 3:
+            # Create 3D scatter plot with first 3 dimensions
+            fig_3d = go.Figure(data=[
+                go.Scatter3d(
+                    x=processed_x[:, 0],
+                    y=processed_x[:, 1],
+                    z=processed_x[:, 2],
+                    mode='markers',
+                    marker=dict(
+                        size=5,
+                        opacity=0.7
+                    )
+                )
+            ])
+            
+            fig_3d.update_layout(
+                title="3D Data Visualization",
+                scene=dict(
+                    xaxis_title="Dimension 1",
+                    yaxis_title="Dimension 2",
+                    zaxis_title="Dimension 3"
+                ),
+                height=700,
+                width=900
+            )
+            
+            figures["3D Visualization"] = fig_3d
+    
+    except Exception as e:
+        logger.error(f"Error generating detector-specific visualization: {e}")
+        logger.exception(traceback.format_exc())
+    
+    return figures
+
+# Add custom visualization registry
+if 'custom_visualizations' not in st.session_state:
+    st.session_state.custom_visualizations = {}
+
+def register_custom_visualization(detector_name, visualization_name, visualization_func):
+    """
+    Register a custom visualization function for a specific detector.
+    
+    Args:
+        detector_name (str): Name of the detector
+        visualization_name (str): Name of the visualization
+        visualization_func (callable): Function that returns a Plotly figure
+            The function should accept (detector, x, processed_x, time_steps) as arguments
+    """
+    if detector_name not in st.session_state.custom_visualizations:
+        st.session_state.custom_visualizations[detector_name] = {}
+    
+    st.session_state.custom_visualizations[detector_name][visualization_name] = visualization_func
+    
+def get_custom_visualizations(detector_name, detector, x, processed_x, time_steps):
+    """
+    Get custom visualizations for a specific detector.
+    
+    Args:
+        detector_name (str): Name of the detector
+        detector (object): The fitted detector object
+        x (np.ndarray): Original input data
+        processed_x (np.ndarray): Processed input data
+        time_steps (np.ndarray): Time steps for plotting
+        
+    Returns:
+        dict: A dictionary of Plotly figures, keyed by visualization name
+    """
+    figures = {}
+    
+    # Check if custom_visualizations exists in session_state
+    custom_viz = getattr(st.session_state, 'custom_visualizations', {})
+    
+    if detector_name in custom_viz:
+        for viz_name, viz_func in custom_viz[detector_name].items():
+            try:
+                fig = viz_func(detector, x, processed_x, time_steps)
+                figures[viz_name] = fig
+            except Exception as e:
+                logger.error(f"Error generating custom visualization {viz_name}: {e}")
+                logger.exception(traceback.format_exc())
+    
+    return figures
+
+# Fix the issue with compare_tabs index by checking the number of tabs
+def fix_compare_tabs_index(compare_tabs):
+    """
+    Ensure we don't access an out-of-bounds index in the compare_tabs.
+    
+    Args:
+        compare_tabs: The comparison tabs object
+        
+    Returns:
+        int: The safe index for Performance Analysis tab
+    """
+    # Default index for Performance Analysis tab
+    performance_tab_index = 3
+    
+    # Check if we have enough tabs
+    if len(compare_tabs) <= performance_tab_index:
+        # Use the last tab instead
+        return len(compare_tabs) - 1
+    
+    return performance_tab_index
 
 # --- Main application execution ---
 def main():
@@ -1469,7 +2384,7 @@ def main():
             st.header("Comparative Overview of Detectors")
             
             # Create comparison tabs
-            compare_tabs = st.tabs(["Metrics Comparison", "Time Comparison", "Performance Analysis"])
+            compare_tabs = st.tabs(["Metrics Comparison", "Time Comparison", "ROC Curve", "Performance Analysis"])
             
             # Metrics Comparison tab
             with compare_tabs[0]:
@@ -1510,7 +2425,7 @@ def main():
                     df = pd.DataFrame(data)
                     st.dataframe(df)
                     
-                    # Create bar chart for metrics comparison
+                    # Create interactive Plotly bar chart for metrics comparison
                     st.write("**Visual Comparison of Metrics**")
                     metrics_df = df[df['Metric'].isin(list(metric_names))]
                     
@@ -1523,7 +2438,9 @@ def main():
                             color='Detector',
                             barmode='group',
                             title='Comparison of Detector Performance',
-                            labels={'Metric': 'Evaluation Metrics', 'Score': 'Score'}
+                            labels={'Metric': 'Evaluation Metrics', 'Score': 'Score'},
+                            hover_data=['Metric', 'Detector', 'Score'],
+                            color_discrete_sequence=px.colors.qualitative.G10
                         )
                         fig.update_layout(
                             xaxis_title='Evaluation Metrics',
@@ -1531,6 +2448,12 @@ def main():
                             legend_title='Anomaly Detectors',
                             font=dict(size=12),
                             title_font=dict(size=14),
+                            hovermode='closest'
+                        )
+                        # Make the plot interactive with zoom capabilities
+                        fig.update_layout(
+                            xaxis=dict(rangeslider=dict(visible=False)),
+                            clickmode='event+select'
                         )
                         st.plotly_chart(fig, use_container_width=True)
                     except Exception as chart_error:
@@ -1543,7 +2466,7 @@ def main():
                 st.write("**Comparison of Processing Times**")
                 
                 try:
-                    # Create comparison bar chart for timing
+                    # Create comparison bar chart for timing with Plotly
                     time_data = {'Detector': [], 'Type': [], 'Time (s)': []}
                     
                     for detector_key, detector_result in st.session_state.results.items():
@@ -1568,7 +2491,9 @@ def main():
                         color='Type',
                         barmode='group',
                         title='Comparison of Processing Times',
-                        labels={'Detector': 'Anomaly Detectors', 'Time (s)': 'Time (seconds)', 'Type': 'Time Type'}
+                        labels={'Detector': 'Anomaly Detectors', 'Time (s)': 'Time (seconds)', 'Type': 'Time Type'},
+                        hover_data=['Detector', 'Type', 'Time (s)'],
+                        color_discrete_sequence=['#00CC96', '#EF553B']
                     )
                     time_fig.update_layout(
                         xaxis_title='Anomaly Detectors',
@@ -1576,13 +2501,93 @@ def main():
                         legend_title='Time Type',
                         font=dict(size=12),
                         title_font=dict(size=14),
+                        hovermode='closest'
                     )
+                    # Add hover tooltips for better info
+                    time_fig.update_traces(hovertemplate='<b>%{x}</b><br>%{y:.4f} seconds<extra></extra>')
+                    
                     st.plotly_chart(time_fig, use_container_width=True)
                 except Exception as time_error:
                     st.error(f"Error generating time comparison: {time_error}")
             
-            # Performance Analysis tab
+            # ROC Curve tab
             with compare_tabs[2]:
+                st.write("**ROC Curve Comparison**")
+                try:
+                    # Get dataset 
+                    if st.session_state.uploaded_data_valid:
+                        _, y_true = st.session_state.uploaded_data
+                    elif 'selected_dataset_name' in st.session_state:
+                        _, y_true = load_dataset(st.session_state.selected_dataset_name)
+                    else:
+                        y_true = None
+                        
+                    if y_true is not None:
+                        # Create ROC curve with sklearn
+                        from sklearn.metrics import roc_curve, auc
+                        
+                        # Plot for each detector
+                        fig = go.Figure()
+                        for detector_key, detector_result in st.session_state.results.items():
+                            if not detector_key.startswith('detector_'):
+                                continue
+                                
+                            detector_name = detector_result['detector_name']
+                            detector_label = f"Detector {detector_key[-1]} ({detector_name})"
+                            anomaly_scores = detector_result['anomaly_scores']
+                            
+                            # Calculate ROC curve
+                            fpr, tpr, _ = roc_curve(y_true, anomaly_scores)
+                            roc_auc = auc(fpr, tpr)
+                            
+                            # Add trace for this detector
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=fpr, 
+                                    y=tpr,
+                                    mode='lines',
+                                    name=f'{detector_label} (AUC = {roc_auc:.3f})'
+                                )
+                            )
+                        
+                        # Add diagonal reference line
+                        fig.add_trace(
+                            go.Scatter(
+                                x=[0, 1], 
+                                y=[0, 1],
+                                mode='lines',
+                                name='Random Classifier',
+                                line=dict(color='gray', dash='dash')
+                            )
+                        )
+                        
+                        # Update layout
+                        fig.update_layout(
+                            title='ROC Curve Comparison',
+                            xaxis_title='False Positive Rate',
+                            yaxis_title='True Positive Rate',
+                            legend=dict(
+                                x=1,
+                                y=0,
+                                xanchor='right',
+                                yanchor='bottom'
+                            ),
+                            width=800,
+                            height=600,
+                            hovermode='closest'
+                        )
+                        
+                        # Display the ROC curve
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("Cannot generate ROC curve: No dataset available.")
+                except Exception as roc_error:
+                    st.error(f"Error generating ROC curve: {roc_error}")
+                    st.error(traceback.format_exc())
+            
+            # Performance Analysis tab - use the fix_compare_tabs_index function to ensure we don't go out of bounds
+            performance_tab_index = fix_compare_tabs_index(compare_tabs)
+            with compare_tabs[performance_tab_index]:
                 st.write("**Quantitative Analysis and Conclusions**")
                 
                 try:
