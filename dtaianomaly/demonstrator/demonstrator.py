@@ -26,6 +26,15 @@ from dtaianomaly.workflow.utils import convert_to_proba_metrics
 from dtaianomaly.utils import is_valid_array_like, is_univariate, get_dimension
 from dtaianomaly.evaluation import AreaUnderROC, Precision
 
+# Import custom detector
+try:
+    from dtaianomaly.demonstrator.custom_detector_demo import NbSigmaAnomalyDetector
+    CUSTOM_DETECTOR_AVAILABLE = True
+    print("Successfully imported NbSigmaAnomalyDetector")
+except ImportError:
+    CUSTOM_DETECTOR_AVAILABLE = False
+    print("Could not import NbSigmaAnomalyDetector")
+
 # Configure logging
 LOG_DIR = "logs"
 if not os.path.exists(LOG_DIR):
@@ -94,9 +103,22 @@ if 'threshold_hyperparams' not in st.session_state:
 
 # --- Helper functions ---
 
+# Mapping from dtaianomaly modules to keys in the custom_components dictionary
+# Adjust keys ('detectors', 'preprocessors', etc.) if needed to match your custom_components structure
+CUSTOM_COMPONENT_KEY_MAP = {
+    anomaly_detection: 'detectors',
+    preprocessing: 'preprocessors',
+    evaluation: 'metrics',
+    thresholding: 'thresholds',
+    data: 'data_loaders',
+    # Remove reference to data.synthetic which doesn't exist
+}
+
 def get_available_options(module, base_class, include_functions=False):
     """Dynamically retrieves available options from a dtaianomaly module."""
     options = []
+    
+    # First get standard options from the module
     for name, obj in inspect.getmembers(module):
         if (inspect.isclass(obj) and issubclass(obj, base_class) and obj is not base_class and
                 name not in ['BaseDetector', 'PyODAnomalyDetector', 'Preprocessor', 'Metric', 'ProbaMetric',
@@ -105,15 +127,47 @@ def get_available_options(module, base_class, include_functions=False):
             options.append(name)
         elif include_functions and inspect.isfunction(obj) and 'time_series' in name:
             options.append(name)
+    
+    # Check for custom components in session state
+    import streamlit as st
+    if 'custom_components' in st.session_state:
+        # If we're looking for detectors, add any custom ones
+        if module is anomaly_detection and base_class is anomaly_detection.BaseDetector:
+            if 'detectors' in st.session_state.custom_components:
+                for name in st.session_state.custom_components['detectors']:
+                    if name not in options:
+                        logger.info(f"Adding custom detector to options: {name}")
+                        options.append(name)
+    
     return options
 
 
 def load_dataset(dataset_name: str) -> tuple[np.ndarray, np.ndarray]:
-    """Loads a dataset from dtaianomaly.data or dtaianomaly.data.synthetic."""
+    """Loads a dataset from dtaianomaly.data or custom loaders."""
+    # Add check for None dataset_name
+    if dataset_name is None:
+        logger.error("load_dataset called with None dataset_name")
+        raise ValueError("No dataset selected.")
+        
     if hasattr(data, dataset_name):
         dataset_function = getattr(data, dataset_name)
     else:
-        dataset_function = getattr(data.synthetic, dataset_name)
+        # Handle potential missing attribute error more gracefully
+        try:
+            # Check custom components if available
+            custom_components = getattr(st.session_state, 'custom_components', {})
+            data_loaders = custom_components.get('data_loaders', {})
+            if dataset_name in data_loaders:
+                dataset_function = data_loaders[dataset_name]
+            else:
+                raise AttributeError(f"Dataset '{dataset_name}' not found in dtaianomaly.data or custom loaders.")
+        except AttributeError as e:
+            logger.error(f"Error finding dataset: {e}")
+            raise AttributeError(f"Dataset '{dataset_name}' not found. Check available datasets.")
+        except Exception as e:
+            logger.error(f"Unexpected error checking custom data loaders: {e}")
+            raise AttributeError(f"Dataset '{dataset_name}' not found.")
+            
     x, y = dataset_function()
     if not is_valid_array_like(x) or not is_valid_array_like(y) or not np.all(np.isin(y, [0, 1])):
         raise ValueError("Invalid dataset: must be array-like with binary labels (0 or 1).")
@@ -125,6 +179,28 @@ def load_component(module, component_name: str, **kwargs):
     if component_name is None or component_name == "None":
         return None
     try:
+        # First check if it's a custom component
+        if 'custom_components' in st.session_state:
+            # Determine component type based on module
+            component_type = None
+            for m, key in CUSTOM_COMPONENT_KEY_MAP.items():
+                if module is m:
+                    component_type = key
+                    break
+                    
+            # Check if the component exists in custom components
+            if component_type and component_type in st.session_state.custom_components:
+                if component_name in st.session_state.custom_components[component_type]:
+                    logger.info(f"Loading custom component: {component_name}")
+                    component_class = st.session_state.custom_components[component_type][component_name]
+                    try:
+                        return component_class(**kwargs)
+                    except Exception as e:
+                        logger.error(f"Error initializing custom component {component_name}: {e}")
+                        st.error(f"Error initializing custom component {component_name}: {e}")
+                        return None
+        
+        # If not found in custom components, try loading from module
         component_class = getattr(module, component_name)
         try:
             return component_class(**kwargs)
@@ -328,7 +404,7 @@ def configure_sidebar():
     """Configures the Streamlit sidebar with data, evaluation metrics, and visualization options."""
     st.sidebar.header("Configuration")
 
-    # Option to upload custom data or choose built-in dataset
+    # --- 1. Dataset ---
     st.sidebar.subheader("1. Dataset")
     upload_option = st.sidebar.radio(
         "Choose a dataset source:",
@@ -338,7 +414,7 @@ def configure_sidebar():
 
     if upload_option == "Upload custom dataset":
         uploaded_file = st.sidebar.file_uploader(
-            "Drag your CSV or Excel file here or click to upload",
+            "Upload CSV or Excel (columns: Time Step*, Value(s), Label)", # Clarify expected columns
             type=["csv", "xlsx", "xls"],
             key="file_uploader"
         )
@@ -348,22 +424,37 @@ def configure_sidebar():
                     df = pd.read_csv(uploaded_file)
                 else:
                     df = pd.read_excel(uploaded_file)
+
+                # --- Validation ---
                 x, y, error = validate_uploaded_data(df)
                 if error:
-                    st.error(error)
+                    st.sidebar.error(f"Invalid Upload: {error}")
                     st.session_state.uploaded_data_valid = False
+                    st.session_state.uploaded_data = None # Clear previous valid data
                 else:
                     st.session_state.uploaded_data = (x, y)
                     st.session_state.uploaded_data_valid = True
-                    st.success("Uploaded dataset is valid and ready to use.")
+                    st.session_state.selected_dataset_name = f"Uploaded: {uploaded_file.name}" # Use filename as identifier
+                    st.sidebar.success(f"Uploaded '{uploaded_file.name}' is valid ({x.shape[0]} samples, {x.shape[1]} feature(s)).")
             except Exception as e:
-                st.error(f"Error loading the uploaded dataset: {e}")
+                st.sidebar.error(f"Error loading file: {e}")
+                logger.error(f"Error loading uploaded file: {traceback.format_exc()}")
                 st.session_state.uploaded_data_valid = False
-        else:
-            st.session_state.uploaded_data_valid = False
-    else:
-        dataset_options = get_available_options(data, data.LazyDataLoader, True) + get_available_options(
-            data.synthetic, object, True)
+                st.session_state.uploaded_data = None
+        # If no file is uploaded but option is selected, ensure state reflects this
+        elif not st.session_state.get('uploaded_data_valid', False):
+             st.session_state.uploaded_data_valid = False
+             st.session_state.uploaded_data = None
+             # Clear selected dataset name if switching from built-in
+             # if st.session_state.selected_dataset_name and not st.session_state.selected_dataset_name.startswith("Uploaded:"):
+             #      st.session_state.selected_dataset_name = None
+
+
+    else: # Use built-in dataset
+        # Only list datasets directly in dtaianomaly.data
+        dataset_options = get_available_options(data, data.LazyDataLoader, True)
+        # Remove reference to synthetic dataset
+        
         default_dataset_index = dataset_options.index(
             'demonstration_time_series') if 'demonstration_time_series' in dataset_options else 0
         st.session_state.selected_dataset_name = st.sidebar.selectbox(
@@ -489,9 +580,30 @@ def configure_detector_tab(tab_index):
     
     # Detector Selection
     detector_options = get_available_options(anomaly_detection, anomaly_detection.BaseDetector)
-    default_index = detector_options.index('IsolationForest') if 'IsolationForest' in detector_options else 0
-    if tab_index == 1 and 'LOF' in detector_options:
-        default_index = detector_options.index('LOF')
+    
+    # Log the available detector options for debugging
+    logger.info(f"Available detector options: {detector_options}")
+    
+    # Explicitly add the custom detector if available
+    if CUSTOM_DETECTOR_AVAILABLE and 'NbSigmaAnomalyDetector' not in detector_options:
+        detector_options.append('NbSigmaAnomalyDetector')
+        logger.info("Explicitly added NbSigmaAnomalyDetector to options")
+    
+    # Check for custom detectors directly in session state
+    if 'custom_components' in st.session_state and 'detectors' in st.session_state.custom_components:
+        custom_detectors = list(st.session_state.custom_components['detectors'].keys())
+        logger.info(f"Found custom detectors: {custom_detectors}")
+        # Add any custom detectors that aren't already in the options
+        for detector in custom_detectors:
+            if detector not in detector_options:
+                detector_options.append(detector)
+                logger.info(f"Added custom detector to options: {detector}")
+    
+    # Determine default detector index
+    default_index = 0
+    if 'NbSigmaAnomalyDetector' in detector_options:
+        logger.info("Found NbSigmaAnomalyDetector in options, setting as default")
+        default_index = detector_options.index('NbSigmaAnomalyDetector')
     
     selected_detector = st.selectbox(
         "Select Detector",
@@ -786,11 +898,41 @@ def run_detector(tab_index):
         if isinstance(processed_x, np.ndarray) and processed_x.size > 0:
             logger.debug(f"Processed data sample (first 5 elements): {processed_x.flatten()[:5]}")
             logger.debug(f"Processed data min: {np.min(processed_x)}, max: {np.max(processed_x)}")
+            
+        # Try to load detector - first check if it's our custom detector
+        detector = None
+        if selected_detector == 'NbSigmaAnomalyDetector' and CUSTOM_DETECTOR_AVAILABLE:
+            logger.info("Creating NbSigmaAnomalyDetector instance directly")
+            try:
+                # Initialize directly with hyperparameters
+                detector = NbSigmaAnomalyDetector(**detector_config["hyperparams"])
+                logger.info(f"Successfully created NbSigmaAnomalyDetector with params: {detector_config['hyperparams']}")
+                st.success("Successfully initialized NbSigmaAnomalyDetector!")
+            except Exception as e:
+                logger.error(f"Error initializing NbSigmaAnomalyDetector: {e}")
+                st.error(f"Error initializing NbSigmaAnomalyDetector: {e}")
         
-        # Load detector 
-        logger.debug(f"Loading detector: {detector_config['name']}")
-        detector = load_component(anomaly_detection, detector_config["name"], 
-                                **detector_config["hyperparams"])
+        # If detector is still None, try custom components
+        if detector is None and 'custom_components' in st.session_state and 'detectors' in st.session_state.custom_components:
+            if selected_detector in st.session_state.custom_components['detectors']:
+                logger.info(f"Loading custom detector from session state: {selected_detector}")
+                detector_class = st.session_state.custom_components['detectors'][selected_detector]
+                try:
+                    detector = detector_class(**detector_config["hyperparams"])
+                    logger.info(f"Successfully initialized custom detector: {selected_detector}")
+                    st.success(f"Successfully initialized custom detector: {selected_detector}")
+                except Exception as e:
+                    logger.error(f"Error initializing custom detector {selected_detector}: {e}")
+                    st.error(f"Error initializing custom detector {selected_detector}: {e}")
+        
+        # If detector is still None, try standard loading  
+        if detector is None:
+            logger.debug(f"Loading standard detector: {detector_config['name']}")
+            detector = load_component(anomaly_detection, detector_config["name"], 
+                                    **detector_config["hyperparams"])
+        
+        # Display what detector was loaded
+        st.write(f"Using detector: {selected_detector}")
         
         # Fit detector and time it
         logger.debug("Fitting detector")
@@ -2279,6 +2421,21 @@ def fix_compare_tabs_index(compare_tabs):
 # --- Main application execution ---
 def main():
     """Main function to run the Streamlit app."""
+    # Check for custom components in session state
+    import os
+    import streamlit as st
+    
+    # Initialize custom_components in session state if not present
+    if 'custom_components' not in st.session_state:
+        logger.info("No custom components found in session state")
+        st.session_state.custom_components = {}
+    else:
+        logger.info(f"Found custom components in session state: {list(st.session_state.custom_components.keys())}")
+        # Check if we have custom detectors
+        if 'detectors' in st.session_state.custom_components:
+            custom_detectors = list(st.session_state.custom_components['detectors'].keys())
+            logger.info(f"Custom detectors registered: {custom_detectors}")
+    
     # App title and description
     st.title("dtaianomaly Demonstrator")
     st.markdown(
