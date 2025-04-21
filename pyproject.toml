@@ -83,6 +83,14 @@ notebooks = [  # For using notebooks
     "notebook",
     "jupyterlab",
 ]
+
+# Extra dependencies for the demonstrator; enables pip install via [demonstrator] extra
+demonstrator = [
+    "plotly",
+    "streamlit",
+    "xlsxwriter",
+]
+
 lint = [
     "pre-commit",
     "black",
