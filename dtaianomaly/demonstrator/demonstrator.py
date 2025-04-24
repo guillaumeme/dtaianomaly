@@ -64,13 +64,13 @@ logger.info("Starting Streamlit application")
 # --- Initialiseren van session state variabelen ---
 logger.debug("Initializing session state variables")
 if 'experience_level' not in st.session_state:
-    st.session_state.experience_level = "Beginner"
+    st.session_state.experience_level = "Expert"
 if 'uploaded_data_valid' not in st.session_state:
     st.session_state.uploaded_data_valid = False
 if 'selected_dataset_name' not in st.session_state:
     st.session_state.selected_dataset_name = None
 if 'detector_tabs' not in st.session_state:
-    st.session_state.detector_tabs = [{'id': 0, 'mode': 'Beginner', 'detector': None}]
+    st.session_state.detector_tabs = [{'id': 0, 'mode': 'Expert', 'detector': None}]
 if 'next_tab_id' not in st.session_state:
     st.session_state.next_tab_id = 1
 if 'current_detector_tab' not in st.session_state:
@@ -543,7 +543,7 @@ def add_detector_tab():
     """Adds a new detector tab to the session state."""
     new_tab = {
         'id': st.session_state.next_tab_id,
-        'mode': 'Beginner',
+        'mode': 'Expert',
         'detector': None
     }
     st.session_state.detector_tabs.append(new_tab)
@@ -564,19 +564,6 @@ def configure_detector_tab(tab_index):
     """Configures the detector settings for a specific tab."""
     tab = st.session_state.detector_tabs[tab_index]
     detector_key = f"detector_{tab_index + 1}"
-    
-    # Beginner/Expert toggle
-    col1, col2 = st.columns([8, 2])
-    with col1:
-        st.subheader(f"Detector {tab_index + 1}")
-    with col2:
-        mode = st.selectbox(
-            "Mode",
-            ["Beginner", "Expert"],
-            index=0 if tab['mode'] == 'Beginner' else 1,
-            key=f"mode_select_{tab['id']}"
-        )
-        tab['mode'] = mode
     
     # Detector Selection
     detector_options = get_available_options(anomaly_detection, anomaly_detection.BaseDetector)
@@ -661,36 +648,35 @@ def configure_detector_tab(tab_index):
             
             # Display hyperparameters for this preprocessor
             preproc_param_key = f"{detector_key}_preproc_{idx}"
-            if tab['mode'] == 'Expert':
-                with st.expander(f"{preproc_name} Settings", expanded=False):
-                    # Initialize hyperparams if not exists
-                    if preproc_param_key not in st.session_state.preprocessor_hyperparams[detector_key]:
-                        preproc_class = getattr(preprocessing, preproc_name)
-                        st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key] = get_default_hyperparams(preproc_class)
+            with st.expander(f"{preproc_name} Settings", expanded=False):
+                # Initialize hyperparams if not exists
+                if preproc_param_key not in st.session_state.preprocessor_hyperparams[detector_key]:
+                    preproc_class = getattr(preprocessing, preproc_name)
+                    st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key] = get_default_hyperparams(preproc_class)
                         
-                    # Display hyperparameters
-                    hyperparams = st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key]
-                    for param_name, default_value in hyperparams.items():
-                        if isinstance(default_value, float):
-                            hyperparams[param_name] = st.number_input(
-                                f"{param_name}", value=default_value, step=0.1, format="%.2f",
-                                key=f"{preproc_param_key}_{param_name}"
-                            )
-                        elif isinstance(default_value, int):
-                            hyperparams[param_name] = st.number_input(
-                                f"{param_name}", value=default_value, step=1,
-                                key=f"{preproc_param_key}_{param_name}"
-                            )
-                        elif isinstance(default_value, bool):
-                            hyperparams[param_name] = st.checkbox(
-                                f"{param_name}", value=default_value,
-                                key=f"{preproc_param_key}_{param_name}"
-                            )
-                        elif isinstance(default_value, str):
-                            hyperparams[param_name] = st.text_input(
-                                f"{param_name}", value=default_value,
-                                key=f"{preproc_param_key}_{param_name}"
-                            )
+                # Display hyperparameters
+                hyperparams = st.session_state.preprocessor_hyperparams[detector_key][preproc_param_key]
+                for param_name, default_value in hyperparams.items():
+                    if isinstance(default_value, float):
+                        hyperparams[param_name] = st.number_input(
+                            f"{param_name}", value=default_value, step=0.1, format="%.2f",
+                            key=f"{preproc_param_key}_{param_name}"
+                        )
+                    elif isinstance(default_value, int):
+                        hyperparams[param_name] = st.number_input(
+                            f"{param_name}", value=default_value, step=1,
+                            key=f"{preproc_param_key}_{param_name}"
+                        )
+                    elif isinstance(default_value, bool):
+                        hyperparams[param_name] = st.checkbox(
+                            f"{param_name}", value=default_value,
+                            key=f"{preproc_param_key}_{param_name}"
+                        )
+                    elif isinstance(default_value, str):
+                        hyperparams[param_name] = st.text_input(
+                            f"{param_name}", value=default_value,
+                            key=f"{preproc_param_key}_{param_name}"
+                        )
     
     # Add new preprocessor
     with st.container():
@@ -716,23 +702,16 @@ def configure_detector_tab(tab_index):
     # Detector Hyperparameters
     st.subheader("Detector Configuration")
     
-    if tab['mode'] == 'Beginner':
-        # Simple hyperparameters for beginners
-        st.session_state.detector_hyperparams[detector_key] = {"window_size": "fft"}
-        if requires_window_size:
-            st.info(f"Detector {selected_detector} using default window_size: 'fft'")
-        st.write("Default settings are used for this detector.")
-    else:
-        # Advanced hyperparameters for experts - moved from sidebar to main section
-        with st.expander("Advanced Settings"):
-            hyperparams = generate_hyperparam_inputs(selected_detector, prefix=f"expert_{detector_key}")
-            
-            # Ensure window_size is included if needed
-            if requires_window_size and 'window_size' not in hyperparams:
-                st.warning(f"Detector {selected_detector} requires window_size but it wasn't specified. Using 'fft' as default.")
-                hyperparams['window_size'] = 'fft'
+    # Advanced hyperparameters for experts
+    with st.expander("Advanced Settings"):
+        hyperparams = generate_hyperparam_inputs(selected_detector, prefix=f"expert_{detector_key}")
+        
+        # Ensure window_size is included if needed
+        if requires_window_size and 'window_size' not in hyperparams:
+            st.warning(f"Detector {selected_detector} requires window_size but it wasn't specified. Using 'fft' as default.")
+            hyperparams['window_size'] = 'fft'
                 
-            st.session_state.detector_hyperparams[detector_key] = hyperparams
+        st.session_state.detector_hyperparams[detector_key] = hyperparams
     
     if pipeline_updated:
         st.experimental_rerun()
@@ -2450,7 +2429,7 @@ def main():
     # Hidden experience level selection - only setting the session state variable
     # We hide the UI-element maar behouden de functionaliteit
     if 'experience_level' not in st.session_state:
-        st.session_state.experience_level = "Beginner"
+        st.session_state.experience_level = "Expert"
 
     # Configure the sidebar with datasets, metrics, thresholds, and visualizations
     configure_sidebar()
