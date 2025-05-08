@@ -222,6 +222,70 @@ def load_component(module, component_name: str, **kwargs):
         return None
 
 
+def get_parameter_documentation(class_name, param_name):
+    """
+    Extract documentation for a specific parameter of a class.
+    
+    Args:
+        class_name: Name of the class
+        param_name: Name of the parameter
+        
+    Returns:
+        str: Documentation for the parameter, or None if not found
+    """
+    try:
+        # Check if it's a standard detector
+        if hasattr(anomaly_detection, class_name):
+            detector_class = getattr(anomaly_detection, class_name)
+            doc = inspect.getdoc(detector_class)
+            
+            if not doc:
+                return None
+                
+            # Look for parameter documentation in the docstring
+            # Pattern: parameter_name: type
+            #          Description over potentially multiple lines
+            lines = doc.split('\n')
+            param_found = False
+            param_doc = []
+            
+            # First try Parameters section format
+            if "Parameters" in doc:
+                params_section = doc.split("Parameters")[1].split("---")[0].split("Attributes")[0]
+                param_lines = params_section.strip().split('\n')
+                for i, line in enumerate(param_lines):
+                    if param_name in line and ":" in line:
+                        param_found = True
+                        # Extract description from subsequent indented lines
+                        j = i + 1
+                        while j < len(param_lines) and (param_lines[j].startswith(' ') or param_lines[j].startswith('\t')):
+                            param_doc.append(param_lines[j].strip())
+                            j += 1
+                        break
+            
+            # If not found, try another common format
+            if not param_found:
+                for i, line in enumerate(lines):
+                    if line.strip().startswith(param_name + ':') or line.strip().startswith(param_name + ' :'):
+                        param_found = True
+                        param_doc.append(line.split(':', 1)[1].strip())
+                        # Check for multi-line descriptions (indented lines following parameter)
+                        j = i + 1
+                        while j < len(lines) and (lines[j].startswith(' ') or lines[j].startswith('\t')):
+                            param_doc.append(lines[j].strip())
+                            j += 1
+                        break
+            
+            if param_found and param_doc:
+                return ' '.join(param_doc)
+        
+        # Custom detectors - similar approach could be added if needed
+        
+        return None
+    except Exception as e:
+        logger.error(f"Error getting parameter documentation: {e}")
+        return None
+
 def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any]:
     """Generates input fields for detector hyperparameters with a unique prefix."""
     try:
@@ -232,6 +296,11 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
         for param_name, param_obj in signature.parameters.items():
             if param_name in ['self', 'kwargs', 'args']:
                 continue
+                
+            # Get parameter documentation for help text
+            param_help = get_parameter_documentation(detector_name, param_name)
+            if not param_help:
+                param_help = f"Parameter {param_name}"
                 
             # Determine default value based on parameter annotation or default
             default_value = param_obj.default
@@ -255,14 +324,16 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                 window_size_option = st.selectbox(
                     f"{param_name} option", ["Auto (fft)", "Manual"], 
                     key=f"{prefix}_window_size_option", 
-                    index=0
+                    index=0,
+                    help=param_help
                 )
                 if window_size_option == "Manual":
                     hyperparams['window_size'] = int(st.number_input(
                         f"Manual {param_name}", 
                         min_value=1, 
                         value=20 if default_value is None else int(default_value),
-                        key=f"{prefix}_window_size_manual"
+                        key=f"{prefix}_window_size_manual",
+                        help=param_help
                     ))
                 else:
                     hyperparams['window_size'] = 'fft'
@@ -272,7 +343,8 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                     hyperparams[param_name] = st.checkbox(
                         f"{param_name}", 
                         value=default_value,
-                        key=f"{prefix}_{param_name}"
+                        key=f"{prefix}_{param_name}",
+                        help=param_help
                     )
                 elif isinstance(default_value, int):
                     hyperparams[param_name] = st.number_input(
@@ -280,7 +352,8 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                         value=default_value, 
                         step=1,
                         format="%d", 
-                        key=f"{prefix}_{param_name}"
+                        key=f"{prefix}_{param_name}",
+                        help=param_help
                     )
                 elif isinstance(default_value, float):
                     hyperparams[param_name] = st.number_input(
@@ -288,34 +361,39 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                         value=default_value, 
                         step=0.1,
                         format="%.2f", 
-                        key=f"{prefix}_{param_name}"
+                        key=f"{prefix}_{param_name}",
+                        help=param_help
                     )
                 elif isinstance(default_value, str):
                     hyperparams[param_name] = st.text_input(
                         f"{param_name}", 
                         value=default_value,
-                        key=f"{prefix}_{param_name}"
+                        key=f"{prefix}_{param_name}",
+                        help=param_help
                     )
                 elif default_value is None:
                     # For parameters with no clear type, provide options
                     param_type_option = st.selectbox(
                         f"{param_name} type", 
                         ["None", "String", "Integer", "Float", "Boolean"],
-                        key=f"{prefix}_{param_name}_type"
+                        key=f"{prefix}_{param_name}_type",
+                        help=param_help
                     )
                     
                     if param_type_option == "String":
                         hyperparams[param_name] = st.text_input(
                             f"{param_name} (string)", 
                             value="",
-                            key=f"{prefix}_{param_name}_value"
+                            key=f"{prefix}_{param_name}_value",
+                            help=param_help
                         )
                     elif param_type_option == "Integer":
                         hyperparams[param_name] = st.number_input(
                             f"{param_name} (integer)", 
                             value=0,
                             step=1, 
-                            key=f"{prefix}_{param_name}_value"
+                            key=f"{prefix}_{param_name}_value",
+                            help=param_help
                         )
                     elif param_type_option == "Float":
                         hyperparams[param_name] = st.number_input(
@@ -323,13 +401,15 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                             value=0.0,
                             step=0.1, 
                             format="%.2f",
-                            key=f"{prefix}_{param_name}_value"
+                            key=f"{prefix}_{param_name}_value",
+                            help=param_help
                         )
                     elif param_type_option == "Boolean":
                         hyperparams[param_name] = st.checkbox(
                             f"{param_name} (boolean)", 
                             value=False,
-                            key=f"{prefix}_{param_name}_value"
+                            key=f"{prefix}_{param_name}_value",
+                            help=param_help
                         )
                     else:  # None
                         hyperparams[param_name] = None
@@ -339,7 +419,8 @@ def generate_hyperparam_inputs(detector_name: str, prefix: str) -> Dict[str, Any
                     hyperparams[param_name] = st.text_input(
                         f"{param_name} (complex type)", 
                         value=str(default_value),
-                        key=f"{prefix}_{param_name}"
+                        key=f"{prefix}_{param_name}",
+                        help=param_help
                     )
         
         return hyperparams
@@ -451,17 +532,14 @@ def configure_sidebar():
 
 
     else: # Use built-in dataset
-        # Only list datasets directly in dtaianomaly.data
-        dataset_options = get_available_options(data, data.LazyDataLoader, True)
-        # Remove reference to synthetic dataset
+        # Only include demonstration_time_series
+        dataset_options = ["demonstration_time_series"]
         
-        default_dataset_index = dataset_options.index(
-            'demonstration_time_series') if 'demonstration_time_series' in dataset_options else 0
         st.session_state.selected_dataset_name = st.sidebar.selectbox(
             "Select Dataset",
             dataset_options,
             key="dataset_select",
-            index=default_dataset_index,
+            index=0,
             help="Choose a dataset to analyze."
         )
         st.session_state.uploaded_data_valid = False
@@ -485,59 +563,68 @@ def configure_sidebar():
         st.error("No thresholding classes found. Check the installation.")
         st.stop()
         
-    valid_default_thresholds = [opt for opt in ["FixedThreshold"] if opt in threshold_options] or [threshold_options[0]]
-    st.session_state.selected_thresholds = st.sidebar.multiselect(
-        "Select Thresholds", 
+    # Use radio buttons for single selection instead of multiselect
+    # Get documentation for each thresholding method to use as help text
+    threshold_help_texts = {}
+    for threshold_name in threshold_options:
+        threshold_help_texts[threshold_name] = get_threshold_documentation(threshold_name)
+    
+    selected_threshold = st.sidebar.radio(
+        "Select Threshold", 
         threshold_options,
-        default=valid_default_thresholds,
-        key="thresholds_select"
+        index=0,
+        key="threshold_select",
+        help="Choose a thresholding method to determine anomaly boundaries."
     )
+    st.session_state.selected_thresholds = [selected_threshold]
     
     # Threshold Hyperparameters
     for threshold_name in st.session_state.selected_thresholds:
-        threshold_class = getattr(thresholding, threshold_name)
-        st.session_state.threshold_hyperparams[threshold_name] = get_default_hyperparams(threshold_class)
-        with st.sidebar.expander(f"{threshold_name} Settings"):
-            for param_name in st.session_state.threshold_hyperparams[threshold_name]:
-                default_value = st.session_state.threshold_hyperparams[threshold_name][param_name]
-                if isinstance(default_value, float):
-                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
-                        f"{param_name}", value=default_value, step=0.1, format="%.2f",
-                        key=f"threshold_{threshold_name}_{param_name}"
-                    )
-                elif isinstance(default_value, int):
-                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
-                        f"{param_name}", value=default_value, step=1,
-                        key=f"threshold_{threshold_name}_{param_name}"
-                    )
-                elif isinstance(default_value, bool):
-                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.checkbox(
-                        f"{param_name}", value=default_value,
-                        key=f"threshold_{threshold_name}_{param_name}"
-                    )
-                elif isinstance(default_value, str):
-                    st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.text_input(
-                        f"{param_name}", value=default_value,
-                        key=f"threshold_{threshold_name}_{param_name}"
-                    )
+        # Create threshold params if they don't exist
+        if threshold_name not in st.session_state.threshold_hyperparams:
+            # Special handling for FixedCutoff
+            if threshold_name == 'FixedCutoff':
+                st.session_state.threshold_hyperparams[threshold_name] = init_fixed_cutoff_params()
+            else:
+                # Standard handling for other thresholds
+                threshold_class = getattr(thresholding, threshold_name)
+                st.session_state.threshold_hyperparams[threshold_name] = get_default_hyperparams(threshold_class)
+        
+        # Generate inputs for each parameter with help tooltips
+        for param_name in st.session_state.threshold_hyperparams[threshold_name]:
+            # Get parameter documentation for help text
+            param_help = get_threshold_parameter_documentation(threshold_name, param_name)
+            if not param_help:
+                # If no specific documentation, use general threshold information
+                param_help = threshold_help_texts.get(threshold_name, f"Parameter for {threshold_name}")
+                
+            default_value = st.session_state.threshold_hyperparams[threshold_name][param_name]
+            if isinstance(default_value, float):
+                st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
+                    f"{param_name}", value=default_value, step=0.1, format="%.2f",
+                    key=f"threshold_{threshold_name}_{param_name}",
+                    help=param_help
+                )
+            elif isinstance(default_value, int):
+                st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.number_input(
+                    f"{param_name}", value=default_value, step=1,
+                    key=f"threshold_{threshold_name}_{param_name}",
+                    help=param_help
+                )
+            elif isinstance(default_value, bool):
+                st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.checkbox(
+                    f"{param_name}", value=default_value,
+                    key=f"threshold_{threshold_name}_{param_name}",
+                    help=param_help
+                )
+            elif isinstance(default_value, str):
+                st.session_state.threshold_hyperparams[threshold_name][param_name] = st.sidebar.text_input(
+                    f"{param_name}", value=default_value,
+                    key=f"threshold_{threshold_name}_{param_name}",
+                    help=param_help
+                )
     
-    # Visualization options
-    st.sidebar.subheader("4. Visualization Options")
-    visualization_options = ["Anomaly Scores", "Demarcated Anomalies", "Time Series Colored by Score",
-                             "Time Series with Anomalies", "Zoom View"]
-    st.session_state.selected_visualizations = st.sidebar.multiselect(
-        "Select Visualizations",
-        visualization_options,
-        default=["Time Series with Anomalies"],
-        key="visualizations_select"
-    )
-
-    # Zoom settings if desired
-    if "Zoom View" in st.session_state.selected_visualizations:
-        st.session_state.zoom_start = st.sidebar.number_input("Zoom Start Index", min_value=0, value=0,
-                                                             key="zoom_start")
-        st.session_state.zoom_end = st.sidebar.number_input("Zoom End Index", min_value=1, value=100,
-                                                           key="zoom_end")
+    # Visualization Options section removed
 
 def add_detector_tab():
     """Adds a new detector tab to the session state."""
@@ -559,6 +646,41 @@ def remove_detector_tab(tab_id):
             if st.session_state.current_detector_tab >= len(st.session_state.detector_tabs):
                 st.session_state.current_detector_tab = 0
             break
+
+def get_detector_documentation(detector_name):
+    """
+    Extract documentation from detector class.
+    
+    Args:
+        detector_name: Name of the detector class
+        
+    Returns:
+        str: The main description part of the documentation string for the detector
+    """
+    try:
+        # First check if it's a custom detector
+        if 'custom_components' in st.session_state and 'detectors' in st.session_state.custom_components:
+            if detector_name in st.session_state.custom_components['detectors']:
+                detector_class = st.session_state.custom_components['detectors'][detector_name]
+                doc = inspect.getdoc(detector_class)
+                if doc:
+                    # Extract just the main description (everything before Parameters or ---)
+                    main_description = doc.split("Parameters")[0].split("---")[0].strip()
+                    return main_description
+        
+        # Check standard detectors
+        if hasattr(anomaly_detection, detector_name):
+            detector_class = getattr(anomaly_detection, detector_name)
+            doc = inspect.getdoc(detector_class)
+            if doc:
+                # Extract just the main description (everything before Parameters or ---)
+                main_description = doc.split("Parameters")[0].split("---")[0].strip()
+                return main_description
+        
+        return f"No documentation available for {detector_name}."
+    except Exception as e:
+        logger.error(f"Error getting documentation for {detector_name}: {e}")
+        return f"Error retrieving documentation for {detector_name}."
 
 def configure_detector_tab(tab_index):
     """Configures the detector settings for a specific tab."""
@@ -599,6 +721,19 @@ def configure_detector_tab(tab_index):
         key=f"detector_select_{tab['id']}"
     )
     tab['detector'] = selected_detector
+    
+    # Display detector documentation
+    detector_doc = get_detector_documentation(selected_detector)
+    with st.expander("Detector Documentation", expanded=True):
+        # Add styling to make documentation more readable
+        st.markdown(f"""
+        <div style="background-color:#f8f9fa; padding:15px; border-radius:5px; border-left:5px solid #4CAF50;">
+        <h4 style="color:#4CAF50;">{selected_detector}</h4>
+        <div style="color:#333; font-size:0.95em;">
+        {detector_doc.replace('\n', '<br>')}
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Check if the detector requires window_size
     try:
@@ -1067,6 +1202,102 @@ def run_detector(tab_index):
                     
                     continue  # Skip the rest of the processing for ContaminationRate
                 
+                # Special handling for FixedCutoff to apply the cutoff value directly
+                elif threshold_name == 'FixedCutoff':
+                    logger.info("Using special handling for FixedCutoff")
+                    
+                    # Ensure processed_y is not None - use original y if it is
+                    if processed_y is None:
+                        logger.warning("processed_y is None, using original y for metrics calculation")
+                        processed_y = y
+                    
+                    # Get the cutoff value from parameters
+                    threshold_params = st.session_state.threshold_hyperparams.get(threshold_name, {})
+                    # Log the actual parameters to debug
+                    logger.debug(f"FixedCutoff parameters: {threshold_params}")
+                    
+                    # Check if the parameter exists and is the correct type
+                    if 'cutoff' not in threshold_params:
+                        logger.warning("cutoff parameter not found in threshold_params, using default value 0.5")
+                        cutoff = 0.5
+                    else:
+                        cutoff = float(threshold_params['cutoff'])
+                    
+                    logger.debug(f"Using fixed cutoff value: {cutoff}")
+                    
+                    # Apply threshold
+                    y_pred = (anomaly_scores >= cutoff).astype(int)
+                    logger.debug(f"Created binary predictions using fixed cutoff threshold")
+                    st.info(f"Using fixed cutoff value: {cutoff}")
+                    
+                    # Store predictions
+                    thresholded_predictions[threshold_name] = y_pred
+                    logger.debug(f"Stored thresholded predictions for {threshold_name}")
+                    
+                    # Log predictions summary
+                    if isinstance(y_pred, np.ndarray):
+                        anomaly_count = np.sum(y_pred)
+                        logger.debug(f"Predictions summary - anomalies: {anomaly_count}, normal: {len(y_pred) - anomaly_count}")
+                        logger.debug(f"Anomaly percentage: {anomaly_count/len(y_pred)*100:.2f}%")
+                    
+                    # Calculate metrics for FixedCutoff
+                    metrics_dict = {}
+                    
+                    try:
+                        # Import metrics from scikit-learn
+                        from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score, accuracy_score
+                        
+                        # Make sure processed_y is valid array-like
+                        if not isinstance(processed_y, np.ndarray):
+                            processed_y = np.array(processed_y)
+                        
+                        # Calculate all possible metrics
+                        try:
+                            score = roc_auc_score(processed_y, anomaly_scores)
+                            metrics_dict['AreaUnderROC'] = score
+                            logger.debug(f"AreaUnderROC score: {score}")
+                        except Exception as e:
+                            logger.error(f"Error calculating AreaUnderROC: {e}")
+                        
+                        try:
+                            score = precision_score(processed_y, y_pred)
+                            metrics_dict['Precision'] = score
+                            logger.debug(f"Precision score: {score}")
+                        except Exception as e:
+                            logger.error(f"Error calculating Precision: {e}")
+                            
+                        try:
+                            score = recall_score(processed_y, y_pred)
+                            metrics_dict['Recall'] = score
+                            logger.debug(f"Recall score: {score}")
+                        except Exception as e:
+                            logger.error(f"Error calculating Recall: {e}")
+                            
+                        try:
+                            score = f1_score(processed_y, y_pred)
+                            metrics_dict['F1Score'] = score
+                            logger.debug(f"F1Score score: {score}")
+                        except Exception as e:
+                            logger.error(f"Error calculating F1Score: {e}")
+                            
+                        try:
+                            score = accuracy_score(processed_y, y_pred)
+                            metrics_dict['Accuracy'] = score
+                            logger.debug(f"Accuracy score: {score}")
+                        except Exception as e:
+                            logger.error(f"Error calculating Accuracy: {e}")
+                        
+                        # Add the metrics to all_metrics
+                        all_metrics[threshold_name] = metrics_dict
+                        logger.debug(f"Stored metrics for {threshold_name}: {metrics_dict}")
+                        
+                    except Exception as metrics_err:
+                        logger.error(f"Error calculating metrics for FixedCutoff: {metrics_err}")
+                        logger.exception(f"FixedCutoff metrics error traceback:")
+                        all_metrics[threshold_name] = {}
+                    
+                    continue  # Skip the rest of the processing for FixedCutoff
+                
                 # Standard processing for other threshold classes
                 logger.debug(f"Getting threshold class: {threshold_name}")
                 threshold_class = getattr(thresholding, threshold_name)
@@ -1387,46 +1618,40 @@ def display_detector_results(tab_index):
         
         # Standard Visualizations section
         st.subheader("Standard Visualizations")
-        if 'selected_visualizations' not in st.session_state or not st.session_state.selected_visualizations:
-            st.info("No visualizations selected.")
-        else:
-            # Use tabs for different visualization types
-            viz_tabs = st.tabs(st.session_state.selected_visualizations)
+        
+        # Always show both visualizations without requiring selection
+        st.write("**Time Series with Anomalies**")
+        try:
+            # Get thresholded predictions if available
+            y_pred = None
             
-            for i, viz in enumerate(st.session_state.selected_visualizations):
-                with viz_tabs[i]:
-                    # For visualizations that don't need thresholded predictions
-                    if viz in ["Anomaly Scores", "Time Series Colored by Score", "Demarcated Anomalies"]:
-                        try:
-                            # Use Plotly for interactive visualizations
-                            fig = generate_plotly_visualization(viz, x, y, anomaly_scores)
-                            if fig:
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.warning(f"Could not generate visualization {viz}.")
-                        except Exception as viz_error:
-                            st.error(f"Error generating {viz}: {viz_error}")
-                            st.error(traceback.format_exc())
-                    else:
-                        # For visualizations that need thresholded predictions
-                        y_pred = None
-                        
-                        # Try to get thresholded predictions if available
-                        if results['thresholded_predictions']:
-                            # Get the first available threshold's predictions
-                            threshold_name = list(results['thresholded_predictions'].keys())[0]
-                            y_pred = results['thresholded_predictions'][threshold_name]
-                        
-                        try:
-                            # Use Plotly for interactive visualizations
-                            fig = generate_plotly_visualization(viz, x, y, anomaly_scores, y_pred, time_steps)
-                            if fig:
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                st.warning(f"Could not generate visualization {viz}.")
-                        except Exception as viz_error:
-                            st.error(f"Error generating {viz}: {viz_error}")
-                            st.error(traceback.format_exc())
+            # Try to get thresholded predictions if available
+            if results['thresholded_predictions']:
+                # Get the first available threshold's predictions
+                threshold_name = list(results['thresholded_predictions'].keys())[0]
+                y_pred = results['thresholded_predictions'][threshold_name]
+            
+            # Use Plotly for interactive visualizations
+            fig = generate_plotly_visualization("Time Series with Anomalies", x, y, anomaly_scores, y_pred, time_steps)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Could not generate Time Series with Anomalies visualization.")
+        except Exception as viz_error:
+            st.error(f"Error generating Time Series with Anomalies visualization: {viz_error}")
+            st.error(traceback.format_exc())
+        
+        st.write("**Anomaly Scores**")
+        try:
+            # Use Plotly for interactive visualizations
+            fig = generate_plotly_visualization("Anomaly Scores", x, y, anomaly_scores)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Could not generate Anomaly Scores visualization.")
+        except Exception as viz_error:
+            st.error(f"Error generating Anomaly Scores visualization: {viz_error}")
+            st.error(traceback.format_exc())
         
         # Get detector from results data if available
         detector = results.get('detector', None)
@@ -1573,104 +1798,6 @@ def generate_plotly_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomal
             hovermode="x unified"
         )
         
-    elif viz == "Time Series Colored by Score":
-        # Create a figure for time series colored by anomaly score
-        fig = go.Figure()
-        
-        # Add scatter plot with color scale based on anomaly scores
-        fig.add_trace(
-            go.Scatter(
-                x=time_steps,
-                y=plot_x,
-                mode='lines+markers',
-                marker=dict(
-                    size=6,
-                    color=anomaly_scores,
-                    colorscale='Viridis',
-                    colorbar=dict(title="Anomaly Score"),
-                    showscale=True
-                ),
-                name='Time Series'
-            )
-        )
-        
-        # Update layout
-        fig.update_layout(
-            title="Time Series Colored by Anomaly Score",
-            xaxis_title="Time",
-            yaxis_title="Value",
-            hovermode="closest",
-            height=500,
-            width=900
-        )
-        
-    elif viz == "Demarcated Anomalies":
-        # Create a figure with shapes for anomaly regions
-        fig = go.Figure()
-        
-        # Add the time series
-        fig.add_trace(
-            go.Scatter(
-                x=time_steps,
-                y=plot_x,
-                mode='lines',
-                name='Time Series'
-            )
-        )
-        
-        # Add shapes for anomaly regions
-        if np.any(y == 1):
-            # Find continuous blocks of anomalies
-            anomaly_blocks = []
-            current_block = []
-            for i, val in enumerate(y):
-                if val == 1:
-                    current_block.append(i)
-                elif current_block:
-                    anomaly_blocks.append(current_block)
-                    current_block = []
-            if current_block:
-                anomaly_blocks.append(current_block)
-            
-            # Add each anomaly region as a rectangular shape
-            for block in anomaly_blocks:
-                start_idx = block[0]
-                end_idx = block[-1]
-                
-                # Get data range for this block
-                y_min = np.min(plot_x) - 0.1 * (np.max(plot_x) - np.min(plot_x))
-                y_max = np.max(plot_x) + 0.1 * (np.max(plot_x) - np.min(plot_x))
-                
-                fig.add_shape(
-                    type="rect",
-                    x0=time_steps[start_idx],
-                    x1=time_steps[end_idx],
-                    y0=y_min,
-                    y1=y_max,
-                    fillcolor="red",
-                    opacity=0.2,
-                    layer="below",
-                    line_width=0,
-                )
-                
-                # Add a label for the anomaly region
-                fig.add_annotation(
-                    x=time_steps[(start_idx + end_idx) // 2],
-                    y=y_max,
-                    text="Anomaly",
-                    showarrow=False,
-                    font=dict(color="red")
-                )
-        
-        # Update layout
-        fig.update_layout(
-            title="Time Series with Demarcated Anomaly Regions",
-            xaxis_title="Time",
-            yaxis_title="Value",
-            height=500,
-            width=900
-        )
-        
     elif viz == "Time Series with Anomalies":
         # Create a plot comparing detected vs true anomalies
         fig = make_subplots(rows=1, cols=1)
@@ -1726,70 +1853,6 @@ def generate_plotly_visualization(viz: str, x: np.ndarray, y: np.ndarray, anomal
                 xanchor="right",
                 x=1
             )
-        )
-        
-    elif viz == "Zoom View":
-        # Get zoom range
-        zoom_start = 0
-        zoom_end = min(100, x.shape[0])
-        
-        if hasattr(st.session_state, 'zoom_start') and hasattr(st.session_state, 'zoom_end'):
-            zoom_start = st.session_state.zoom_start
-            zoom_end = st.session_state.zoom_end
-            
-        if zoom_end <= zoom_start or zoom_end > x.shape[0]:
-            st.error("Invalid zoom range.")
-            return None
-        
-        # Create figure with zoomed time series
-        fig = go.Figure()
-        
-        # Add the zoomed time series
-        fig.add_trace(
-            go.Scatter(
-                x=time_steps[zoom_start:zoom_end],
-                y=plot_x[zoom_start:zoom_end],
-                mode='lines',
-                name='Time Series'
-            )
-        )
-        
-        # Add true anomalies in the zoom range
-        true_zoom_anomalies = np.where(y[zoom_start:zoom_end] == 1)[0]
-        if len(true_zoom_anomalies) > 0:
-            true_zoom_indices = true_zoom_anomalies + zoom_start
-            fig.add_trace(
-                go.Scatter(
-                    x=time_steps[true_zoom_indices],
-                    y=plot_x[true_zoom_indices],
-                    mode='markers',
-                    marker=dict(color='red', size=10, symbol='x'),
-                    name='True Anomalies'
-                )
-            )
-        
-        # Add predicted anomalies in the zoom range if available
-        if thresholded_predictions is not None:
-            pred_zoom_anomalies = np.where(thresholded_predictions[zoom_start:zoom_end] == 1)[0]
-            if len(pred_zoom_anomalies) > 0:
-                pred_zoom_indices = pred_zoom_anomalies + zoom_start
-                fig.add_trace(
-                    go.Scatter(
-                        x=time_steps[pred_zoom_indices],
-                        y=plot_x[pred_zoom_indices],
-                        mode='markers',
-                        marker=dict(color='blue', size=8, symbol='circle'),
-                        name='Detected Anomalies'
-                    )
-                )
-        
-        # Update layout
-        fig.update_layout(
-            title=f"Zoomed View (Time Steps {zoom_start} to {zoom_end})",
-            xaxis_title="Time",
-            yaxis_title="Value",
-            height=500,
-            width=900
         )
     
     return fig
@@ -2376,27 +2439,95 @@ def get_custom_visualizations(detector_name, detector, x, processed_x, time_step
     
     return figures
 
-# Fix the issue with compare_tabs index by checking the number of tabs
-def fix_compare_tabs_index(compare_tabs):
+def get_threshold_documentation(threshold_name):
     """
-    Ensure we don't access an out-of-bounds index in the compare_tabs.
+    Extract documentation from threshold class.
     
     Args:
-        compare_tabs: The comparison tabs object
+        threshold_name: Name of the threshold class
         
     Returns:
-        int: The safe index for Performance Analysis tab
+        str: The main description part of the documentation string for the threshold
     """
-    # Default index for Performance Analysis tab
-    performance_tab_index = 3
-    
-    # Check if we have enough tabs
-    if len(compare_tabs) <= performance_tab_index:
-        # Use the last tab instead
-        return len(compare_tabs) - 1
-    
-    return performance_tab_index
+    try:
+        if hasattr(thresholding, threshold_name):
+            threshold_class = getattr(thresholding, threshold_name)
+            doc = inspect.getdoc(threshold_class)
+            if doc:
+                # Extract just the main description (everything before Parameters or ---)
+                main_description = doc.split("Parameters")[0].split("---")[0].strip()
+                return main_description
+        
+        return f"No documentation available for {threshold_name}."
+    except Exception as e:
+        logger.error(f"Error getting documentation for {threshold_name}: {e}")
+        return f"Error retrieving documentation for {threshold_name}."
 
+def get_threshold_parameter_documentation(threshold_name, param_name):
+    """
+    Extract documentation for a specific parameter of a threshold class.
+    
+    Args:
+        threshold_name: Name of the threshold class
+        param_name: Name of the parameter
+        
+    Returns:
+        str: Documentation for the parameter, or None if not found
+    """
+    try:
+        if hasattr(thresholding, threshold_name):
+            threshold_class = getattr(thresholding, threshold_name)
+            doc = inspect.getdoc(threshold_class)
+            
+            if not doc:
+                return None
+                
+            # Look for parameter documentation in the docstring
+            # Pattern is similar to detector parameter documentation
+            lines = doc.split('\n')
+            param_found = False
+            param_doc = []
+            
+            # First try Parameters section format
+            if "Parameters" in doc:
+                params_section = doc.split("Parameters")[1].split("---")[0].split("Attributes")[0]
+                param_lines = params_section.strip().split('\n')
+                for i, line in enumerate(param_lines):
+                    if param_name in line and ":" in line:
+                        param_found = True
+                        # Extract description from subsequent indented lines
+                        j = i + 1
+                        while j < len(param_lines) and (param_lines[j].startswith(' ') or param_lines[j].startswith('\t')):
+                            param_doc.append(param_lines[j].strip())
+                            j += 1
+                        break
+            
+            # If not found, try another common format
+            if not param_found:
+                for i, line in enumerate(lines):
+                    if line.strip().startswith(param_name + ':') or line.strip().startswith(param_name + ' :'):
+                        param_found = True
+                        param_doc.append(line.split(':', 1)[1].strip())
+                        # Check for multi-line descriptions (indented lines following parameter)
+                        j = i + 1
+                        while j < len(lines) and (lines[j].startswith(' ') or lines[j].startswith('\t')):
+                            param_doc.append(lines[j].strip())
+                            j += 1
+                        break
+            
+            if param_found and param_doc:
+                return ' '.join(param_doc)
+        
+        return None
+    except Exception as e:
+        logger.error(f"Error getting parameter documentation: {e}")
+        return None
+
+# Add a specific function to create default parameters for FixedCutoff
+def init_fixed_cutoff_params():
+    """Initialize default parameters for FixedCutoff threshold."""
+    return {"cutoff": 0.5}
+    
 # --- Main application execution ---
 def main():
     """Main function to run the Streamlit app."""
@@ -2519,8 +2650,8 @@ def main():
         with comparison_container:
             st.header("Comparative Overview of Detectors")
             
-            # Create comparison tabs
-            compare_tabs = st.tabs(["Metrics Comparison", "Time Comparison", "ROC Curve", "Performance Analysis"])
+            # Create comparison tabs - remove Performance Analysis
+            compare_tabs = st.tabs(["Metrics Comparison", "Time Comparison", "ROC Curve", "Anomaly Scores Overlay"])
             
             # Metrics Comparison tab
             with compare_tabs[0]:
@@ -2721,68 +2852,112 @@ def main():
                     st.error(f"Error generating ROC curve: {roc_error}")
                     st.error(traceback.format_exc())
             
-            # Performance Analysis tab - use the fix_compare_tabs_index function to ensure we don't go out of bounds
-            performance_tab_index = fix_compare_tabs_index(compare_tabs)
-            with compare_tabs[performance_tab_index]:
-                st.write("**Quantitative Analysis and Conclusions**")
+            # Anomaly Scores Overlay tab
+            with compare_tabs[3]:
+                st.write("**Overlay of Anomaly Scores from All Detectors**")
                 
                 try:
-                    # Calculate avg scores and find best detector
-                    avg_scores = {}
-                    for detector_key, detector_result in st.session_state.results.items():
-                        if not detector_key.startswith('detector_'):
-                            continue
-                            
-                        detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                        
-                        # Collect all metric values
-                        all_values = []
-                        if 'metrics' in detector_result and detector_result['metrics']:
-                            for threshold_metrics in detector_result['metrics'].values():
-                                all_values.extend([v for v in threshold_metrics.values() if v is not None])
-                        
-                        if all_values:
-                            avg_scores[detector_label] = np.mean(all_values)
-                    
-                    if avg_scores:
-                        best_detector = max(avg_scores, key=avg_scores.get)
-                        st.markdown(f"**Highest Performance**: {best_detector} with average metric score of {avg_scores[best_detector]:.3f}")
-                    
-                    # Time comparisons
-                    fit_times = {}
-                    predict_times = {}
-                    
-                    for detector_key, detector_result in st.session_state.results.items():
-                        if not detector_key.startswith('detector_'):
-                            continue
-                            
-                        detector_label = f"Detector {detector_key[-1]} ({detector_result['detector_name']})"
-                        fit_times[detector_label] = detector_result['fit_time']
-                        predict_times[detector_label] = detector_result['predict_time']
-                    
-                    if fit_times:
-                        fastest_detector = min(fit_times, key=fit_times.get)
-                        st.markdown(f"**Lowest Fit Time**: {fastest_detector} with fit time of {fit_times[fastest_detector]:.2f} seconds")
-                    
-                    if predict_times:
-                        fastest_predict_detector = min(predict_times, key=predict_times.get)
-                        st.markdown(f"**Lowest Predict Time**: {fastest_predict_detector} with predict time of {predict_times[fastest_predict_detector]:.2f} seconds")
-                    
-                    # Data properties
+                    # Get dataset for x-axis time steps
                     if st.session_state.uploaded_data_valid:
-                        x, y = st.session_state.uploaded_data
+                        x, y_true = st.session_state.uploaded_data
                     elif 'selected_dataset_name' in st.session_state:
-                        x, y = load_dataset(st.session_state.selected_dataset_name)
+                        x, y_true = load_dataset(st.session_state.selected_dataset_name)
                     else:
-                        x, y = None, None
+                        x, y_true = None, None
                         
                     if x is not None:
-                        st.markdown("**Impact of Data Properties**:")
-                        dim, is_uni = get_dimension(x), is_univariate(x)
-                        st.write(f"- Dimensionality: {dim}, Univariate: {is_uni}")
+                        # Create a subplot with 2 rows: time series on top, anomaly scores on bottom
+                        fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                                        vertical_spacing=0.1,
+                                        subplot_titles=("Original Time Series with Anomalies", "Anomaly Scores Comparison"))
                         
-                except Exception as analysis_error:
-                    st.error(f"Error generating performance analysis: {analysis_error}")
+                        # Get time steps
+                        time_steps = format_time_steps(None, x.shape[0])
+                        
+                        # Convert to 1D for plotting if needed
+                        if is_univariate(x):
+                            plot_x = x.flatten()
+                        else:
+                            plot_x = x[:, 0].flatten()
+                        
+                        # Add original time series trace
+                        fig.add_trace(
+                            go.Scatter(
+                                x=time_steps,
+                                y=plot_x,
+                                mode='lines',
+                                name='Time Series',
+                                line=dict(color='lightgrey', width=1.5)
+                            ),
+                            row=1, col=1
+                        )
+                        
+                        # Add true anomalies on time series
+                        anomaly_indices = np.where(y_true == 1)[0]
+                        if len(anomaly_indices) > 0:
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=time_steps[anomaly_indices],
+                                    y=plot_x[anomaly_indices],
+                                    mode='markers',
+                                    marker=dict(color='red', size=8, symbol='x'),
+                                    name='True Anomalies'
+                                ),
+                                row=1, col=1
+                            )
+                        
+                        # Color palette for different detectors
+                        colors = px.colors.qualitative.Plotly
+                        
+                        # Add anomaly score traces for each detector
+                        for i, (detector_key, detector_result) in enumerate(st.session_state.results.items()):
+                            if not detector_key.startswith('detector_'):
+                                continue
+                                
+                            detector_name = detector_result['detector_name']
+                            detector_label = f"Detector {detector_key[-1]} ({detector_name})"
+                            anomaly_scores = detector_result['anomaly_scores']
+                            
+                            # Add detector's anomaly scores trace
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=time_steps, 
+                                    y=anomaly_scores,
+                                    mode='lines',
+                                    name=detector_label,
+                                    line=dict(color=colors[i % len(colors)], width=2)
+                                ),
+                                row=2, col=1
+                            )
+                        
+                        # Update layout
+                        fig.update_layout(
+                            height=800,
+                            width=900,
+                            hovermode="x unified",
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=1.02,
+                                xanchor="right",
+                                x=1
+                            )
+                        )
+                        
+                        # Update y-axis labels
+                        fig.update_yaxes(title_text="Value", row=1, col=1)
+                        fig.update_yaxes(title_text="Anomaly Score", row=2, col=1)
+                        
+                        # Update x-axis label (only for bottom subplot)
+                        fig.update_xaxes(title_text="Time Steps", row=2, col=1)
+                        
+                        # Display the figure
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("Cannot generate anomaly score overlay: No dataset available.")
+                except Exception as overlay_error:
+                    st.error(f"Error generating anomaly scores overlay: {overlay_error}")
+                    st.error(traceback.format_exc())
 
 
 if __name__ == "__main__":
