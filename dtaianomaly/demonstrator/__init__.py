@@ -27,9 +27,15 @@ def run_demonstrator():
             # Use the CLI to run the script
             sys.argv = ["streamlit", "run", str(script_path)]
             sys.exit(stcli.main())
-    except ImportError:
+    except ImportError as e:
         # Fallback to os.system if streamlit module can't be properly imported
-        os.system(f"streamlit run {script_path}")
+        print(f"Warning: Could not import Streamlit properly: {e}")
+        print(f"Falling back to os.system command...")
+        try:
+            os.system(f"streamlit run {script_path}")
+        except Exception as os_error:
+            print(f"Error using os.system fallback: {os_error}")
+            print("Please ensure Streamlit is installed: pip install streamlit")
 
 def run_with_detector(detector_class, detector_name=None):
     """
