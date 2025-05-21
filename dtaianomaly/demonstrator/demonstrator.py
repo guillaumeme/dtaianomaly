@@ -664,8 +664,8 @@ def get_detector_documentation(detector_name):
                 detector_class = st.session_state.custom_components['detectors'][detector_name]
                 doc = inspect.getdoc(detector_class)
                 if doc:
-                    # Extract just the main description (everything before Parameters or ---)
-                    main_description = doc.split("Parameters")[0].split("---")[0].strip()
+                    # Extract just the main description (everything before Parameters, Notes or ---)
+                    main_description = doc.split("Parameters")[0].split("---")[0].split("Notes")[0].strip()
                     return main_description
         
         # Check standard detectors
@@ -673,8 +673,8 @@ def get_detector_documentation(detector_name):
             detector_class = getattr(anomaly_detection, detector_name)
             doc = inspect.getdoc(detector_class)
             if doc:
-                # Extract just the main description (everything before Parameters or ---)
-                main_description = doc.split("Parameters")[0].split("---")[0].strip()
+                # Extract just the main description (everything before Parameters, Notes or ---)
+                main_description = doc.split("Parameters")[0].split("---")[0].split("Notes")[0].strip()
                 return main_description
         
         return f"No documentation available for {detector_name}."
@@ -724,13 +724,16 @@ def configure_detector_tab(tab_index):
     
     # Display detector documentation
     detector_doc = get_detector_documentation(selected_detector)
+    # Format the documentation before using it in the f-string
+    formatted_doc = detector_doc.replace('\n', '<br>')
+    
     with st.expander("Detector Documentation", expanded=True):
         # Add styling to make documentation more readable
         st.markdown(f"""
         <div style="background-color:#f8f9fa; padding:15px; border-radius:5px; border-left:5px solid #4CAF50;">
         <h4 style="color:#4CAF50;">{selected_detector}</h4>
         <div style="color:#333; font-size:0.95em;">
-        {detector_doc.replace('\n', '<br>')}
+        {formatted_doc}
         </div>
         </div>
         """, unsafe_allow_html=True)
